@@ -217,9 +217,24 @@ app.post("/render", async (req, res) => {
       );
 
 
+    console.log(
+      "影片總秒數：",
+      totalDuration
+    );
+
+    console.log(
+      "影片總幀數：",
+      totalFrames
+    );
+
+
     // 建立 Remotion bundle
+    console.log("準備建立 Remotion bundle...");
+
     const serveUrl =
       await getBundle();
+
+    console.log("Remotion bundle 完成");
 
 
     const inputProps = {
@@ -228,12 +243,16 @@ app.post("/render", async (req, res) => {
 
 
     // 找到 Composition
+    console.log("開始 selectComposition...");
+
     const composition =
       await selectComposition({
         serveUrl,
         id: "AutoVideo",
         inputProps
       });
+
+    console.log("selectComposition 完成");
 
 
     // 改成實際影片總長度
@@ -258,22 +277,31 @@ app.post("/render", async (req, res) => {
     );
 
 
+    let lastLoggedPercent = -1;
+
     await renderMedia({
-
-      composition:
-        finalComposition,
-
+      composition: finalComposition,
       serveUrl,
-
-      codec:
-        "h264",
-
+      codec: "h264",
       outputLocation,
-
       inputProps,
+      concurrency: 1,
 
-      concurrency: 1
+      onProgress: ({ progress }) => {
+        const percent =
+          Math.round(progress * 100);
 
+        if (
+          percent !== lastLoggedPercent &&
+          percent % 5 === 0
+        ) {
+          lastLoggedPercent = percent;
+
+          console.log(
+            `Render progress: ${percent}%`
+          );
+        }
+      }
     });
 
 
