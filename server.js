@@ -18,7 +18,6 @@ app.use("/outputs", express.static(outputDir));
 
 // ========================================
 // BGM 音樂庫
-// 音樂網址稍後在 Render Environment 設定
 // ========================================
 
 const BGM_LIBRARY = {
@@ -64,11 +63,41 @@ function runFFmpeg(args) {
       (error, stdout, stderr) => {
         if (error) {
           console.error(stderr);
-          reject(error);
+          reject(
+            new Error(
+              `FFmpeg 執行失敗：${stderr || error.message}`
+            )
+          );
           return;
         }
 
         resolve();
+      }
+    );
+  });
+}
+
+// ========================================
+// 檢查來源影片是否有音軌
+// ========================================
+
+function hasAudioStream(filePath) {
+  return new Promise((resolve, reject) => {
+    execFile(
+      ffmpegPath,
+      ["-hide_banner", "-i", filePath],
+      { maxBuffer: 1024 * 1024 * 20 },
+      (error, stdout, stderr) => {
+        const info = stderr || "";
+
+        if (!info.includes("Input #")) {
+          reject(
+            new Error(`無法讀取影片資訊：${info || error?.message}`)
+          );
+          return;
+        }
+
+        resolve(/Stream #\d+:\d+(?:\[[^\]]+\])?(?:\([^)]+\))?: Audio:/i.test(info));
       }
     );
   });
@@ -84,11 +113,12 @@ app.get("/", (req, res) => {
     message: "FFmpeg Video API is running",
     ffmpeg: ffmpegPath,
     bgm_enabled: true,
+    scene_trimming_enabled: true,
   });
 });
 
 // ========================================
-// 影片合併與 BGM API
+// 影片裁切、合併與 BGM API
 // ========================================
 
 app.post("/render", async (req, res) => {
@@ -112,35 +142,118 @@ app.post("/render", async (req, res) => {
       });
     }
 
-    for (const scene of scenes) {
-      if (!scene.video_url) {
+    // ====================================
+    // 先驗證每段影片網址與裁切秒數
+    // ====================================
+
+    for (let i = 0; i < scenes.length; i++) {
+      const scene = scenes[i];
+
+      if (
+        typeof scene.video_url !== "string" ||
+        !scene.video_url.trim()
+      ) {
         return res.status(400).json({
           success: false,
-          error: "每個 scene 都必須包含 video_url",
+          error: `第 ${i + 1} 段缺少 video_url`,
+        });
+      }
+
+      if (
+        !Number.isInteger(scene.duration) ||
+        scene.duration < 1 ||
+        scene.duration > 15
+      ) {
+        return res.status(400).json({
+          success: false,
+          error:
+            `第 ${i + 1} 段 duration 必須是 1～15 的整數秒數`,
         });
       }
     }
 
     fs.mkdirSync(workDir, { recursive: true });
 
-    // ====================================
-    // 下載所有分鏡影片
-    // ====================================
+    const trimmedFiles = [];
+    const totalDuration = scenes.reduce(
+      (sum, scene) => sum + scene.duration,
+      0
+    );
 
-    const localFiles = [];
+    // ====================================
+    // 逐段下載、裁切並統一影音格式
+    // ====================================
 
     for (let i = 0; i < scenes.length; i++) {
-      const filePath = path.join(
+      const scene = scenes[i];
+
+      const sourcePath = path.join(
         workDir,
-        `scene-${i + 1}.mp4`
+        `source-${i + 1}.mp4`
+      );
+
+      const trimmedPath = path.join(
+        workDir,
+        `trimmed-${i + 1}.mp4`
       );
 
       await downloadFile(
-        scenes[i].video_url,
-        filePath
+        scene.video_url,
+        sourcePath
       );
 
-      localFiles.push(filePath);
+      const sourceHasAudio = await hasAudioStream(sourcePath);
+
+      const args = [
+        "-y",
+        "-i", sourcePath,
+      ];
+
+      // 沒有原音軌的影片，補一條靜音音軌，
+      // 避免後續合併或 BGM 混音失敗。
+      if (!sourceHasAudio) {
+        args.push(
+          "-f", "lavfi",
+          "-i", "anullsrc=channel_layout=stereo:sample_rate=48000"
+        );
+      }
+
+      args.push(
+        "-map", "0:v:0",
+        "-map", sourceHasAudio ? "0:a:0" : "1:a:0",
+
+        // 統一成 1280×720，維持原畫面比例。
+        "-vf",
+        "scale=1280:720:force_original_aspect_ratio=decrease," +
+        "pad=1280:720:(ow-iw)/2:(oh-ih)/2," +
+        "fps=30,setsar=1,format=yuv420p",
+
+        // 音訊不足時補靜音，避免短音軌截斷影片。
+        "-af", "aresample=48000:async=1:first_pts=0,apad",
+
+        // 依劇本秒數裁切。
+        "-t", String(scene.duration),
+
+        "-c:v", "libx264",
+        "-preset", "veryfast",
+        "-crf", "23",
+
+        "-c:a", "aac",
+        "-b:a", "128k",
+        "-ar", "48000",
+        "-ac", "2",
+
+        "-movflags", "+faststart",
+        trimmedPath
+      );
+
+      await runFFmpeg(args);
+
+      trimmedFiles.push(trimmedPath);
+
+      console.log(
+        `第 ${i + 1} 段處理完成：保留 ${scene.duration} 秒`
+      );
     }
 
     // ====================================
@@ -152,7 +265,7 @@ app.post("/render", async (req, res) => {
       "list.txt"
     );
 
-    const concatContent = localFiles
+    const concatContent = trimmedFiles
       .map((file) => {
         const safePath = file.replace(
           /'/g,
@@ -188,45 +301,18 @@ app.post("/render", async (req, res) => {
     );
 
     // ====================================
-    // 合併影片
+    // 合併已裁切的影片
     // ====================================
 
-    try {
-      // 優先快速合併，不重新編碼
-
-      await runFFmpeg([
-        "-y",
-        "-f", "concat",
-        "-safe", "0",
-        "-i", concatFile,
-        "-c", "copy",
-        "-movflags", "+faststart",
-        mergedPath,
-      ]);
-
-    } catch (copyError) {
-      console.log(
-        "快速合併失敗，改用重新編碼"
-      );
-
-      if (fs.existsSync(mergedPath)) {
-        fs.unlinkSync(mergedPath);
-      }
-
-      await runFFmpeg([
-        "-y",
-        "-f", "concat",
-        "-safe", "0",
-        "-i", concatFile,
-        "-c:v", "libx264",
-        "-preset", "veryfast",
-        "-crf", "23",
-        "-c:a", "aac",
-        "-b:a", "128k",
-        "-movflags", "+faststart",
-        mergedPath,
-      ]);
-    }
+    await runFFmpeg([
+      "-y",
+      "-f", "concat",
+      "-safe", "0",
+      "-i", concatFile,
+      "-c", "copy",
+      "-movflags", "+faststart",
+      mergedPath,
+    ]);
 
     // ====================================
     // 根據故事情緒選擇 BGM
@@ -249,7 +335,6 @@ app.post("/render", async (req, res) => {
       try {
         const parsedUrl = new URL(bgmUrl);
 
-        // 音樂只允許從已設定的 R2 公開網址下載
         if (
           parsedUrl.protocol !== "https:" ||
           !parsedUrl.hostname.endsWith(".r2.dev")
@@ -275,10 +360,9 @@ app.post("/render", async (req, res) => {
 
         await runFFmpeg([
           "-y",
-
           "-i", mergedPath,
 
-          // 音樂不足影片長度時自動循環
+          // 音樂不足影片長度時自動循環。
           "-stream_loop", "-1",
           "-i", bgmPath,
 
@@ -292,15 +376,12 @@ app.post("/render", async (req, res) => {
           "-map", "0:v:0",
           "-map", "[aout]",
 
-          // 保留原影片畫面，不重新編碼
           "-c:v", "copy",
-
-          // 混音後輸出 AAC
           "-c:a", "aac",
           "-b:a", "192k",
 
+          "-t", String(totalDuration),
           "-movflags", "+faststart",
-
           outputPath,
         ]);
 
@@ -328,7 +409,7 @@ app.post("/render", async (req, res) => {
     }
 
     // ====================================
-    // 回傳影片網址
+    // 回傳影片網址與裁切資訊
     // ====================================
 
     const protocol =
@@ -343,8 +424,10 @@ app.post("/render", async (req, res) => {
 
     res.json({
       success: true,
-      message: "FFmpeg video merge completed",
+      message: "FFmpeg video trim and merge completed",
       sceneCount: scenes.length,
+      planned_duration: totalDuration,
+      scene_durations: scenes.map((scene) => scene.duration),
       music_mood: selectedMood,
       bgm_added: bgmAdded,
       bgm_warning: bgmWarning,
