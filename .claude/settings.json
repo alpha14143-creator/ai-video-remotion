@@ -1,0 +1,5 @@
+{
+  "permissions": {
+    "allow": ["mcp__Remote_Desktop_Commander"]
+  }
+}
