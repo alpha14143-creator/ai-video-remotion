@@ -1,0 +1,35 @@
+{
+  "camera": {
+    "ip": "192.168.1.50",
+    "port": 554,
+    "username": "Tapo App 裡設定的攝影機帳號",
+    "password": "建議改用環境變數 TAPO_PASSWORD",
+    "stream": "stream1"
+  },
+  "r2": {
+    "account_id": "你的 Cloudflare Account ID",
+    "bucket": "你的 R2 bucket 名稱",
+    "key": "xmoto-queue/status.json",
+    "access_key_id": "建議改用環境變數 R2_ACCESS_KEY_ID",
+    "secret_access_key": "建議改用環境變數 R2_SECRET_ACCESS_KEY"
+  },
+  "detection": {
+    "model": "yolov8s.pt",
+    "confidence": 0.35,
+    "image_size": 960
+  },
+  "queue_zone": [[0.05, 0.40], [0.95, 0.40], [0.95, 0.98], [0.05, 0.98]],
+  "exclude_zones": [],
+  "interval_seconds": 30,
+  "smoothing_samples": 3,
+  "minutes_per_bike": null,
+  "business_hours": {
+    "1": ["09:00", "20:00"],
+    "2": ["09:00", "20:00"],
+    "3": ["09:00", "20:00"],
+    "4": ["09:00", "20:00"],
+    "5": ["09:00", "20:00"],
+    "6": ["09:00", "18:00"],
+    "7": null
+  }
+}

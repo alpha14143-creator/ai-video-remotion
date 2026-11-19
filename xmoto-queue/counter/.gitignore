@@ -1,0 +1,5 @@
+config.json
+preview.jpg
+status.json
+*.pt
+__pycache__/
