@@ -124,7 +124,7 @@ python queue_counter.py --config config.json --once
 |---|---|
 | `interval_seconds` | 幾秒算一次（預設 30，與網頁同步） |
 | `smoothing_samples` | 取最近幾次的中位數，避免路人經過數字亂跳（預設 3） |
-| `business_hours` | 營業時間（1=週一…7=週日，`null`=公休），非營業時間網頁顯示「非營業時間」 |
+| `business_hours` | 預設 `null` = 24 小時營業。若之後有固定休息時段，可設定如 `{"1":["09:00","20:00"], ..., "7":null}`（1=週一…7=週日），休息時網頁顯示「休息中」 |
 | `detection.model` | `yolov8n.pt` 較快、`yolov8s.pt` 較準（預設），電腦夠力可用 `yolov8m.pt` |
 | `detection.confidence` | 調高可減少誤判，調低可減少漏數 |
 | `camera.stream` | `stream1` 高畫質（較準）、`stream2` 低畫質（較省資源） |
