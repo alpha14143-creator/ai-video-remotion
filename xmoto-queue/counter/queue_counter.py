@@ -5,9 +5,10 @@ Xmoto 現場等候機車計數器
 在店內一台電腦（與 Tapo C210 同一個 Wi-Fi / 區網）上執行：
   1. 透過 RTSP 讀取 Tapo C210 畫面
   2. 用 YOLO 偵測「機車」(COCO class 3: motorcycle)
-  3. 只計算落在「等候區多邊形」內的機車
-  4. 取最近幾次的中位數，避免路人/遮擋造成數字亂跳
-  5. 產生 status.json 並上傳到 Cloudflare R2（網頁每 30 秒讀取一次）
+  3. 只計算落在「等候區多邊形」內的機車 → 等候數量
+  4. 「機器區」內有機車 → 機器使用中
+  5. 取最近幾次的中位數/多數決，避免路人/遮擋造成數字亂跳
+  6. 產生 status.json 並上傳到 Cloudflare R2（網頁每 30 秒讀取一次）
 
 隱私：只上傳數字，不上傳任何影像。
 
@@ -97,7 +98,11 @@ class Counter:
         self.imgsz = int(d.get("image_size", 960))
         # 等候區：以 0~1 的比例座標表示，與解析度無關
         self.roi = np.array(cfg.get("queue_zone", [[0, 0], [1, 0], [1, 1], [0, 1]]), dtype=np.float32)
-        # 排除區（例如維修工位、店內停放的展示車）
+        # 機器區：機器上（或機器前）有機車 = 使用中；這裡的車不算等候
+        self.machines = [{"name": m.get("name", f"機器{i + 1}"),
+                          "zone": np.array(m["zone"], dtype=np.float32)}
+                         for i, m in enumerate(cfg.get("machine_zones", []))]
+        # 排除區（例如店內停放的展示車、員工車）
         self.excludes = [np.array(p, dtype=np.float32) for p in cfg.get("exclude_zones", [])]
 
     @staticmethod
@@ -105,7 +110,7 @@ class Counter:
         poly = (poly_norm * [w, h]).astype(np.float32)
         return cv2.pointPolygonTest(poly, pt, False) >= 0
 
-    def detect(self, frame: np.ndarray) -> list[dict]:
+    def detect(self, frame: np.ndarray) -> tuple[list[dict], list[bool]]:
         h, w = frame.shape[:2]
         res = self.model.predict(frame, classes=[MOTORCYCLE_CLASS], conf=self.conf,
                                  imgsz=self.imgsz, verbose=False)[0]
@@ -114,10 +119,14 @@ class Counter:
             x1, y1, x2, y2 = box
             # 用車子「底部中心」判斷位置（輪子著地點），比框中心更準
             anchor = ((x1 + x2) / 2, y2 - (y2 - y1) * 0.1)
-            counted = self._inside(self.roi, anchor, w, h) and not any(
+            machine = next((i for i, m in enumerate(self.machines)
+                            if self._inside(m["zone"], anchor, w, h)), None)
+            counted = machine is None and self._inside(self.roi, anchor, w, h) and not any(
                 self._inside(ex, anchor, w, h) for ex in self.excludes)
-            out.append({"box": box, "conf": conf, "anchor": anchor, "counted": counted})
-        return out
+            out.append({"box": box, "conf": conf, "anchor": anchor,
+                        "counted": counted, "machine": machine})
+        in_use = [any(d["machine"] == i for d in out) for i in range(len(self.machines))]
+        return out, in_use
 
     def annotate(self, frame: np.ndarray, dets: list[dict]) -> np.ndarray:
         img = frame.copy()
@@ -125,9 +134,13 @@ class Counter:
         cv2.polylines(img, [(self.roi * [w, h]).astype(np.int32)], True, (0, 220, 255), 3)
         for ex in self.excludes:
             cv2.polylines(img, [(ex * [w, h]).astype(np.int32)], True, (60, 60, 255), 3)
+        for i, m in enumerate(self.machines):
+            pts = (m["zone"] * [w, h]).astype(np.int32)
+            cv2.polylines(img, [pts], True, (255, 120, 0), 3)
+            cv2.putText(img, f"M{i + 1}", tuple(pts[0] + [6, 28]), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 120, 0), 2)
         for d in dets:
             x1, y1, x2, y2 = map(int, d["box"])
-            color = (80, 200, 80) if d["counted"] else (150, 150, 150)
+            color = (80, 200, 80) if d["counted"] else (255, 120, 0) if d["machine"] is not None else (150, 150, 150)
             cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
             cv2.circle(img, tuple(map(int, d["anchor"])), 6, color, -1)
             cv2.putText(img, f"{d['conf']:.2f}", (x1, max(20, y1 - 6)),
@@ -203,13 +216,13 @@ def main() -> int:
     cfg = load_config(args.config)
     interval = float(cfg.get("interval_seconds", 30))
     window = int(cfg.get("smoothing_samples", 3))
-    mins_per_bike = cfg.get("minutes_per_bike")  # 例如 15；不設定就不顯示預估時間
 
     source = args.source or rtsp_url(cfg["camera"])
     camera = Camera(source)
     counter = Counter(cfg)
     publisher = Publisher(cfg, enabled=not (args.no_upload or args.preview))
     history: deque[int] = deque(maxlen=max(1, window))
+    machine_history: deque[list[bool]] = deque(maxlen=max(1, window))
 
     stop = False
 
@@ -226,7 +239,7 @@ def main() -> int:
         try:
             if not in_business_hours(cfg):
                 publisher.publish({"connected": True, "open": False, "count": 0,
-                                   "updatedAt": now_iso(), "estimatedWaitMinutes": None})
+                                   "machines": [], "updatedAt": now_iso()})
                 log.info("非營業時間")
             else:
                 frame = camera.grab()
@@ -236,19 +249,24 @@ def main() -> int:
                     # 不更新 status.json → 網頁 2 分鐘後自動顯示「資料已過期」
                 else:
                     fails = 0
-                    dets = counter.detect(frame)
+                    dets, in_use = counter.detect(frame)
                     raw = sum(d["counted"] for d in dets)
                     if args.preview:
                         cv2.imwrite("preview.jpg", counter.annotate(frame, dets))
-                        log.info("已輸出 preview.jpg（偵測到 %d 台機車，其中 %d 台在等候區）", len(dets), raw)
+                        log.info("已輸出 preview.jpg（偵測到 %d 台機車，等候區 %d 台，機器使用中：%s）",
+                                 len(dets), raw, in_use)
                         return 0
                     history.append(raw)
                     count = int(round(statistics.median(history)))
-                    wait = count * float(mins_per_bike) if mins_per_bike else None
+                    machine_history.append(in_use)
+                    machines = [{"name": m["name"],
+                                 "inUse": sum(h[i] for h in machine_history) * 2 > len(machine_history)}
+                                for i, m in enumerate(counter.machines)]
                     status = {"connected": True, "open": True, "count": count,
-                              "updatedAt": now_iso(), "estimatedWaitMinutes": wait}
+                              "machines": machines, "updatedAt": now_iso()}
                     publisher.publish(status)
-                    log.info("本次 %d 台 → 顯示 %d 台", raw, count)
+                    log.info("等候 %d 台 → 顯示 %d 台；機器：%s", raw, count,
+                             ", ".join(f"{m['name']}={'使用中' if m['inUse'] else '空閒'}" for m in machines) or "未設定")
         except Exception:
             log.exception("執行錯誤，稍後重試")
         if args.once or args.preview:

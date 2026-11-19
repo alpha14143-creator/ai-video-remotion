@@ -2,50 +2,82 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#175e4c"><meta name="description" content="出發前，查看店面目前的等候狀況。">
-<title>Xmoto 豐原-中正店｜現場等候機車數</title>
+<meta name="theme-color" content="#175e4c">
+<title>Xmoto 豐原-中正店｜現場狀況</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f6f5ef;color:#203c34;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}header,main,footer{width:min(100% - 40px,1000px);margin:auto}header{display:flex;justify-content:space-between;align-items:center;padding:30px 0}.brand{font-weight:800;letter-spacing:.08em}.brand span{display:inline-grid;place-items:center;background:#175e4c;color:white;width:34px;height:34px;border-radius:12px;margin-right:10px}.label{font-size:12px;color:#61736b;letter-spacing:.08em}main{padding:45px 0 30px}.eyebrow{color:#648075;font-size:12px;letter-spacing:.18em;font-weight:700}h1{font-size:clamp(32px,6vw,54px);letter-spacing:-.04em;line-height:1.25;margin:15px 0}p{color:#68786f;line-height:1.8}.hero{margin-bottom:35px}.grid{display:grid;grid-template-columns:1.5fr 1fr;gap:20px}.card{border:1px solid #e0e5dc;border-radius:26px;padding:30px;background:#fff}.primary{background:#175e4c;color:#fff;border:none;position:relative;overflow:hidden;min-height:320px}.primary:after{content:"";position:absolute;width:230px;height:230px;border:35px solid #ffffff07;border-radius:50%;right:-80px;bottom:-80px;pointer-events:none}.topline{display:flex;align-items:center;justify-content:space-between;gap:12px}.pill{border-radius:30px;background:#ffffff19;font-size:12px;padding:7px 12px;display:inline-flex;align-items:center;gap:7px}.dot{width:7px;height:7px;background:#e5ce87;border-radius:50%}.count{font-size:96px;font-weight:600;line-height:1.2;margin:28px 0 8px;letter-spacing:-.05em}.count small{font-size:18px;font-weight:400;margin-left:12px;letter-spacing:0}.primary p{color:#c3d7ce;font-size:13px;margin:0}.primary h2{font-weight:500;font-size:16px;margin:0}.muted{font-size:13px;color:#718078}.side h2{font-size:18px;margin:0 0 22px}.row{display:flex;justify-content:space-between;gap:20px;padding:18px 0;border-bottom:1px solid #edf0e8;font-size:14px}.row:last-of-type{border:0}.row strong{text-align:right;font-weight:600}button{font:inherit;cursor:pointer;border:1px solid #dce4d9;color:#295747;background:#f6f8f2;padding:12px 18px;border-radius:12px;width:100%;margin-top:15px}button:hover{background:#edf1e7}button:focus-visible,a:focus-visible{outline:3px solid #dba84b;outline-offset:3px}button:disabled{opacity:.6;cursor:wait}.notice{display:flex;gap:15px;margin-top:20px;padding:22px 25px;background:#eaeedf;border-radius:18px;font-size:13px;line-height:1.8}.notice strong{display:block;margin-bottom:3px}.notice p{margin:0}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin:40px 0}.step b{font-size:11px;color:#8b9a89;letter-spacing:.12em}.step h3{font-size:15px;margin:9px 0}.step p{font-size:13px;margin:0}footer{border-top:1px solid #dfe4d9;padding:22px 0 30px;font-size:12px;color:#7a867c;display:flex;justify-content:space-between;gap:20px}a{color:inherit}.demo-banner{background:#fff2ce;color:#705b20;padding:12px 20px;text-align:center;font-size:13px} @media(max-width:650px){header{padding:22px 0}main{padding-top:24px}.grid{grid-template-columns:1fr}.card{padding:25px}.primary{min-height:290px}.steps{grid-template-columns:1fr;gap:22px}.step{display:grid;grid-template-columns:30px 1fr;column-gap:12px}.step b{grid-row:span 2;padding-top:12px}.step h3{margin-bottom:3px}footer{flex-direction:column;gap:8px}.label{font-size:10px}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#f6f5ef;color:#203c34;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;display:flex;flex-direction:column}
+header,main{width:min(100% - 40px,760px);margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:center;padding:28px 0}
+.brand{font-weight:800;letter-spacing:.08em}
+.brand span{display:inline-grid;place-items:center;background:#175e4c;color:#fff;width:34px;height:34px;border-radius:12px;margin-right:10px}
+.label{font-size:13px;color:#61736b}
+main{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:start;padding:20px 0 40px}
+.card{border-radius:26px;padding:30px;background:#fff;border:1px solid #e0e5dc;min-height:240px;display:flex;flex-direction:column}
+.card h2{margin:0;font-size:16px;font-weight:600;color:#61736b}
+.big{flex:1;display:flex;align-items:center;font-size:72px;font-weight:700;letter-spacing:-.03em;line-height:1.1}
+.big small{font-size:20px;font-weight:500;margin-left:10px;letter-spacing:0}
+.queue{background:#175e4c;border:none;color:#fff}
+.queue h2{color:#c3d7ce}
+.machines{display:flex;flex-direction:column;gap:12px;flex:1;justify-content:center}
+.m{display:flex;align-items:center;gap:14px;font-size:40px;font-weight:700}
+.m .dot{width:22px;height:22px;border-radius:50%;background:#c9cfc8;flex:none}
+.m .name{font-size:15px;font-weight:500;color:#61736b;display:block}
+.busy .dot{background:#d9534f;box-shadow:0 0 0 6px #d9534f22}.busy .state{color:#b8322d}
+.free .dot{background:#2e9d68;box-shadow:0 0 0 6px #2e9d6822}.free .state{color:#1f7f52}
+.unknown .state{color:#9aa59e}
+.foot{grid-column:1/-1;text-align:center;font-size:12px;color:#8b978f}
+.demo-banner{background:#fff2ce;color:#705b20;padding:10px 20px;text-align:center;font-size:13px}
+@media(max-width:600px){main{grid-template-columns:1fr}.card{min-height:180px;padding:24px}.big{font-size:64px}}
 </style></head>
 <body>
-<div id="demo" class="demo-banner" hidden>版面示範中 · 以下數字並非現場機車數 <a href="?">返回正式狀態</a></div>
-<header><div class="brand"><span>X</span>Xmoto</div><div class="label">豐原-中正店・等候資訊</div></header>
-<main><section class="hero"><div class="eyebrow">A LITTLE CHECK, A BETTER VISIT</div><h1>先看一眼，<br>再安心出發。</h1><p>查看現場等候狀況，讓每一次到訪更從容。</p></section>
-<div class="grid"><section class="card primary" aria-labelledby="queue-title"><div class="topline"><h2 id="queue-title">目前等候機車數</h2><span class="pill"><span class="dot"></span><span id="status">尚未連接資料</span></span></div><div class="count" aria-live="polite"><span id="count">—</span><small>台機車等候</small></div><p id="hint">機車台數資料準備中，請以現場狀況為準。</p></section>
-<section class="card side"><h2>到訪前的小提醒</h2><div class="row"><span class="muted">預估等待</span><strong id="wait">暫未提供</strong></div><div class="row"><span class="muted">最後更新</span><strong id="updated">尚無資料</strong></div><div class="row"><span class="muted">自動更新</span><strong>每 30 秒</strong></div><button id="refresh" type="button">↻ 重新整理機車台數</button><p id="message" class="muted" role="status">連線後將自動更新，不需重開頁面。</p></section></div>
-
-
+<div id="demo" class="demo-banner" hidden>版面示範中 · 以下並非現場資料 <a href="?">返回</a></div>
+<header><div class="brand"><span>X</span>Xmoto</div><div class="label">豐原-中正店</div></header>
+<main>
+  <section class="card"><h2>機器狀態</h2><div class="machines" id="machines" aria-live="polite"></div></section>
+  <section class="card queue"><h2>現場等待機車</h2><div class="big" aria-live="polite"><span id="count">—</span><small>台</small></div></section>
+  <p class="foot" id="foot">讀取中…</p>
 </main>
 <script>
 'use strict';
-const ui = Object.fromEntries(['count','status','hint','wait','updated','message','refresh','demo'].map(id=>[id,document.getElementById(id)]));
+const $ = id => document.getElementById(id);
 const demo = new URLSearchParams(location.search).get('demo') === '1';
-let busy = false;
-function empty(status, message) {
-  ui.count.textContent='—'; ui.status.textContent=status; ui.wait.textContent='暫未提供';
-  ui.hint.textContent='目前無法提供可靠機車台數，請以現場狀況為準。'; ui.message.textContent=message;
+const STALE_MS = 120000;
+
+function machinesHTML(list, fallback) {
+  if (!list || !list.length) list = [{ name: '機器', inUse: null }];
+  const one = list.length === 1;
+  return list.map(m => {
+    const cls = m.inUse === true ? 'busy' : m.inUse === false ? 'free' : 'unknown';
+    const text = m.inUse === true ? '使用中' : m.inUse === false ? '空閒' : fallback;
+    const name = one ? '' : `<span class="name">${String(m.name).replace(/[<>&]/g, '')}</span>`;
+    return `<div class="m ${cls}"><span class="dot"></span><span>${name}<span class="state">${text}</span></span></div>`;
+  }).join('');
 }
-function render(data) {
-  if(data.connected !== true) { ui.updated.textContent='尚無資料'; empty('尚未連接資料','攝影機辨識資料尚未接入。'); return; }
-  if(data.open === false) { ui.count.textContent='—'; ui.status.textContent='非營業時間'; ui.wait.textContent='—'; ui.updated.textContent='—';
-    ui.hint.textContent='目前為非營業時間，歡迎於營業時間到訪。'; ui.message.textContent='營業時間內將自動恢復顯示。'; return; }
-  const time = new Date(data.updatedAt);
-  if (!Number.isInteger(data.count) || data.count < 0 || !Number.isFinite(time.getTime())) throw new Error('invalid');
-  ui.updated.textContent=time.toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
-  if(Date.now()-time.getTime()>120000 || time.getTime()-Date.now()>60000) { empty('資料已過期','超過 2 分鐘未收到有效資料，已暫停顯示機車台數。'); return; }
-  ui.count.textContent=data.count; ui.status.textContent=demo?'示範資料':'資料已更新';
-  ui.hint.textContent=data.count===0?'目前未偵測到等候機車，歡迎到訪。':'排隊區域估計機車台數，實際安排請依現場指引。';
-  ui.wait.textContent=Number.isFinite(data.estimatedWaitMinutes)&&data.estimatedWaitMinutes>=0?'約 '+Math.ceil(data.estimatedWaitMinutes)+' 分鐘':'暫未提供';
-  ui.message.textContent=demo?'這是版面示範，並非現場資料。':'已取得最新資料，將於 30 秒後再次更新。';
+function unknown(text, foot) {
+  $('count').textContent = '—';
+  $('machines').innerHTML = machinesHTML(null, text);
+  $('foot').textContent = foot;
+}
+function render(d) {
+  if (d.connected !== true) return unknown('—', '尚未連接資料');
+  if (d.open === false) return unknown('休息中', '目前為非營業時間');
+  const t = new Date(d.updatedAt);
+  if (!Number.isInteger(d.count) || d.count < 0 || !Number.isFinite(t.getTime())) throw new Error('invalid');
+  if (Date.now() - t.getTime() > STALE_MS) return unknown('—', '暫時無法取得現場資料，請以現場狀況為準');
+  $('count').textContent = d.count;
+  $('machines').innerHTML = machinesHTML(d.machines, '—');
+  $('foot').textContent = (demo ? '示範資料 · ' : '') + '更新於 ' +
+    t.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' · 每 30 秒自動更新';
 }
 async function refresh() {
-  if(busy) return; busy=true; ui.refresh.disabled=true;
   try {
-    if(demo) render({connected:true,count:8,updatedAt:new Date().toISOString(),estimatedWaitMinutes:null});
-    else { const response=await fetch('./status.json?t='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(10000)}); if(!response.ok) throw new Error('http'); render(await response.json()); }
-  } catch { empty('暫時無法更新','連線失敗或資料格式錯誤，稍後將自動重試。'); }
-  finally { busy=false; ui.refresh.disabled=false; }
+    if (demo) return render({ connected: true, count: 3, machines: [{ name: '機器', inUse: true }], updatedAt: new Date().toISOString() });
+    const r = await fetch('./status.json?t=' + Date.now(), { cache: 'no-store', signal: AbortSignal.timeout(10000) });
+    if (!r.ok) throw new Error('http');
+    render(await r.json());
+  } catch { unknown('—', '暫時無法更新，稍後自動重試'); }
 }
-ui.demo.hidden=!demo; ui.refresh.addEventListener('click',refresh); refresh(); setInterval(refresh,30000);
-
+$('demo').hidden = !demo;
+refresh(); setInterval(refresh, 30000);
 </script></body></html>

@@ -1,4 +1,6 @@
-# Xmoto 現場等候機車數網頁
+# Xmoto 現場狀況網頁
+
+網頁只顯示兩件事：**機器有沒有使用中**、**現場等待機車台數**。不顯示任何畫面。
 
 Tapo C210 拍等候區 → 店內電腦用 AI 數機車 → 每 30 秒把 `status.json` 上傳到 Cloudflare R2 → 客人開網頁看到數字。
 
@@ -52,10 +54,22 @@ python queue_counter.py --config config.json --preview
 
 - **黃框** = 等候區，只有輪子落在框內的機車才算
 - **綠框** = 有算進去的機車；**灰框** = 偵測到但不在等候區
-- **紅框** = 排除區（例如維修工位、展示車、員工車）
+- **藍框（M1）** = 機器區，框內有機車 = 機器「使用中」，這台車不算等候
+- **紅框** = 排除區（例如展示車、員工車）
 
 `config.json` 裡的 `queue_zone` 用 0~1 的比例座標（左上角 `[0,0]`、右下角 `[1,1]`），
-調整後重跑 `--preview`，直到黃框剛好框住排隊的位置。若框內常停放非等候的車，用 `exclude_zones` 排除。
+調整後重跑 `--preview`，直到黃框剛好框住排隊的位置。
+
+`machine_zones` 框住機器上（或機器正前方）機車會停的位置。有多台機器就加多組，例如：
+
+```json
+"machine_zones": [
+  {"name": "1 號機", "zone": [[0.60,0.20],[0.80,0.20],[0.80,0.60],[0.60,0.60]]},
+  {"name": "2 號機", "zone": [[0.80,0.20],[0.98,0.20],[0.98,0.60],[0.80,0.60]]}
+]
+```
+
+若框內常停放非等候的車，用 `exclude_zones` 排除。
 
 ## 第四步：連到 R2
 
@@ -91,7 +105,6 @@ python queue_counter.py --config config.json
 |---|---|
 | `interval_seconds` | 幾秒算一次（預設 30，與網頁同步） |
 | `smoothing_samples` | 取最近幾次的中位數，避免路人經過數字亂跳（預設 3） |
-| `minutes_per_bike` | 每台平均幾分鐘。填了網頁才會顯示「預估等待」；`null` 則顯示「暫未提供」 |
 | `business_hours` | 營業時間（1=週一…7=週日，`null`=公休），非營業時間網頁顯示「非營業時間」 |
 | `detection.model` | `yolov8n.pt` 較快、`yolov8s.pt` 較準（預設），電腦夠力可用 `yolov8m.pt` |
 | `detection.confidence` | 調高可減少誤判，調低可減少漏數 |
@@ -100,7 +113,7 @@ python queue_counter.py --config config.json
 ## 網頁 `status.json` 格式
 
 ```json
-{"connected": true, "open": true, "count": 4, "updatedAt": "2026-11-19T06:30:00Z", "estimatedWaitMinutes": 60}
+{"connected": true, "open": true, "count": 4, "machines": [{"name": "機器", "inUse": true}], "updatedAt": "2026-11-19T06:30:00Z"}
 ```
 
 網頁加上 `?demo=1` 可看示範畫面。

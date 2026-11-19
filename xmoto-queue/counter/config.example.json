@@ -19,10 +19,12 @@
     "image_size": 960
   },
   "queue_zone": [[0.05, 0.40], [0.95, 0.40], [0.95, 0.98], [0.05, 0.98]],
+  "machine_zones": [
+    {"name": "機器", "zone": [[0.60, 0.20], [0.95, 0.20], [0.95, 0.60], [0.60, 0.60]]}
+  ],
   "exclude_zones": [],
   "interval_seconds": 30,
   "smoothing_samples": 3,
-  "minutes_per_bike": null,
   "business_hours": {
     "1": ["09:00", "20:00"],
     "2": ["09:00", "20:00"],
