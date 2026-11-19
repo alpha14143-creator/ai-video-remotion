@@ -83,14 +83,23 @@ python queue_counter.py --config config.json --preview
 `config.json` 裡的 `queue_zone` 用 0~1 的比例座標（左上角 `[0,0]`、右下角 `[1,1]`），
 調整後重跑 `--preview`，直到黃框剛好框住排隊的位置。
 
-`machine_zones` 框住機器上（或機器正前方）機車會停的位置。有多台機器就加多組，例如：
+`machine_zones` 框住**洗車間玻璃內的地板**。`config.example.json` 已經依照店內 C210 的實際畫面框好：
 
-```json
-"machine_zones": [
-  {"name": "1 號機", "zone": [[0.60,0.20],[0.80,0.20],[0.80,0.60],[0.60,0.60]]},
-  {"name": "2 號機", "zone": [[0.80,0.20],[0.98,0.20],[0.98,0.60],[0.80,0.60]]}
-]
+- 黃框（等候區）：洗車間左邊、地上黃黑線的兩格停車位
+- 藍框（洗車機）：白鐵玻璃窗內的地板
+- 畫面最上方路邊停的機車不在黃框內，不會被算進去
+
+**空機照片（建議一定要做）**：洗車間玻璃常有水痕，AI 可能看不清楚裡面的車。所以程式會另外和「洗車間沒車時的照片」比對，畫面差很多就判定為使用中。
+在洗車間**沒有車**的時候各拍一張白天、一張晚上（燈光不同）：
+
+```bash
+python queue_counter.py --config config.json --save-reference empty_day.jpg    # 白天
+python queue_counter.py --config config.json --save-reference empty_night.jpg  # 晚上
 ```
+
+`--preview` 的圖上會顯示 `change 0.03/0.15`，前面是目前畫面變化量，後面是門檻（`change_threshold`）。
+空機時的數字要明顯低於門檻、有車時要明顯高於門檻；不準的話調整 `change_threshold`。
+店內擺設或燈光改變後，記得重拍空機照片。
 
 若框內常停放非等候的車，用 `exclude_zones` 排除。
 

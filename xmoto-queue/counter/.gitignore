@@ -3,3 +3,4 @@ preview.jpg
 status.json
 *.pt
 __pycache__/
+empty_*.jpg

@@ -186,10 +186,22 @@ class Counter:
         self.imgsz = int(d.get("image_size", 960))
         # 等候區：以 0~1 的比例座標表示，與解析度無關
         self.roi = np.array(cfg.get("queue_zone", [[0, 0], [1, 0], [1, 1], [0, 1]]), dtype=np.float32)
-        # 機器區：機器上（或機器前）有機車 = 使用中；這裡的車不算等候
-        self.machines = [{"name": m.get("name", f"機器{i + 1}"),
-                          "zone": np.array(m["zone"], dtype=np.float32)}
-                         for i, m in enumerate(cfg.get("machine_zones", []))]
+        # 機器區：機器內有機車 = 使用中；這裡的車不算等候
+        # 洗車間玻璃有水痕時 AI 可能看不清楚，所以另外和「空機照片」比對：
+        # 畫面跟所有空機照片都差很多 → 也判定為使用中
+        self.machines = []
+        for i, m in enumerate(cfg.get("machine_zones", [])):
+            refs = m.get("empty_references", [])
+            self.machines.append({
+                "name": m.get("name", f"機器{i + 1}"),
+                "zone": np.array(m["zone"], dtype=np.float32),
+                "refs": [img for img in (cv2.imread(r) for r in refs) if img is not None],
+                "ref_paths": refs,
+                "threshold": float(m.get("change_threshold", 0.15)),
+            })
+            missing = len(refs) - len(self.machines[-1]["refs"])
+            if missing:
+                log.warning("%s：有 %d 張空機照片讀不到", self.machines[-1]["name"], missing)
         # 排除區（例如店內停放的展示車、員工車）
         self.excludes = [np.array(p, dtype=np.float32) for p in cfg.get("exclude_zones", [])]
 
@@ -197,6 +209,27 @@ class Counter:
     def _inside(poly_norm: np.ndarray, pt: tuple[float, float], w: int, h: int) -> bool:
         poly = (poly_norm * [w, h]).astype(np.float32)
         return cv2.pointPolygonTest(poly, pt, False) >= 0
+
+    @staticmethod
+    def _prep(img: np.ndarray, size: tuple[int, int]) -> np.ndarray:
+        g = cv2.cvtColor(cv2.resize(img, size), cv2.COLOR_BGR2GRAY)
+        g = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(g)  # 降低明暗變化影響
+        return cv2.GaussianBlur(g, (9, 9), 0)
+
+    def change_score(self, frame: np.ndarray, m: dict) -> float | None:
+        """機器區和空機照片相比，有多少比例的畫面明顯不同（0~1）。取與各張空機照片中最像的那張。"""
+        if not m["refs"]:
+            return None
+        size = (640, 360)
+        mask = np.zeros(size[::-1], np.uint8)
+        cv2.fillPoly(mask, [(m["zone"] * size).astype(np.int32)], 255)
+        cur = self._prep(frame, size)
+        scores = []
+        for ref in m["refs"]:
+            diff = cv2.absdiff(cur, self._prep(ref, size))
+            changed = (diff > 35) & (mask > 0)
+            scores.append(changed.sum() / max(1, (mask > 0).sum()))
+        return float(min(scores))
 
     def detect(self, frame: np.ndarray) -> tuple[list[dict], list[bool]]:
         h, w = frame.shape[:2]
@@ -213,7 +246,13 @@ class Counter:
                 self._inside(ex, anchor, w, h) for ex in self.excludes)
             out.append({"box": box, "conf": conf, "anchor": anchor,
                         "counted": counted, "machine": machine})
-        in_use = [any(d["machine"] == i for d in out) for i in range(len(self.machines))]
+        in_use = []
+        self.last_scores = []
+        for i, m in enumerate(self.machines):
+            score = self.change_score(frame, m)
+            self.last_scores.append(score)
+            seen = any(d["machine"] == i for d in out)
+            in_use.append(seen or (score is not None and score >= m["threshold"]))
         return out, in_use
 
     def annotate(self, frame: np.ndarray, dets: list[dict]) -> np.ndarray:
@@ -225,7 +264,9 @@ class Counter:
         for i, m in enumerate(self.machines):
             pts = (m["zone"] * [w, h]).astype(np.int32)
             cv2.polylines(img, [pts], True, (255, 120, 0), 3)
-            cv2.putText(img, f"M{i + 1}", tuple(pts[0] + [6, 28]), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 120, 0), 2)
+            score = self.last_scores[i] if i < len(getattr(self, "last_scores", [])) else None
+            label = f"M{i + 1}" + (f" change {score:.2f}/{m['threshold']:.2f}" if score is not None else "")
+            cv2.putText(img, label, tuple(pts[0] + [6, 34]), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (255, 120, 0), 3)
         for d in dets:
             x1, y1, x2, y2 = map(int, d["box"])
             color = (80, 200, 80) if d["counted"] else (255, 120, 0) if d["machine"] is not None else (150, 150, 150)
@@ -297,6 +338,8 @@ def main() -> int:
     ap.add_argument("--source", help="改用影片/圖片/其他 RTSP 來源（測試用）")
     ap.add_argument("--once", action="store_true", help="只執行一次")
     ap.add_argument("--preview", action="store_true", help="輸出 preview.jpg 標註圖後結束")
+    ap.add_argument("--save-reference", metavar="檔名",
+                    help="把目前畫面存成空機照片（請在機器內沒有車時執行），例如 empty_day.jpg")
     ap.add_argument("--no-upload", action="store_true", help="不上傳 R2，只寫本機 status.json")
     args = ap.parse_args()
 
@@ -306,6 +349,14 @@ def main() -> int:
     window = int(cfg.get("smoothing_samples", 3))
 
     camera = Camera(source=args.source, cam=cfg["camera"])
+    if args.save_reference:
+        frame = camera.grab()
+        if frame is None:
+            log.error("讀不到攝影機畫面")
+            return 1
+        cv2.imwrite(args.save_reference, frame)
+        log.info("已存成 %s，請把檔名加進 config.json 的 empty_references", args.save_reference)
+        return 0
     counter = Counter(cfg)
     publisher = Publisher(cfg, enabled=not (args.no_upload or args.preview))
     history: deque[int] = deque(maxlen=max(1, window))
@@ -340,8 +391,9 @@ def main() -> int:
                     raw = sum(d["counted"] for d in dets)
                     if args.preview:
                         cv2.imwrite("preview.jpg", counter.annotate(frame, dets))
-                        log.info("已輸出 preview.jpg（偵測到 %d 台機車，等候區 %d 台，機器使用中：%s）",
-                                 len(dets), raw, in_use)
+                        log.info("已輸出 preview.jpg（偵測到 %d 台機車，等候區 %d 台，機器使用中：%s，畫面變化：%s）",
+                                 len(dets), raw, in_use,
+                                 [None if x is None else round(x, 3) for x in counter.last_scores])
                         return 0
                     history.append(raw)
                     count = int(round(statistics.median(history)))
