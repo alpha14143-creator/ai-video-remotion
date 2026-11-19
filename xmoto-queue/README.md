@@ -2,10 +2,10 @@
 
 網頁只顯示兩件事：**機器有沒有使用中**、**現場等待機車台數**。不顯示任何畫面。
 
-Tapo C210 拍等候區 → 店內電腦用 AI 數機車 → 每 30 秒把 `status.json` 上傳到 Cloudflare R2 → 客人開網頁看到數字。
+Tapo C210 拍等候區 → 店內樹莓派用 AI 數機車 → 每 30 秒把 `status.json` 上傳到 Cloudflare R2 → 客人開網頁看到數字。
 
 ```
-[Tapo C210] --RTSP(店內網路)--> [店內電腦: queue_counter.py] --上傳--> [R2: status.json] <--讀取-- [網頁 index.html]
+[Tapo C210] --RTSP(店內 Wi-Fi)--> [樹莓派: queue_counter.py] --上傳--> [R2: status.json] <--讀取-- [網頁 index.html]
 ```
 
 - **只上傳數字，不上傳畫面**：客人的臉和車牌不會出現在網路上。
@@ -13,18 +13,41 @@ Tapo C210 拍等候區 → 店內電腦用 AI 數機車 → 每 30 秒把 `statu
 
 ## 需要準備
 
-| 項目 | 說明 |
-|---|---|
-| 店內電腦 | 一台 Windows / Mac / 迷你電腦皆可，要一直開著，和攝影機在**同一個 Wi-Fi**。普通筆電 CPU 就跑得動（每 30 秒算一次）。 |
-| Python 3.10 以上 | https://www.python.org/downloads/ |
-| Cloudflare R2 | 就是目前放網頁的地方 |
+店內不需要電腦，放一台**樹莓派（Raspberry Pi）**就好：巴掌大、插電即用、不用螢幕，24 小時開著很省電。
+
+| 項目 | 說明 | 參考價 |
+|---|---|---|
+| Raspberry Pi 5（4GB）或 Pi 4（4GB） | 跑計數程式 | 約 NT$2,000–2,800 |
+| 官方電源、32GB 以上 microSD 卡、外殼 | | 約 NT$600–900 |
+| Cloudflare R2 | 就是目前放網頁的地方 | 免費額度內 |
+
+> 用 Pi 4 的話，建議把 `detection.model` 改成 `yolov8n.pt`，速度比較快。
+
+### 店內 Wi-Fi 是浮動 IP 也沒關係
+
+- **對外 IP 浮動**：不影響。樹莓派只「往外上傳」數字到 R2，外面不需要連進店裡，所以不用固定 IP、不用設定路由器。
+- **攝影機在店內的 IP 會變**：`camera.ip` 設為 `"auto"`，程式會自動掃描 Wi-Fi 找到攝影機；IP 換了也會自動重新找。
+- 店裡如果有多台 Tapo，在 `camera.mac` 填 C210 的 MAC 位址（Tapo App →「裝置資訊」可查），程式就只會認這一台。
+
+### 樹莓派安裝（一次性，約 30 分鐘）
+
+1. 用電腦下載 [Raspberry Pi Imager](https://www.raspberrypi.com/software/)，燒錄 **Raspberry Pi OS Lite (64-bit)**。燒錄前在設定裡填好**店內 Wi-Fi 名稱密碼**，並開啟 **SSH**。
+2. SD 卡插進樹莓派、插電，等 2 分鐘。
+3. 用手機或電腦 SSH 連進去（例如 `ssh pi@raspberrypi.local`），執行：
+   ```bash
+   sudo apt-get install -y git
+   git clone <這個 repo 的網址> && cd ai-video-remotion/xmoto-queue
+   sudo bash pi/install.sh
+   ```
+4. 照畫面提示，填 `/opt/xmoto-queue/config.json` 和 `/opt/xmoto-queue/secrets.env`，再 `sudo systemctl start xmoto-queue`。
+
+之後停電、重開機都會自動恢復執行。下面第一～四步的設定說明同樣適用，只是設定檔在 `/opt/xmoto-queue/`。
 
 ## 第一步：開啟 Tapo C210 的 RTSP
 
 1. Tapo App → 點進攝影機 → 右上角齒輪 →「進階設定」→「攝影機帳戶」
 2. 設定一組帳號密碼（這不是你的 TP-Link 帳號，是攝影機專用的）
-3. 「裝置資訊」裡查看攝影機的 **IP 位址**（例如 `192.168.1.50`）
-   - 建議在路由器把這個 IP 設為固定，不然重開機後可能會變。
+3. IP 不用查，程式會自動找（`camera.ip` 保持 `"auto"`）。
 4. 隱私模式要關閉，不然抓不到畫面。
 
 ## 第二步：安裝計數程式
@@ -90,14 +113,10 @@ python queue_counter.py --config config.json --once
 
 打開網頁應該就會看到數字。
 
-## 第五步：正式執行（開機自動啟動）
+## 第五步：正式執行
 
-```bash
-python queue_counter.py --config config.json
-```
-
-- **Windows**：工作排程器 →「建立基本工作」→ 觸發：電腦啟動時 → 動作：啟動 `python`，引數 `queue_counter.py --config config.json`，起始位置填 counter 資料夾
-- **Mac**：可用 `launchd`；**Linux / 樹莓派**：用 systemd 或 `crontab @reboot`
+- **樹莓派**：`sudo systemctl start xmoto-queue`（安裝時已設定開機自動執行）。查看紀錄：`journalctl -u xmoto-queue -f`
+- 用一般電腦測試時：`python queue_counter.py --config config.json`
 
 ## 可調整的設定
 

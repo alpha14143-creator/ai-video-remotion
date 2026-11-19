@@ -55,24 +55,32 @@ def load_config(path: str) -> dict:
     return cfg
 
 
-def rtsp_url(cam: dict) -> str:
+def rtsp_url(cam: dict, ip: str | None = None) -> str:
     user = quote(cam["username"], safe="")
     pwd = quote(cam["password"], safe="")
     stream = cam.get("stream", "stream1")  # stream1 = 高畫質, stream2 = 低畫質
-    return f"rtsp://{user}:{pwd}@{cam['ip']}:{cam.get('port', 554)}/{stream}"
+    return f"rtsp://{user}:{pwd}@{ip or cam['ip']}:{cam.get('port', 554)}/{stream}"
 
 
 # ---------------------------------------------------------------- camera
 class Camera:
-    """每次需要時才連線抓一張最新畫面，避免長時間連線的緩衝延遲與斷線問題。"""
+    """每次需要時才連線抓一張最新畫面，避免長時間連線的緩衝延遲與斷線問題。
 
-    def __init__(self, source: str):
-        self.source = source
+    店內 Wi-Fi 的 IP 可能會變（DHCP 浮動）：
+    camera.ip 設為 "auto"，或連續連不到時，會自動掃描同網段找出攝影機。
+    """
 
-    def grab(self) -> np.ndarray | None:
-        if not self.source.startswith("rtsp://") and Path(self.source).is_file():
-            return cv2.imread(self.source)
-        cap = cv2.VideoCapture(self.source, cv2.CAP_FFMPEG)
+    def __init__(self, source: str | None = None, cam: dict | None = None):
+        self.source = source          # 測試用的固定來源（圖片 / 影片 / RTSP）
+        self.cam = cam or {}
+        self.ip = None if self.cam.get("ip", "auto") == "auto" else self.cam["ip"]
+        self.fails = 0
+
+    @staticmethod
+    def _read(url: str) -> np.ndarray | None:
+        if not url.startswith("rtsp://") and Path(url).is_file():
+            return cv2.imread(url)
+        cap = cv2.VideoCapture(url, cv2.CAP_FFMPEG)
         try:
             if not cap.isOpened():
                 return None
@@ -85,6 +93,86 @@ class Camera:
             return frame
         finally:
             cap.release()
+
+    def grab(self) -> np.ndarray | None:
+        if self.source:
+            return self._read(self.source)
+        if self.ip is None or self.fails >= 2:
+            found = find_camera(self.cam)
+            if found:
+                if found != self.ip:
+                    log.info("找到攝影機：%s", found)
+                self.ip, self.fails = found, 0
+            elif self.ip is None:
+                return None
+        frame = self._read(rtsp_url(self.cam, self.ip))
+        self.fails = 0 if frame is not None else self.fails + 1
+        return frame
+
+
+def local_subnets() -> list[str]:
+    """回傳本機所在的 /24 網段前綴，例如 ['192.168.1']。"""
+    import socket
+
+    prefixes = set()
+    try:  # 不會真的送出封包，只是讓系統選出對外的網卡 IP
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        prefixes.add(s.getsockname()[0].rsplit(".", 1)[0])
+        s.close()
+    except OSError:
+        pass
+    return sorted(p for p in prefixes if not p.startswith("127."))
+
+
+def arp_table() -> dict[str, str]:
+    """IP → MAC（小寫、冒號分隔）。Linux / Mac / Windows 皆可。"""
+    import re
+    import subprocess
+
+    out = ""
+    for cmd in (["ip", "neigh"], ["arp", "-a"]):
+        try:
+            out += subprocess.run(cmd, capture_output=True, text=True, timeout=5).stdout
+        except (OSError, subprocess.SubprocessError):
+            pass
+    table = {}
+    for line in out.splitlines():
+        ip = re.search(r"(\d+\.\d+\.\d+\.\d+)", line)
+        mac = re.search(r"([0-9a-fA-F]{1,2}[:-]){5}[0-9a-fA-F]{1,2}", line)
+        if ip and mac:
+            table[ip.group(1)] = ":".join(x.zfill(2) for x in re.split("[:-]", mac.group(0).lower()))
+    return table
+
+
+def find_camera(cam: dict) -> str | None:
+    """掃描區網中開著 RTSP(554) 的裝置，用帳密實際抓一張畫面確認是攝影機。
+    若設定了 camera.mac，就只認那一台（店內有多台攝影機時使用）。"""
+    import socket
+    from concurrent.futures import ThreadPoolExecutor
+
+    port = int(cam.get("port", 554))
+    want_mac = (cam.get("mac") or "").lower().replace("-", ":") or None
+
+    def open_port(ip: str) -> str | None:
+        try:
+            with socket.create_connection((ip, port), timeout=0.6):
+                return ip
+        except OSError:
+            return None
+
+    candidates = []
+    for prefix in local_subnets():
+        with ThreadPoolExecutor(max_workers=64) as pool:
+            candidates += [ip for ip in pool.map(open_port, (f"{prefix}.{i}" for i in range(1, 255))) if ip]
+    if want_mac:
+        table = arp_table()
+        candidates = [ip for ip in candidates if table.get(ip) == want_mac]
+    for ip in candidates:
+        if Camera._read(rtsp_url(cam, ip)) is not None:
+            return ip
+    log.warning("區網內找不到攝影機（候選：%s）", candidates or "無")
+    return None
 
 
 # ---------------------------------------------------------------- detection
@@ -217,8 +305,7 @@ def main() -> int:
     interval = float(cfg.get("interval_seconds", 30))
     window = int(cfg.get("smoothing_samples", 3))
 
-    source = args.source or rtsp_url(cfg["camera"])
-    camera = Camera(source)
+    camera = Camera(source=args.source, cam=cfg["camera"])
     counter = Counter(cfg)
     publisher = Publisher(cfg, enabled=not (args.no_upload or args.preview))
     history: deque[int] = deque(maxlen=max(1, window))

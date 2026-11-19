@@ -1,0 +1,14 @@
+[Unit]
+Description=Xmoto queue counter (Tapo C210 -> R2)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/opt/xmoto-queue
+EnvironmentFile=/opt/xmoto-queue/secrets.env
+ExecStart=/opt/xmoto-queue/venv/bin/python queue_counter.py --config config.json
+Restart=always
+RestartSec=20
+
+[Install]
+WantedBy=multi-user.target
