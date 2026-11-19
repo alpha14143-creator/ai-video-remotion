@@ -202,8 +202,11 @@ class Counter:
             missing = len(refs) - len(self.machines[-1]["refs"])
             if missing:
                 log.warning("%s：有 %d 張空機照片讀不到", self.machines[-1]["name"], missing)
-        # 排除區（例如店內停放的展示車、員工車）
-        self.excludes = [np.array(p, dtype=np.float32) for p in cfg.get("exclude_zones", [])]
+        # 排除區（例如擦車區、展示車、員工車）：可寫成座標陣列，或 {"name": ..., "zone": ...}
+        self.excludes = [np.array(p["zone"] if isinstance(p, dict) else p, dtype=np.float32)
+                         for p in cfg.get("exclude_zones", [])]
+        # 超大的框通常是牆上海報之類的誤判（車子不會佔滿整個畫面高度）
+        self.max_box_height = float(d.get("max_box_height", 0.7))
 
     @staticmethod
     def _inside(poly_norm: np.ndarray, pt: tuple[float, float], w: int, h: int) -> bool:
@@ -238,6 +241,8 @@ class Counter:
         out = []
         for box, conf in zip(res.boxes.xyxy.tolist(), res.boxes.conf.tolist()):
             x1, y1, x2, y2 = box
+            if (y2 - y1) > self.max_box_height * h:
+                continue
             # 用車子「底部中心」判斷位置（輪子著地點），比框中心更準
             anchor = ((x1 + x2) / 2, y2 - (y2 - y1) * 0.1)
             machine = next((i for i, m in enumerate(self.machines)

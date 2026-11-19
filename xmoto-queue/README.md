@@ -85,8 +85,9 @@ python queue_counter.py --config config.json --preview
 
 `machine_zones` 框住**洗車間玻璃內的地板**。`config.example.json` 已經依照店內 C210 的實際畫面框好：
 
-- 黃框（等候區）：洗車間左邊、地上黃黑線的兩格停車位
-- 藍框（洗車機）：白鐵玻璃窗內的地板
+- 黃框（等候區）：洗車間左邊、上方那格黃黑線停車位與走道
+- 紅框（擦車區）：吹水機旁的停車格，洗完在這裡擦車，**不算等候**
+- 藍框（洗車機）：白鐵玻璃窗內的地板。洗車時玻璃有水、燈會變藍，AI 常看不到車，主要靠「空機照片比對」判斷
 - 畫面最上方路邊停的機車不在黃框內，不會被算進去
 
 **空機照片（建議一定要做）**：洗車間玻璃常有水痕，AI 可能看不清楚裡面的車。所以程式會另外和「洗車間沒車時的照片」比對，畫面差很多就判定為使用中。
@@ -135,6 +136,7 @@ python queue_counter.py --config config.json --once
 | `smoothing_samples` | 取最近幾次的中位數，避免路人經過數字亂跳（預設 3） |
 | `business_hours` | 預設 `null` = 24 小時營業。若之後有固定休息時段，可設定如 `{"1":["09:00","20:00"], ..., "7":null}`（1=週一…7=週日），休息時網頁顯示「休息中」 |
 | `detection.model` | `yolov8n.pt` 較快、`yolov8s.pt` 較準（預設），電腦夠力可用 `yolov8m.pt` |
+| `detection.max_box_height` | 框的高度超過畫面幾成就忽略（避免把牆上的機車海報當成車），預設 0.7 |
 | `detection.confidence` | 調高可減少誤判，調低可減少漏數 |
 | `camera.stream` | `stream1` 高畫質（較準）、`stream2` 低畫質（較省資源） |
 

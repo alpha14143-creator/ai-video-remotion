@@ -17,7 +17,8 @@
   "detection": {
     "model": "yolov8s.pt",
     "confidence": 0.35,
-    "image_size": 960
+    "image_size": 960,
+    "max_box_height": 0.7
   },
   "queue_zone": [
     [
@@ -85,7 +86,33 @@
       "change_threshold": 0.15
     }
   ],
-  "exclude_zones": [],
+  "exclude_zones": [
+    {
+      "name": "擦車區（吹水機旁的停車格，洗完在這裡擦車，不算等候）",
+      "zone": [
+        [
+          0.125,
+          0.569
+        ],
+        [
+          0.3,
+          0.524
+        ],
+        [
+          0.45,
+          0.764
+        ],
+        [
+          0.525,
+          1.0
+        ],
+        [
+          0.19,
+          1.0
+        ]
+      ]
+    }
+  ],
   "interval_seconds": 30,
   "smoothing_samples": 3,
   "business_hours": null
