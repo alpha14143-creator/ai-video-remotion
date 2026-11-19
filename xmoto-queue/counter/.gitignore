@@ -4,3 +4,6 @@ status.json
 *.pt
 __pycache__/
 empty_*.jpg
+secrets.env
+venv/
+logs/

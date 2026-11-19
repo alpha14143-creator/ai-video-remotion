@@ -3,16 +3,16 @@
     "ip": "auto",
     "mac": "",
     "port": 554,
-    "username": "Tapo App 裡設定的攝影機帳號",
-    "password": "建議改用環境變數 TAPO_PASSWORD",
+    "username": "",
+    "password": "",
     "stream": "stream1"
   },
   "r2": {
-    "account_id": "你的 Cloudflare Account ID",
-    "bucket": "你的 R2 bucket 名稱",
+    "account_id": "",
+    "bucket": "",
     "key": "xmoto-queue/status.json",
-    "access_key_id": "建議改用環境變數 R2_ACCESS_KEY_ID",
-    "secret_access_key": "建議改用環境變數 R2_SECRET_ACCESS_KEY"
+    "access_key_id": "",
+    "secret_access_key": ""
   },
   "detection": {
     "model": "yolov8s.pt",

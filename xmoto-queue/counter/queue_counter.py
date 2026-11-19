@@ -43,7 +43,22 @@ os.environ.setdefault("OPENCV_FFMPEG_CAPTURE_OPTIONS", "rtsp_transport;tcp")
 
 
 # ---------------------------------------------------------------- config
+def load_secrets_file(path: Path) -> None:
+    """讀取 secrets.env（KEY=VALUE 一行一個），已設定的環境變數優先。"""
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        value = value.strip().strip('"').strip("'")
+        if value:
+            os.environ.setdefault(key.strip(), value)
+
+
 def load_config(path: str) -> dict:
+    load_secrets_file(Path(path).resolve().parent / "secrets.env")
     with open(path, encoding="utf-8") as f:
         cfg = json.load(f)
     # 密碼等敏感資訊可改用環境變數覆寫，避免寫死在檔案
