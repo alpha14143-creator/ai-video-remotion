@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Raspberry Pi 一鍵安裝：sudo bash install.sh
-# 會安裝到 /opt/xmoto-queue，並設定成開機自動執行、當機自動重啟。
+# Raspberry Pi / Ubuntu 一鍵安裝：sudo bash install.sh
+# 會安裝到 /opt/xmoto-queue，並設定成開機自動執行、程式當掉自動重啟、每天 04:00 重開機。
+# 要改重開機時間：sudo REBOOT_TIME=05:30 bash install.sh
 set -euo pipefail
 [ "$(id -u)" -eq 0 ] || { echo "請用 sudo bash install.sh 執行"; exit 1; }
 
@@ -30,9 +31,15 @@ cp "$SRC/pi/xmoto-queue.service" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable xmoto-queue
 
+# 每天固定時間重開機，清掉長時間運作累積的小問題
+REBOOT_TIME="${REBOOT_TIME:-04:00}"
+H="${REBOOT_TIME%%:*}"; M="${REBOOT_TIME##*:}"
+echo "$((10#$M)) $((10#$H)) * * * root /sbin/shutdown -r now" > /etc/cron.d/xmoto-daily-reboot
+chmod 644 /etc/cron.d/xmoto-daily-reboot
+
 cat <<MSG
 
-安裝完成。接下來：
+安裝完成（每天 $REBOOT_TIME 自動重開機）。接下來：
   1. sudo nano $APP/config.json     填攝影機帳號、R2 資料
   2. sudo nano $APP/secrets.env     填密碼與 R2 金鑰
   3. cd $APP && sudo venv/bin/python queue_counter.py --preview   產生 preview.jpg 檢查框選範圍
