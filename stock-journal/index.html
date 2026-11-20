@@ -110,13 +110,19 @@
 </head>
 <body>
 <header class="top">
-  <h1 id="topTitle">今日 5 檔</h1>
+  <h1 id="topTitle">今日 10 檔</h1>
   <div class="sub" id="topSub">台股 當沖 / 短線 交易助手</div>
 </header>
 
 <main>
-  <!-- ========== 今日 5 檔 ========== -->
+  <!-- ========== 今日 10 檔 ========== -->
   <section class="tab" id="tab-picks">
+    <div id="usBox"></div>
+    <div class="seg" id="pickSeg" style="display:none">
+      <button data-k="" class="on">全部</button>
+      <button data-k="daytrade">當沖</button>
+      <button data-k="swing">短線</button>
+    </div>
     <div id="picksBox"><div class="spinner">載入中…</div></div>
   </section>
 
@@ -252,7 +258,8 @@
     <div class="card">
       <div class="warn">
         <b>⚠️ 計算方式和風險</b><br>
-        • <b>今日 5 檔</b>：每天收盤後從成交金額前 300 名的上市櫃股票（排除處置股）中，用均線趨勢、波動和量能篩選，選出當沖 2 檔、短線 3 檔。<br>
+        • <b>今日 10 檔</b>：每天早上 8 點，從成交金額前 300 名的上市櫃股票（排除處置股）中，用均線趨勢、波動和量能篩選，選出當沖 5 檔、短線 5 檔。和美股方向一致的股票會加分。<br>
+        • <b>美股預測</b>：用最近 60 個交易日的資料，算出費半、那斯達克、標普、台積電 ADR 的漲跌和台股開盤跳空的關係，再依相關程度加權平均。美股和台股的關係只有一部分，大漲大跌時常常低估，只能當方向參考。<br>
         • <b>當沖</b>：用昨日高、低、收盤算樞紐點（R1/S1）當進場位置。停損 0.3 個 ATR，停利 1 是 0.5 個 ATR，停利 2 是 1 個 ATR，價格限制在漲跌停內。<br>
         • <b>短線</b>：用 10 / 20 / 60 日線判斷趨勢。停損抓近 10 日的高低點，限制在 1 到 3 個 ATR、最多 8%。停利是停損距離的 2 倍和 3 倍。<br>
         • 這是機械式的技術分析計算，不是投資建議，也不保證獲利。財報、新聞、法說、當沖資格都不在計算範圍，請自行判斷，自負盈虧。
@@ -262,7 +269,7 @@
 </main>
 
 <nav class="bottom">
-  <button data-tab="picks" onclick="showTab('picks')"><span class="ic">🔥</span>今日5檔</button>
+  <button data-tab="picks" onclick="showTab('picks')"><span class="ic">🔥</span>今日10檔</button>
   <button data-tab="plan" onclick="showTab('plan')"><span class="ic">🎯</span>查價格</button>
   <button data-tab="journal" onclick="showTab('journal')"><span class="ic">📒</span>紀錄</button>
   <button data-tab="settings" onclick="showTab('settings')"><span class="ic">⚙️</span>設定</button>
@@ -292,7 +299,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const pxFmt = p => p == null || p === '' ? '-' : (Number.isInteger(+p) ? fmt(+p) : fmt(+p, 2));
 
 /* ================= 分頁 ================= */
-const TAB_TITLES = { picks:'今日 5 檔', plan:'查價格', journal:'交易紀錄', settings:'設定' };
+const TAB_TITLES = { picks:'今日 10 檔', plan:'查價格', journal:'交易紀錄', settings:'設定' };
 function showTab(name) {
   if (!TAB_TITLES[name]) name = 'picks';
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === 'tab-' + name));
@@ -365,7 +372,7 @@ function planCard(p, { dimBad = true } = {}) {
   </div>`;
 }
 
-/* ================= 今日 5 檔 ================= */
+/* ================= 今日 10 檔 ================= */
 let picksData = null;
 async function loadPicks() {
   try {
@@ -375,22 +382,49 @@ async function loadPicks() {
     renderPicks();
   } catch (e) {
     $('picksBox').innerHTML = `<div class="card"><h2>還沒有今日選股資料</h2>
-      <p class="muted" style="line-height:1.7">今日 5 檔由每天收盤後的自動程式產生（GitHub Actions）。<br>
+      <p class="muted" style="line-height:1.7">今日 10 檔由每天早上 8 點的自動程式產生（GitHub Actions）。<br>
       如果是在電腦上直接打開 HTML 檔，請改用 <code>node server.js</code> 開啟，或先執行 <code>node scripts/daily-picks.js</code>。<br>
       「查價格」功能仍然可以使用。</p><div class="err small">${esc(e.message)}</div></div>`;
   }
 }
-function renderPicks() {
-  const d = picksData, m = d.market;
-  const gen = new Date(d.generatedAt);
-  const stale = (Date.now() - new Date(d.date + 'T14:30:00+08:00')) / 86400000 > 4;
-  $('topSub').textContent = `資料日期 ${d.date}・更新於 ${gen.toLocaleString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' })}`;
+let pickFilter = '';
+$('pickSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  pickFilter = b.dataset.k;
+  $('pickSeg').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  renderPicks();
+});
+const mmdd = d => d.slice(5).replace('-', '/');
+function renderUs(d) {
+  const us = d.us, m = d.market;
   let html = '';
+  if (us && us.indices && us.indices.length) {
+    const arrow = v => v > 0 ? '▲' : v < 0 ? '▼' : '';
+    html += `<div class="card">
+      <h2>🇺🇸 美股 <span class="muted">${mmdd(us.indices[0].date)} 收盤</span></h2>
+      <div class="stats">${us.indices.map(i => `<div class="stat"><div class="k">${esc(i.name)}</div>
+        <div class="v ${cls(i.chg)}">${signed(i.chg,2)}%</div></div>`).join('')}
+        ${us.adrPremium != null ? `<div class="stat"><div class="k">台積電 ADR 溢價</div><div class="v">${fmt(us.adrPremium,1)}%</div></div>` : ''}
+      </div>`;
+    if (us.available) {
+      html += `<div style="margin-top:12px; padding:12px; border-radius:10px; background:${us.predGap >= 0 ? '#fef3f2' : '#ecfdf3'}">
+        <div class="muted small">預估今天台股開盤</div>
+        <div style="font-size:24px; font-weight:800" class="${cls(us.predGap)}">${arrow(us.predGap)} ${signed(us.predGap,2)}%
+          <span style="font-size:15px; font-weight:600">約 ${fmt(us.predIndex)}</span></div>
+        <div class="muted small" style="margin-top:4px; line-height:1.6">
+          預測區間 ${signed(us.predLow,2)}% ～ ${signed(us.predHigh,2)}%${us.hitN ? ` ・ 過去 ${us.window} 天中跳空明顯的 ${us.hitN} 天，方向猜對 ${us.hitRate}%` : ''}<br>
+          美股大漲大跌時，這個預測常常偏小，只能當方向參考。</div>
+      </div>`;
+    } else {
+      html += `<p class="muted small" style="margin:10px 0 0; line-height:1.6">⏳ ${esc(us.reason)}。<br>上面的美股漲跌已經反映在 ${mmdd(d.date)} 的台股收盤。</p>`;
+    }
+    html += `</div>`;
+  }
   if (m) {
     const big = Math.abs(m.chg) >= 3;
     html += `<div class="card">
       <div style="display:flex; justify-content:space-between; align-items:baseline">
-        <div><div class="muted small">加權指數</div><div style="font-size:22px; font-weight:700" class="num ${cls(m.chg)}">${fmt(m.close,2)}</div></div>
+        <div><div class="muted small">加權指數 ${mmdd(m.date)} 收盤</div><div style="font-size:22px; font-weight:700" class="num ${cls(m.chg)}">${fmt(m.close,2)}</div></div>
         <div class="num ${cls(m.chg)}" style="font-size:18px; font-weight:700">${signed(m.chg,2)}%</div>
       </div>
       <div class="chips">
@@ -401,11 +435,23 @@ function renderPicks() {
       ${big ? `<div class="warn" style="margin-top:10px">大盤單日${m.chg < 0 ? '大跌' : '大漲'} ${Math.abs(m.chg).toFixed(1)}%，隔天波動通常很大，跳空容易跳過停損價。建議部位減半，嚴守停損。</div>` : ''}
     </div>`;
   }
-  if (stale) html += `<div class="warn">⚠️ 資料日期是 ${d.date}，已經超過 4 天沒有更新，請確認自動更新是否正常。</div>`;
+  $('usBox').innerHTML = html;
+}
+function renderPicks() {
+  const d = picksData;
+  const gen = new Date(d.generatedAt);
+  const stale = (Date.now() - new Date(d.date + 'T14:30:00+08:00')) / 86400000 > 4;
+  $('topSub').textContent = `更新於 ${gen.toLocaleString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' })}・台股資料 ${d.date}`;
+  renderUs(d);
+  $('pickSeg').style.display = d.picks.length ? '' : 'none';
+  let html = '';
+  if (stale) html += `<div class="warn">⚠️ 台股資料日期是 ${d.date}，已經超過 4 天沒有更新，請確認自動更新是否正常。</div>`;
   if (!d.picks.length) html += `<div class="card"><p class="muted">今天沒有符合條件的股票，建議觀望。</p></div>`;
   d.picks.forEach((pk, i) => {
+    if (pickFilter && pk.kind !== pickFilter) return;
     const x = pk.x, chg = (x.last.close - x.prev.close) / x.prev.close * 100;
     const p = enrich(pk.plan, pk.code, pk.name);
+    const notes = pk.usNotes || [];
     html += `<div class="card">
       <div class="pick-h">
         <div>
@@ -413,14 +459,16 @@ function renderPicks() {
           <div class="name">${esc(pk.code)} ${esc(pk.name)}</div>
           <div style="margin-top:4px">${kindBadge(pk.kind)} <span class="badge ${p.side === 'long' ? 'b-good' : 'b-bad'}">${p.side === 'long' ? '做多' : '做空'}</span></div>
         </div>
-        <div class="px"><b class="${cls(chg)}">${pxFmt(x.last.close)}</b><div class="small ${cls(chg)}">${signed(chg,2)}%</div></div>
+        <div class="px"><div class="muted small">昨收</div><b class="${cls(chg)}">${pxFmt(x.last.close)}</b><div class="small ${cls(chg)}">${signed(chg,2)}%</div>
+          ${pk.estOpen ? `<div class="small" style="margin-top:4px">預估開 <b class="${cls(pk.estOpen - x.last.close)}">${pxFmt(pk.estOpen)}</b></div>` : ''}</div>
       </div>
       <div class="chips">${pk.reasons.map(r => `<span class="chip">${esc(r)}</span>`).join('')}</div>
+      ${notes.length ? `<div class="small" style="margin-top:8px; line-height:1.6">${notes.map(n => `<div>${esc(n)}</div>`).join('')}</div>` : ''}
       ${planCard(p, { dimBad:false })}
       <button class="block" style="margin-top:8px" onclick="openPlanFromPick('${pk.code}')">看完整計畫（多空 8 種情境）›</button>
     </div>`;
   });
-  html += `<p class="muted small center" style="line-height:1.6">當沖：明天盤中符合「什麼時候進場」的條件才進場，13:25 前平倉。<br>
+  html += `<p class="muted small center" style="line-height:1.6">當沖：盤中符合「什麼時候進場」的條件才進場，13:25 前平倉。<br>
     短線：條件成立才進場，收盤跌破停損就出場。<br>這是技術面的機械篩選，不是投資建議。</p>`;
   $('picksBox').innerHTML = html;
 }
@@ -676,7 +724,7 @@ function render() {
         <button class="sm danger" onclick="deleteTrade('${t.id}')">刪除</button>
       </div>
     </div>`;
-  }).join('') : `<p class="muted center" style="padding:16px 0">${trades.length ? '沒有符合條件的紀錄' : '還沒有紀錄。可以在「今日5檔」或「查價格」按「帶入紀錄」，或按上方「＋ 新增交易」。'}</p>`;
+  }).join('') : `<p class="muted center" style="padding:16px 0">${trades.length ? '沒有符合條件的紀錄' : '還沒有紀錄。可以在「今日10檔」或「查價格」按「帶入紀錄」，或按上方「＋ 新增交易」。'}</p>`;
   renderStats(list);
   renderMonths();
 }
