@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>當沖 / 短線 交易紀錄</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#1f2328; --muted:#6b7280; --line:#e5e7eb;
+          --up:#d92d20; --down:#079455; --accent:#2563eb; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif; background:var(--bg); color:var(--text); }
+  header { padding:16px 20px; background:var(--card); border-bottom:1px solid var(--line); display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; }
+  h1 { font-size:20px; margin:0; }
+  main { max-width:1200px; margin:0 auto; padding:16px; display:grid; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; }
+  .card h2 { font-size:16px; margin:0 0 12px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+  label { display:flex; flex-direction:column; font-size:13px; color:var(--muted); gap:4px; }
+  input, select, textarea { font-size:15px; padding:7px 8px; border:1px solid var(--line); border-radius:6px; color:var(--text); background:#fff; width:100%; }
+  textarea { min-height:38px; resize:vertical; }
+  button { font-size:14px; padding:8px 14px; border-radius:6px; border:1px solid var(--line); background:#fff; cursor:pointer; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  button.danger { color:var(--up); }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+  .stat { background:var(--bg); border-radius:8px; padding:10px 12px; }
+  .stat .k { font-size:12px; color:var(--muted); }
+  .stat .v { font-size:20px; font-weight:600; margin-top:2px; font-variant-numeric:tabular-nums; }
+  .up { color:var(--up); } .down { color:var(--down); }
+  .table-wrap { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums; }
+  th, td { padding:8px 6px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }
+  th { color:var(--muted); font-weight:500; font-size:12px; position:sticky; top:0; background:var(--card); }
+  td.l, th.l { text-align:left; }
+  td.note { white-space:normal; min-width:140px; max-width:260px; text-align:left; color:var(--muted); }
+  .tag { display:inline-block; padding:1px 8px; border-radius:10px; font-size:12px; background:#eef2ff; color:var(--accent); }
+  .tag.open { background:#fef3c7; color:#92400e; }
+  .muted { color:var(--muted); font-size:13px; }
+  .hint { font-size:13px; color:var(--muted); margin-top:8px; }
+  details summary { cursor:pointer; font-weight:600; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📈 當沖 / 短線 交易紀錄</h1>
+  <div class="row" style="margin:0">
+    <button onclick="exportCSV()">匯出 CSV</button>
+    <button onclick="exportJSON()">備份 JSON</button>
+    <button onclick="document.getElementById('importFile').click()">匯入</button>
+    <input type="file" id="importFile" accept=".json,.csv" style="display:none" onchange="importFile(this)">
+  </div>
+</header>
+
+<main>
+  <!-- 新增 / 編輯 -->
+  <section class="card">
+    <h2 id="formTitle">新增交易</h2>
+    <form id="tradeForm" onsubmit="saveTrade(event)">
+      <div class="grid">
+        <label>類型
+          <select name="type" onchange="onTypeChange()">
+            <option value="daytrade">當沖</option>
+            <option value="swing">短線</option>
+          </select>
+        </label>
+        <label>方向
+          <select name="side">
+            <option value="long">做多（先買後賣）</option>
+            <option value="short">做空（先賣後買）</option>
+          </select>
+        </label>
+        <label>股票代號<input name="code" required placeholder="2330"></label>
+        <label>股票名稱<input name="name" placeholder="台積電"></label>
+        <label>股數<input name="qty" type="number" min="1" step="1" required placeholder="1000"></label>
+        <label>ETF（證交稅 0.1%）
+          <select name="etf"><option value="0">否</option><option value="1">是</option></select>
+        </label>
+        <label>進場日期<input name="openDate" type="date" required></label>
+        <label id="openPriceLabel">買進價<input name="openPrice" type="number" step="0.01" min="0" required></label>
+        <label id="closeDateLabel">出場日期<input name="closeDate" type="date"></label>
+        <label id="closePriceLabel">賣出價<input name="closePrice" type="number" step="0.01" min="0" placeholder="未出場可留空"></label>
+        <label>策略 / 標籤<input name="strategy" placeholder="突破、跌深反彈…"></label>
+      </div>
+      <label style="margin-top:10px">心得 / 進出理由<textarea name="note" placeholder="為什麼進場？有沒有照計畫停損？"></textarea></label>
+      <div class="row">
+        <button class="primary" type="submit" id="submitBtn">新增</button>
+        <button type="button" onclick="resetForm()">清除</button>
+        <span class="muted" id="preview"></span>
+      </div>
+    </form>
+  </section>
+
+  <!-- 統計 -->
+  <section class="card">
+    <h2>績效統計 <span class="muted" id="statScope"></span></h2>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <!-- 篩選 + 紀錄 -->
+  <section class="card">
+    <h2>交易紀錄</h2>
+    <div class="grid">
+      <label>類型
+        <select id="fType" onchange="render()">
+          <option value="">全部</option><option value="daytrade">當沖</option><option value="swing">短線</option>
+        </select>
+      </label>
+      <label>狀態
+        <select id="fStatus" onchange="render()">
+          <option value="">全部</option><option value="closed">已平倉</option><option value="open">持有中</option>
+        </select>
+      </label>
+      <label>月份<input id="fMonth" type="month" onchange="render()"></label>
+      <label>代號 / 名稱<input id="fCode" oninput="render()" placeholder="搜尋"></label>
+    </div>
+    <div class="table-wrap" style="margin-top:12px">
+      <table>
+        <thead><tr>
+          <th class="l">進場日</th><th class="l">出場日</th><th class="l">類型</th><th class="l">股票</th>
+          <th>股數</th><th>進場價</th><th>出場價</th><th>手續費</th><th>交易稅</th>
+          <th>淨損益</th><th>報酬率</th><th>持有天數</th><th class="l">策略</th><th class="l">心得</th><th></th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <p class="muted" id="emptyHint"></p>
+  </section>
+
+  <!-- 月份統計 -->
+  <section class="card">
+    <h2>每月損益</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th class="l">月份</th><th>筆數</th><th>勝率</th><th>當沖損益</th><th>短線損益</th><th>合計淨損益</th></tr></thead>
+        <tbody id="monthBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 設定 -->
+  <section class="card">
+    <details>
+      <summary>手續費 / 稅率設定</summary>
+      <div class="grid" style="margin-top:12px">
+        <label>手續費率 (%)<input id="sFeeRate" type="number" step="0.0001"></label>
+        <label>手續費折扣（例：6 折填 0.6）<input id="sDiscount" type="number" step="0.01" min="0" max="1"></label>
+        <label>最低手續費（元）<input id="sMinFee" type="number" step="1" min="0"></label>
+        <label>一般證交稅 (%)<input id="sTax" type="number" step="0.01"></label>
+        <label>當沖證交稅 (%)<input id="sDayTax" type="number" step="0.01"></label>
+        <label>ETF 證交稅 (%)<input id="sEtfTax" type="number" step="0.01"></label>
+      </div>
+      <div class="row"><button class="primary" onclick="saveSettings()">儲存設定</button></div>
+      <p class="hint">預設為台股：手續費 0.1425%、最低 20 元；證交稅一般 0.3%、現股當沖 0.15%、ETF 0.1%。
+        手續費與稅額都無條件捨去到整數元。請依你券商的實際折扣調整。</p>
+    </details>
+    <p class="hint">資料只存在這台裝置的瀏覽器中（localStorage），換瀏覽器或清除資料就會不見，請定期按「備份 JSON」。</p>
+  </section>
+</main>
+
+<script>
+const KEY = 'stockJournal.trades.v1';
+const SKEY = 'stockJournal.settings.v1';
+const DEFAULT_SETTINGS = { feeRate:0.1425, discount:1, minFee:20, tax:0.3, dayTax:0.15, etfTax:0.1 };
+
+let trades = JSON.parse(localStorage.getItem(KEY) || '[]');
+let settings = Object.assign({}, DEFAULT_SETTINGS, JSON.parse(localStorage.getItem(SKEY) || '{}'));
+let editingId = null;
+
+const $ = id => document.getElementById(id);
+const form = $('tradeForm');
+const fmt = (n, d=0) => n == null || isNaN(n) ? '-' : n.toLocaleString('zh-TW', {minimumFractionDigits:d, maximumFractionDigits:d});
+const cls = n => n > 0 ? 'up' : n < 0 ? 'down' : '';
+const signed = (n, d=0) => n == null ? '-' : (n > 0 ? '+' : '') + fmt(n, d);
+const today = () => new Date().toISOString().slice(0,10);
+const persist = () => localStorage.setItem(KEY, JSON.stringify(trades));
+
+/* ---------- 計算 ---------- */
+function fee(amount) {
+  if (!amount) return 0;
+  return Math.max(Math.floor(amount * settings.feeRate / 100 * settings.discount), settings.minFee);
+}
+function calc(t) {
+  const qty = +t.qty, op = +t.openPrice;
+  const closed = t.closePrice !== '' && t.closePrice != null && t.closeDate;
+  const cp = closed ? +t.closePrice : null;
+  // 做多：進場=買、出場=賣；做空：進場=賣、出場=買
+  const buyPrice  = t.side === 'short' ? cp : op;
+  const sellPrice = t.side === 'short' ? op : cp;
+  const openAmt = op * qty;
+  const r = { closed, openAmt, openFee: fee(openAmt), closeFee:0, tax:0, net:null, ret:null, days:null };
+  if (!closed) return r;
+  const closeAmt = cp * qty;
+  r.closeFee = fee(closeAmt);
+  const taxRate = t.etf === '1' ? settings.etfTax : (t.type === 'daytrade' ? settings.dayTax : settings.tax);
+  r.tax = Math.floor(sellPrice * qty * taxRate / 100);
+  r.gross = (sellPrice - buyPrice) * qty;
+  r.net = r.gross - r.openFee - r.closeFee - r.tax;
+  r.ret = r.net / openAmt * 100;
+  r.days = Math.round((new Date(t.closeDate) - new Date(t.openDate)) / 86400000);
+  return r;
+}
+
+/* ---------- 表單 ---------- */
+function onTypeChange() {
+  const isDay = form.type.value === 'daytrade';
+  if (isDay) form.closeDate.value = form.openDate.value;
+  $('closeDateLabel').style.display = isDay ? 'none' : '';
+  updatePreview();
+}
+function readForm() {
+  const f = Object.fromEntries(new FormData(form).entries());
+  if (f.type === 'daytrade') f.closeDate = f.openDate;
+  f.code = f.code.trim().toUpperCase();
+  return f;
+}
+function updatePreview() {
+  const isShort = form.side.value === 'short';
+  $('openPriceLabel').firstChild.textContent = isShort ? '賣出價（進場）' : '買進價';
+  $('closePriceLabel').firstChild.textContent = isShort ? '買回價（出場）' : '賣出價';
+  const f = readForm();
+  if (!f.qty || !f.openPrice || f.closePrice === '') { $('preview').textContent = ''; return; }
+  if (!f.closeDate) f.closeDate = f.openDate || today();
+  const r = calc(f);
+  $('preview').innerHTML = `預估淨損益 <b class="${cls(r.net)}">${signed(r.net)}</b> 元（${signed(r.ret,2)}%）・手續費 ${fmt(r.openFee + r.closeFee)}・稅 ${fmt(r.tax)}`;
+}
+form.addEventListener('input', updatePreview);
+form.addEventListener('change', updatePreview);
+
+function saveTrade(e) {
+  e.preventDefault();
+  const f = readForm();
+  if (f.closePrice !== '' && !f.closeDate) { alert('有填出場價，請一併填寫出場日期'); return; }
+  if (f.closeDate && f.closeDate < f.openDate) { alert('出場日期不能早於進場日期'); return; }
+  if (editingId) {
+    const i = trades.findIndex(t => t.id === editingId);
+    trades[i] = Object.assign({}, trades[i], f);
+  } else {
+    trades.push(Object.assign({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,6) }, f));
+  }
+  persist(); resetForm(); render();
+}
+function resetForm() {
+  const keep = { type: form.type.value, openDate: form.openDate.value || today() };
+  form.reset(); editingId = null;
+  form.type.value = keep.type; form.openDate.value = keep.openDate;
+  $('formTitle').textContent = '新增交易'; $('submitBtn').textContent = '新增';
+  onTypeChange();
+}
+function editTrade(id) {
+  const t = trades.find(x => x.id === id); if (!t) return;
+  editingId = id;
+  for (const k of ['type','side','code','name','qty','etf','openDate','openPrice','closeDate','closePrice','strategy','note'])
+    if (form[k]) form[k].value = t[k] ?? '';
+  $('formTitle').textContent = `編輯交易：${t.code} ${t.name || ''}`; $('submitBtn').textContent = '儲存修改';
+  onTypeChange();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+function deleteTrade(id) {
+  const t = trades.find(x => x.id === id);
+  if (!confirm(`確定刪除 ${t.openDate} ${t.code} ${t.name || ''} 這筆紀錄？`)) return;
+  trades = trades.filter(x => x.id !== id); persist(); render();
+}
+
+/* ---------- 顯示 ---------- */
+function filtered() {
+  const ft = $('fType').value, fs = $('fStatus').value, fm = $('fMonth').value, fc = $('fCode').value.trim().toUpperCase();
+  return trades.filter(t => {
+    const r = calc(t);
+    if (ft && t.type !== ft) return false;
+    if (fs === 'closed' && !r.closed) return false;
+    if (fs === 'open' && r.closed) return false;
+    if (fm && !((t.closeDate || t.openDate).startsWith(fm))) return false;
+    if (fc && !(t.code.includes(fc) || (t.name || '').toUpperCase().includes(fc))) return false;
+    return true;
+  }).sort((a,b) => (b.openDate).localeCompare(a.openDate));
+}
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function render() {
+  const list = filtered();
+  $('tbody').innerHTML = list.map(t => {
+    const r = calc(t);
+    const typeTag = t.type === 'daytrade' ? '當沖' : '短線';
+    const sideTxt = t.side === 'short' ? '・空' : '';
+    return `<tr>
+      <td class="l">${t.openDate}</td>
+      <td class="l">${r.closed ? (t.type === 'daytrade' ? '同日' : t.closeDate) : '<span class="tag open">持有中</span>'}</td>
+      <td class="l"><span class="tag">${typeTag}${sideTxt}</span></td>
+      <td class="l"><b>${esc(t.code)}</b> ${esc(t.name)}</td>
+      <td>${fmt(+t.qty)}</td><td>${fmt(+t.openPrice,2)}</td><td>${r.closed ? fmt(+t.closePrice,2) : '-'}</td>
+      <td>${fmt(r.openFee + r.closeFee)}</td><td>${r.closed ? fmt(r.tax) : '-'}</td>
+      <td class="${cls(r.net)}"><b>${signed(r.net)}</b></td>
+      <td class="${cls(r.ret)}">${r.closed ? signed(r.ret,2) + '%' : '-'}</td>
+      <td>${r.days ?? '-'}</td>
+      <td class="l">${esc(t.strategy)}</td>
+      <td class="note">${esc(t.note)}</td>
+      <td><button onclick="editTrade('${t.id}')">編輯</button> <button class="danger" onclick="deleteTrade('${t.id}')">刪除</button></td>
+    </tr>`;
+  }).join('');
+  $('emptyHint').textContent = list.length ? '' : (trades.length ? '沒有符合篩選條件的紀錄' : '還沒有紀錄，從上方新增第一筆交易吧！');
+  renderStats(list);
+  renderMonths();
+}
+
+function summarize(list) {
+  const closed = list.map(t => ({ t, r: calc(t) })).filter(x => x.r.closed);
+  const wins = closed.filter(x => x.r.net > 0), losses = closed.filter(x => x.r.net <= 0);
+  const sum = a => a.reduce((s,x) => s + x.r.net, 0);
+  const winSum = sum(wins), lossSum = sum(losses);
+  // 最大回撤（依出場日排序的累積損益）
+  let peak = 0, cum = 0, mdd = 0;
+  [...closed].sort((a,b) => a.t.closeDate.localeCompare(b.t.closeDate)).forEach(x => {
+    cum += x.r.net; peak = Math.max(peak, cum); mdd = Math.min(mdd, cum - peak);
+  });
+  return {
+    n: closed.length, open: list.length - closed.length, net: sum(closed),
+    winRate: closed.length ? wins.length / closed.length * 100 : null,
+    avgWin: wins.length ? winSum / wins.length : null,
+    avgLoss: losses.length ? lossSum / losses.length : null,
+    pf: lossSum ? winSum / -lossSum : null,
+    cost: closed.reduce((s,x) => s + x.r.openFee + x.r.closeFee + x.r.tax, 0),
+    best: closed.length ? Math.max(...closed.map(x => x.r.net)) : null,
+    worst: closed.length ? Math.min(...closed.map(x => x.r.net)) : null,
+    mdd,
+  };
+}
+function renderStats(list) {
+  const s = summarize(list);
+  const anyFilter = $('fType').value || $('fStatus').value || $('fMonth').value || $('fCode').value;
+  $('statScope').textContent = anyFilter ? '（依目前篩選條件）' : '（全部紀錄）';
+  const items = [
+    ['淨損益（已平倉）', `<span class="${cls(s.net)}">${signed(s.net)}</span>`],
+    ['已平倉筆數', fmt(s.n)], ['持有中', fmt(s.open)],
+    ['勝率', s.winRate == null ? '-' : fmt(s.winRate,1) + '%'],
+    ['平均獲利', `<span class="up">${s.avgWin == null ? '-' : signed(s.avgWin)}</span>`],
+    ['平均虧損', `<span class="down">${s.avgLoss == null ? '-' : signed(s.avgLoss)}</span>`],
+    ['獲利因子', s.pf == null ? '-' : fmt(s.pf,2)],
+    ['最大單筆獲利', `<span class="${cls(s.best)}">${signed(s.best)}</span>`],
+    ['最大單筆虧損', `<span class="${cls(s.worst)}">${signed(s.worst)}</span>`],
+    ['最大回撤', `<span class="${cls(s.mdd)}">${signed(s.mdd)}</span>`],
+    ['手續費 + 稅 合計', fmt(s.cost)],
+  ];
+  $('stats').innerHTML = items.map(([k,v]) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+}
+function renderMonths() {
+  const m = {};
+  trades.forEach(t => {
+    const r = calc(t); if (!r.closed) return;
+    const key = t.closeDate.slice(0,7);
+    m[key] ??= { n:0, w:0, day:0, swing:0 };
+    m[key].n++; if (r.net > 0) m[key].w++;
+    m[key][t.type === 'daytrade' ? 'day' : 'swing'] += r.net;
+  });
+  const keys = Object.keys(m).sort().reverse();
+  $('monthBody').innerHTML = keys.length ? keys.map(k => {
+    const x = m[k], tot = x.day + x.swing;
+    return `<tr><td class="l">${k}</td><td>${x.n}</td><td>${fmt(x.w / x.n * 100,1)}%</td>
+      <td class="${cls(x.day)}">${signed(x.day)}</td><td class="${cls(x.swing)}">${signed(x.swing)}</td>
+      <td class="${cls(tot)}"><b>${signed(tot)}</b></td></tr>`;
+  }).join('') : '<tr><td class="l muted" colspan="6">尚無已平倉紀錄</td></tr>';
+}
+
+/* ---------- 設定 ---------- */
+const SET_FIELDS = { sFeeRate:'feeRate', sDiscount:'discount', sMinFee:'minFee', sTax:'tax', sDayTax:'dayTax', sEtfTax:'etfTax' };
+function loadSettingsForm() { for (const [id,k] of Object.entries(SET_FIELDS)) $(id).value = settings[k]; }
+function saveSettings() {
+  for (const [id,k] of Object.entries(SET_FIELDS)) { const v = parseFloat($(id).value); if (!isNaN(v)) settings[k] = v; }
+  localStorage.setItem(SKEY, JSON.stringify(settings)); render(); updatePreview(); alert('設定已儲存');
+}
+
+/* ---------- 匯出 / 匯入 ---------- */
+const COLS = ['type','side','code','name','qty','etf','openDate','openPrice','closeDate','closePrice','strategy','note'];
+function download(name, text, mime) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: mime })); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function exportJSON() { download(`交易紀錄備份_${today()}.json`, JSON.stringify({ trades, settings }, null, 2), 'application/json'); }
+function exportCSV() {
+  const q = v => `"${String(v ?? '').replace(/"/g,'""')}"`;
+  const head = [...COLS, 'fee', 'tax', 'net', 'returnPct', 'holdDays'];
+  const rows = trades.map(t => { const r = calc(t);
+    return [...COLS.map(c => t[c]), r.openFee + r.closeFee, r.closed ? r.tax : '', r.net ?? '', r.ret == null ? '' : r.ret.toFixed(2), r.days ?? ''].map(q).join(','); });
+  download(`交易紀錄_${today()}.csv`, '﻿' + [head.join(','), ...rows].join('\n'), 'text/csv'); // BOM 讓 Excel 正確顯示中文
+}
+function parseCSV(text) {
+  const rows = []; let row = [], cur = '', inQ = false;
+  text = text.replace(/^﻿/, '');
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) { if (c === '"' && text[i+1] === '"') { cur += '"'; i++; } else if (c === '"') inQ = false; else cur += c; }
+    else if (c === '"') inQ = true;
+    else if (c === ',') { row.push(cur); cur = ''; }
+    else if (c === '\n' || c === '\r') { if (c === '\r' && text[i+1] === '\n') i++; row.push(cur); rows.push(row); row = []; cur = ''; }
+    else cur += c;
+  }
+  if (cur || row.length) { row.push(cur); rows.push(row); }
+  const [head, ...data] = rows.filter(r => r.some(v => v !== ''));
+  return data.map(r => Object.fromEntries(head.map((h,i) => [h, r[i] ?? ''])));
+}
+function importFile(input) {
+  const file = input.files[0]; if (!file) return;
+  file.text().then(text => {
+    let incoming;
+    if (file.name.toLowerCase().endsWith('.json')) {
+      const obj = JSON.parse(text);
+      incoming = Array.isArray(obj) ? obj : obj.trades;
+      if (obj.settings && confirm('備份檔內含手續費設定，要一併套用嗎？')) {
+        settings = Object.assign({}, DEFAULT_SETTINGS, obj.settings); localStorage.setItem(SKEY, JSON.stringify(settings)); loadSettingsForm();
+      }
+    } else {
+      incoming = parseCSV(text).map(r => Object.fromEntries(COLS.map(c => [c, r[c] ?? ''])));
+    }
+    incoming = incoming.filter(t => t.code && t.qty && t.openPrice && t.openDate)
+      .map(t => Object.assign({ type:'swing', side:'long', etf:'0' }, t, { id: t.id || Date.now().toString(36) + Math.random().toString(36).slice(2,6) }));
+    const replace = trades.length && confirm(`讀到 ${incoming.length} 筆。\n按「確定」= 取代現有 ${trades.length} 筆紀錄\n按「取消」= 加在現有紀錄後面`);
+    trades = replace ? incoming : trades.concat(incoming.filter(t => !trades.some(x => x.id === t.id)));
+    persist(); render(); alert(`匯入完成，共 ${trades.length} 筆紀錄`);
+  }).catch(err => alert('匯入失敗：' + err.message)).finally(() => { input.value = ''; });
+}
+
+/* ---------- 初始化 ---------- */
+form.openDate.value = today();
+loadSettingsForm();
+onTypeChange();
+render();
+</script>
+</body>
+</html>
