@@ -3,7 +3,7 @@
 // 需要 Node.js 18 以上（內建 fetch），不用安裝任何套件。
 //
 // 功能：
-//   1. 提供 index.html 頁面
+//   1. 提供 index.html 頁面和 data/ 裡的每日選股資料（先執行 node scripts/daily-picks.js 產生）
 //   2. /api/history?code=2330  抓近 5 個月日 K（先查證交所上市，查不到再查櫃買中心上櫃）
 
 const http = require("http");
@@ -120,13 +120,18 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  if (url.pathname === "/" || url.pathname === "/index.html") {
-    res.setHeader("Content-Type", "text/html; charset=utf-8");
-    return fs.createReadStream(path.join(__dirname, "index.html")).pipe(res);
+  // 靜態檔案（index.html、plan-core.js、data/*.json、圖示…）
+  const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8",
+    ".webmanifest": "application/manifest+json", ".png": "image/png", ".svg": "image/svg+xml" };
+  const rel = decodeURIComponent(url.pathname === "/" ? "/index.html" : url.pathname);
+  const file = path.join(__dirname, path.normalize(rel));
+  if (!file.startsWith(__dirname + path.sep) || !TYPES[path.extname(file)] || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
+    res.statusCode = 404;
+    return res.end("Not found");
   }
-
-  res.statusCode = 404;
-  res.end("Not found");
+  res.setHeader("Content-Type", TYPES[path.extname(file)]);
+  res.setHeader("Cache-Control", "no-cache");
+  fs.createReadStream(file).pipe(res);
 });
 
 server.listen(PORT, () => {

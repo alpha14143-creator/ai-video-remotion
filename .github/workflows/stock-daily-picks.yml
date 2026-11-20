@@ -1,0 +1,46 @@
+# 台股交易助手：每個交易日收盤後自動選股，並把 stock-journal/ 發佈到 GitHub Pages
+# 第一次使用：到 GitHub 專案 Settings → Pages → Build and deployment → Source 選「GitHub Actions」
+name: 台股每日選股
+
+on:
+  schedule:
+    - cron: "37 7 * * 1-5"   # 週一到週五 台北時間 15:37（收盤後資料已更新）
+  workflow_dispatch:          # 可在 Actions 頁面手動執行
+  push:
+    branches: [main]
+    paths: ["stock-journal/**", ".github/workflows/stock-daily-picks.yml"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: stock-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: 執行每日選股
+        run: node stock-journal/scripts/daily-picks.js
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: stock-journal
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
