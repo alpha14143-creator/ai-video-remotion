@@ -191,6 +191,8 @@
     <div class="card">
       <h2>績效 <span class="muted" id="statScope"></span></h2>
       <div class="stats" id="stats"></div>
+      <table class="mini" style="margin-top:12px"><thead><tr><th></th><th>⚡ 當沖</th><th>📅 短線</th></tr></thead>
+        <tbody id="kindCompare"></tbody></table>
     </div>
 
     <div class="card">
@@ -699,6 +701,12 @@ $('fSeg').addEventListener('click', e => {
   render();
 });
 const overStop = (t, r) => r.closed && t.stopPrice && (t.side === 'short' ? +t.closePrice > +t.stopPrice : +t.closePrice < +t.stopPrice);
+function filteredBase(t) {
+  const fm = $('fMonth').value, fc = $('fCode').value.trim().toUpperCase();
+  if (fm && !((t.closeDate || t.openDate).startsWith(fm))) return false;
+  if (fc && !(t.code.includes(fc) || (t.name || '').toUpperCase().includes(fc))) return false;
+  return true;
+}
 function filtered() {
   const fm = $('fMonth').value, fc = $('fCode').value.trim().toUpperCase();
   return trades.filter(t => {
@@ -760,6 +768,19 @@ function renderStats(list) {
     ['超過停損次數', overCnt ? `<span class="up">${overCnt}</span>` : '0'],
   ];
   $('stats').innerHTML = items.map(([k,v]) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  // 當沖、短線分開比較（不受類型篩選影響，但套用月份和搜尋條件）
+  const byKind = k => trades.filter(t => t.type === k && filteredBase(t));
+  const ks = ['daytrade', 'swing'].map(k => {
+    const c = byKind(k).map(t => ({ t, r: calc(t) })).filter(x => x.r.closed);
+    const w = c.filter(x => x.r.net > 0), l = c.filter(x => x.r.net <= 0);
+    const sm = a => a.reduce((s2, x) => s2 + x.r.net, 0);
+    return { n: c.length, open: byKind(k).length - c.length, win: c.length ? w.length / c.length * 100 : null, net: sm(c), pf: sm(l) ? sm(w) / -sm(l) : null };
+  });
+  const row = (label, f) => `<tr><td>${label}</td>${ks.map(f).map(v => `<td>${v}</td>`).join('')}</tr>`;
+  $('kindCompare').innerHTML = row('已平倉 / 持有中', k => `${k.n} / ${k.open}`)
+    + row('勝率', k => k.win == null ? '-' : fmt(k.win, 0) + '%')
+    + row('淨損益', k => `<b class="${cls(k.net)}">${signed(k.net)}</b>`)
+    + row('獲利因子', k => k.pf == null ? '-' : fmt(k.pf, 2));
 }
 function renderMonths() {
   const m = {};
@@ -967,8 +988,8 @@ function renderBacktest() {
   $('btBox').innerHTML = html;
 }
 
-/* ================= 實盤追蹤（4 週） ================= */
-let fwData = null;
+/* ================= 實盤追蹤（4 週）：當沖、短線分開記錄 ================= */
+let fwData = null, fwKind = localStorage.getItem('stockJournal.fwKind') || 'daytrade';
 async function loadForward() {
   try {
     const r = await fetch('data/forward.json?t=' + Date.now(), { cache:'no-store' });
@@ -982,46 +1003,100 @@ const riskAmt = () => (settings.capital || 0) * (settings.risk || 0) / 100;
 const moneyR = R => R == null ? '' : `約 ${signed(Math.round(R * riskAmt()))} 元`;
 function fwStatus(r) {
   if (r.status === 'filled') return `<b class="${cls(r.R)}">${r.R > 0 ? '✅' : '❌'} ${signed(r.R,2)}R</b> <span class="muted small">${REASON[r.reason] || ''} ${moneyR(r.R)}</span>`;
-  if (r.status === 'open') return `🔄 <span class="${cls(r.R)}">持有中 ${signed(r.R,2)}R</span> <span class="muted small">第 ${r.hold} 天</span>`;
+  if (r.status === 'open') return `🔄 <span class="${cls(r.R)}">持有中 ${signed(r.R,2)}R</span> <span class="muted small">第 ${r.hold} 天 ${moneyR(r.R)}</span>`;
   if (r.status === 'nofill') return '<span class="muted">⚪ 沒觸發進場價</span>';
   if (r.status === 'gap') return '<span class="muted">⏭️ 跳空不追</span>';
   return '<span class="muted">⏳ 等待中</span>';
 }
+// 某一類（當沖 / 短線）的統計
+function fwStats(kind) {
+  const rows = fwData.days.flatMap(d => d.rows.filter(r => r.kind === kind).map(r => ({ ...r, tradeDate: d.tradeDate })));
+  const filled = rows.filter(r => r.status === 'filled');
+  const wins = filled.filter(r => r.R > 0), losses = filled.filter(r => r.R <= 0);
+  const sum = a => a.reduce((s, r) => s + r.R, 0);
+  const open = rows.filter(r => r.status === 'open');
+  let peak = 0, cum = 0, mdd = 0;
+  [...filled].sort((a, b) => a.tradeDate.localeCompare(b.tradeDate)).forEach(r => { cum += r.R; peak = Math.max(peak, cum); mdd = Math.min(mdd, cum - peak); });
+  return {
+    signals: rows.length, n: filled.length, totalR: sum(filled),
+    winRate: filled.length ? wins.length / filled.length * 100 : null,
+    expR: filled.length ? sum(filled) / filled.length : null,
+    avgWin: wins.length ? sum(wins) / wins.length : null, avgLoss: losses.length ? sum(losses) / losses.length : null,
+    nofill: rows.filter(r => r.status === 'nofill').length, gap: rows.filter(r => r.status === 'gap').length,
+    waiting: rows.filter(r => r.status === 'waiting').length,
+    openN: open.length, openR: sum(open), mdd,
+  };
+}
+function setFwKind(k) { fwKind = k; localStorage.setItem('stockJournal.fwKind', k); renderForward(); }
 function renderForward() {
   const d = fwData;
   if (!d || (!d.days.length && !d.pending.length)) {
-    $('fwBox').innerHTML = `<div class="card"><h2>🧪 實盤追蹤（4 週）</h2><p class="muted" style="margin:0">從下一個交易日開始，每天自動記錄「今日10檔」並在收盤後評估結果。</p></div>`;
+    $('fwBox').innerHTML = `<div class="card"><h2>🧪 實盤追蹤（4 週）</h2><p class="muted" style="margin:0">從下一個交易日開始，每天自動記錄「今日10檔」並在收盤後評估結果。當沖、短線分開記錄。</p></div>`;
     $('fwMini').innerHTML = '';
     return;
   }
-  const s = d.summary, bt = d.backtest || {};
   const pct = Math.min(100, Math.round(d.progress / d.window * 100));
   const done = d.progress >= d.window;
+  const bt = d.backtest || {};
+  const dt = fwStats('daytrade'), sw = fwStats('swing');
   const stat = (k, v) => `<div class="stat"><div class="k">${k}</div><div class="v" style="font-size:16px">${v}</div></div>`;
-  const dt = s.daytrade, sw = s.swing;
+  const pctTxt = v => v == null ? '-' : fmt(v, 1) + '%';
+
   let html = `<div class="card">
     <h2>🧪 實盤追蹤 ${done ? '<span class="badge b-good">4 週完成</span>' : `第 ${d.progress} / ${d.window} 天`}</h2>
     <div style="background:var(--soft); border-radius:999px; height:8px; overflow:hidden"><div style="width:${pct}%; height:100%; background:var(--accent)"></div></div>
-    <p class="muted small" style="line-height:1.6">${d.start ? `從 ${d.start} 開始` : `從 ${d.pending[0] ? '下一個交易日' : '-'} 開始`}，每天把「今日10檔」照頁面規則模擬交易：當沖用當天 5 分 K 精算，短線追蹤到出場為止。
-      金額依「設定」的本金 × 單筆風險（每 1R ≈ ${fmt(riskAmt())} 元）換算。</p>
-    <div class="stats">
-      ${stat('已實現合計', `<span class="${cls(s.totalR)}">${signed(s.totalR,2)}R</span><div class="small muted">${moneyR(s.totalR)}</div>`)}
-      ${stat('短線持有中', `${s.swingOpen.n} 筆 <span class="small ${cls(s.swingOpen.R)}">${signed(s.swingOpen.R,2)}R</span>`)}
-      ${stat('⚡ 當沖', dt.n ? `${dt.n} 筆 ・ 勝率 ${dt.winRate}%<div class="small">期望值 ${rTxt(dt.expR)}</div>` : '尚無成交')}
-      ${stat('📅 短線（已出場）', sw.n ? `${sw.n} 筆 ・ 勝率 ${sw.winRate}%<div class="small">期望值 ${rTxt(sw.expR)}</div>` : '尚無出場')}
+    <p class="muted small" style="line-height:1.6">${d.start ? `從 ${d.start} 開始` : '從下一個交易日開始'}，每天把「今日10檔」照頁面規則模擬交易。
+      金額依「設定」的本金 × 單筆風險換算（每 1R ≈ ${fmt(riskAmt())} 元）。</p>
+    <div class="seg" style="margin-top:6px">
+      <button class="${fwKind === 'daytrade' ? 'on' : ''}" onclick="setFwKind('daytrade')">⚡ 當沖 <span class="${cls(dt.totalR)}">${signed(dt.totalR,1)}R</span></button>
+      <button class="${fwKind === 'swing' ? 'on' : ''}" onclick="setFwKind('swing')">📅 短線 <span class="${cls(sw.totalR)}">${signed(sw.totalR,1)}R</span></button>
+    </div>`;
+  if (fwKind === 'daytrade') {
+    html += `<div class="stats" style="margin-top:10px">
+      ${stat('已實現合計', `<span class="${cls(dt.totalR)}">${signed(dt.totalR,2)}R</span><div class="small muted">${moneyR(dt.totalR)}</div>`)}
+      ${stat('成交筆數', `${dt.n} <span class="muted small">/ ${dt.signals} 檔</span>`)}
+      ${stat('勝率', pctTxt(dt.winRate))}
+      ${stat('平均每筆', rTxt(dt.expR))}
+      ${stat('平均賺 / 平均賠', `${rTxt(dt.avgWin)} / ${rTxt(dt.avgLoss)}`)}
+      ${stat('最大回撤', rTxt(dt.mdd))}
+      ${stat('沒觸發 / 跳空不追', `${dt.nofill} / ${dt.gap}`)}
+      ${stat('回測對照', bt.daytradeExpR != null ? `${rTxt(bt.daytradeExpR)}<div class="small muted">勝率 ${bt.daytradeWin}%</div>` : '-')}
     </div>
-    ${bt.daytradeExpR != null ? `<p class="muted small" style="line-height:1.6; margin-bottom:0">對照回測：當沖期望值 ${rTxt(bt.daytradeExpR)}（勝率 ${bt.daytradeWin}%），短線 ${rTxt(bt.swingExpR)}（勝率 ${bt.swingWin}%）。
-      筆數少的時候結果波動很大，至少要累積幾十筆才有參考價值。</p>` : ''}
-  </div>`;
+    <p class="muted small" style="margin-bottom:0; line-height:1.6">當沖用當天 5 分 K 精算：碰停損全出、到停利 1 出一半後停損移到成本、到停利 2 全出，沒碰到就收盤出場。</p>`;
+  } else {
+    html += `<div class="stats" style="margin-top:10px">
+      ${stat('已實現合計', `<span class="${cls(sw.totalR)}">${signed(sw.totalR,2)}R</span><div class="small muted">${moneyR(sw.totalR)}</div>`)}
+      ${stat('持有中（未實現）', `${sw.openN} 筆 <span class="${cls(sw.openR)}">${signed(sw.openR,2)}R</span><div class="small muted">${moneyR(sw.openR)}</div>`)}
+      ${stat('已出場筆數', `${sw.n} <span class="muted small">/ ${sw.signals} 檔</span>`)}
+      ${stat('勝率', pctTxt(sw.winRate))}
+      ${stat('平均每筆', rTxt(sw.expR))}
+      ${stat('平均賺 / 平均賠', `${rTxt(sw.avgWin)} / ${rTxt(sw.avgLoss)}`)}
+      ${stat('沒觸發 / 等待掛單', `${sw.nofill + sw.gap} / ${sw.waiting}`)}
+      ${stat('回測對照', bt.swingExpR != null ? `${rTxt(bt.swingExpR)}<div class="small muted">勝率 ${bt.swingWin}%</div>` : '-')}
+    </div>
+    <p class="muted small" style="margin-bottom:0; line-height:1.6">短線掛單 3 天有效，收盤跌破停損出場；到停利 1 出一半、停損移到成本；最多持有 20 天。持有中的部位每天收盤後更新。</p>`;
+  }
+  html += `<p class="muted small" style="line-height:1.6; margin-bottom:0">筆數少的時候結果波動很大，至少累積幾十筆才有參考價值。</p></div>`;
+
   if (d.pending.length) html += `<div class="card"><p class="muted" style="margin:0">⏳ ${d.pending.map(p => `${mmdd(p.dataDate)} 收盤後選出的 ${p.n} 檔`).join('、')}：等下一個交易日收盤後評估。</p></div>`;
+
+  // 短線：持有中的部位集中列在最上面
+  if (fwKind === 'swing') {
+    const open = d.days.flatMap(day => day.rows.filter(r => r.kind === 'swing' && r.status === 'open').map(r => ({ ...r, tradeDate: day.tradeDate })));
+    if (open.length) html += `<div class="card"><h2>🔄 短線持有中（${open.length}）</h2>${open.map(r => `<div class="trade">
+      <div class="r1"><b>${esc(r.code)} ${esc(r.name)}</b> <span class="muted small">${esc(r.label)}・${mmdd(r.tradeDate)} 選出</span></div>
+      <div class="r2">進 ${pxFmt(r.entry)} ・ 損 ${pxFmt(r.stop)} ・ 利 ${pxFmt(r.t1)} / ${pxFmt(r.t2)}</div>
+      <div style="margin-top:4px">${fwStatus(r)}</div></div>`).join('')}</div>`;
+  }
   for (const day of d.days) {
-    const filled = day.rows.filter(r => r.status === 'filled');
-    const sumR = filled.reduce((a, r) => a + r.R, 0);
-    const openN = day.rows.filter(r => r.status === 'open').length;
+    const rows = day.rows.filter(r => r.kind === fwKind);
+    if (!rows.length) continue;
+    const sumR = rows.filter(r => r.status === 'filled').reduce((a, r) => a + r.R, 0);
+    const openN = rows.filter(r => r.status === 'open').length;
     html += `<div class="card"><details>
-      <summary>${mmdd(day.tradeDate)} 交易 ・ 已實現 <span class="${cls(sumR)}">${signed(sumR,2)}R</span>${openN ? ` ・ 持有中 ${openN}` : ''}</summary>
-      ${day.rows.map(r => `<div class="trade">
-        <div class="r1">${kindBadge(r.kind)} <b>${esc(r.code)} ${esc(r.name)}</b> <span class="muted small">${esc(r.label)}</span></div>
+      <summary>${mmdd(day.tradeDate)} ${fwKind === 'daytrade' ? '當沖' : '短線'} ・ 已實現 <span class="${cls(sumR)}">${signed(sumR,2)}R</span>${openN ? ` ・ 持有中 ${openN}` : ''}</summary>
+      ${rows.map(r => `<div class="trade">
+        <div class="r1"><b>${esc(r.code)} ${esc(r.name)}</b> <span class="muted small">${esc(r.label)}</span></div>
         <div class="r2">進 ${pxFmt(r.entry)} ・ 損 ${pxFmt(r.stop)} ・ 利 ${pxFmt(r.t1)} / ${pxFmt(r.t2)}</div>
         <div style="margin-top:4px">${fwStatus(r)}</div>
       </div>`).join('')}
@@ -1030,7 +1105,10 @@ function renderForward() {
   $('fwBox').innerHTML = html;
   $('fwMini').innerHTML = `<div class="card" onclick="showTab('backtest')" style="cursor:pointer">
     <div style="display:flex; justify-content:space-between; align-items:center">
-      <div><b>🧪 實盤追蹤 ${done ? '完成' : `第 ${d.progress}/${d.window} 天`}</b><div class="muted small">已實現 <span class="${cls(s.totalR)}">${signed(s.totalR,2)}R</span> ${moneyR(s.totalR)}・持有中 ${s.swingOpen.n} 筆</div></div>
+      <div style="line-height:1.6"><b>🧪 實盤追蹤 ${done ? '完成' : `第 ${d.progress}/${d.window} 天`}</b>
+        <div class="small">⚡ 當沖 <b class="${cls(dt.totalR)}">${signed(dt.totalR,2)}R</b> <span class="muted">${dt.n} 筆${dt.winRate != null ? `・勝率 ${fmt(dt.winRate,0)}%` : ''}</span></div>
+        <div class="small">📅 短線 <b class="${cls(sw.totalR)}">${signed(sw.totalR,2)}R</b> <span class="muted">已出場 ${sw.n}・持有中 ${sw.openN}（${signed(sw.openR,1)}R）</span></div>
+      </div>
       <span class="muted">›</span>
     </div></div>`;
 }
