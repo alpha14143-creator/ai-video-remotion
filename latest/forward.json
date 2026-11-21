@@ -1,0 +1,35 @@
+{
+ "generatedAt": "2026-11-21T09:49:05.901Z",
+ "window": 20,
+ "start": null,
+ "progress": 0,
+ "lastTradeDate": "2026-11-20",
+ "summary": {
+  "daytrade": {
+   "signals": 0,
+   "n": 0
+  },
+  "swing": {
+   "signals": 0,
+   "n": 0
+  },
+  "swingOpen": {
+   "n": 0,
+   "R": 0
+  },
+  "totalR": 0
+ },
+ "backtest": {
+  "daytradeExpR": -0.283,
+  "daytradeWin": 37.5,
+  "swingExpR": 0.165,
+  "swingWin": 47.7
+ },
+ "days": [],
+ "pending": [
+  {
+   "dataDate": "2026-11-20",
+   "n": 10
+  }
+ ]
+}
