@@ -10,7 +10,7 @@ n8n → 右上角「⋯」或「+」→ **Import from File** → 選 `upload-web
 
 ## 3. 設定「上傳到 R2」節點
 雙擊「上傳到 R2」節點：
-- **Credential** → Create New → 類型 **S3**：
+- **Credential**：如果已經有之前建立的「**S3 account**」，直接選它；沒有的話 Create New → 類型 **S3**：
   - Endpoint：`https://<你的 Account ID>.r2.cloudflarestorage.com`
   - Region：`auto`
   - Access Key ID / Secret Access Key：填剛剛建立的
@@ -18,7 +18,14 @@ n8n → 右上角「⋯」或「+」→ **Import from File** → 選 `upload-web
 - **Bucket Name**：改成你的 bucket 名稱（就是現在放 GPT 初稿的那個）
 
 ## 4. 執行
-按 **Execute Workflow**。成功後兩個檔案會在：
+按 **Execute Workflow**，然後點最後的「**核對結果**」節點看結果。每個檔案都會列出：
+- 結果：✅ 成功可以打開，或 ❌ 失敗與原因
+- 實際路徑：檔案在 R2 裡的位置（確認有在 `xmoto-queue/` 資料夾裡，不是在最外層）
+- 網址：可以直接用手機打開
+
+只有看到 ✅ 才算完成。出現 404 時，先到 R2 後台確認檔案位置，不要重複上傳。
+
+成功後兩個檔案會在：
 - `xmoto-queue/preview.html`：示範版，手機打開 `https://pub-…r2.dev/xmoto-queue/preview.html`
 - `xmoto-queue/index.html`：正式版（等店內電腦開始上傳 status.json 後才會有數字）
 
