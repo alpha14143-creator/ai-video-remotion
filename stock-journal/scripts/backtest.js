@@ -117,7 +117,7 @@ function evalSwing(p, bars, jn) {
     }
     if (fill != null) { f = k; break; }
   }
-  if (f < 0) return { status: 'nofill' };
+  if (f < 0) return bars.length < jn + ORDER_DAYS ? { status: 'waiting' } : { status: 'nofill' };
   // 跳空直接越過停損或停利：不進場
   if (long ? fill <= S || fill >= p.t1 : fill >= S || fill <= p.t1) return { status: 'gap' };
   const closes = bars.map((b) => b.close);
@@ -150,7 +150,9 @@ function evalSwing(p, bars, jn) {
       return { ...settle(p, fill, exits, TAX_SW, 'time'), hold: k - f };
     }
   }
-  return { status: 'open' }; // 資料還沒走完，不計入
+  // 資料還沒走完：持有中，用最新收盤價估算未實現損益（回測統計不計入）
+  const last = bars[bars.length - 1];
+  return { ...settle(p, fill, [...exits, [last.close, half ? 0.5 : 1]], TAX_SW, 'open'), status: 'open', fill, half, lastClose: last.close, hold: bars.length - 1 - f };
 }
 
 // ---------- 統計 ----------
@@ -215,7 +217,9 @@ function monteCarlo(Rs, seed = 42) {
 }
 
 // ---------- 主程式 ----------
-(async () => {
+module.exports = { evalDayDaily, evalDayIntraday, evalSwing, stats, monteCarlo };
+
+if (require.main === module) (async () => {
   const t0 = Date.now();
   const universe = await L.loadUniverse(POOL);
   console.log(`下載 ${universe.length} 檔股票 ${RANGE} 日 K…`);

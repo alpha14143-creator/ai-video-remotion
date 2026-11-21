@@ -1,18 +1,22 @@
-# 台股交易助手：每個交易日早上 8 點前（美股收盤後、台股開盤前）自動選股，並發佈到 GitHub Pages
+# 台股交易助手：
+#   早上 07:47（台北）選出「今日10檔」、更新回測，並發佈到 GitHub Pages
+#   下午 14:47（台北，收盤後）評估實盤追蹤：用當天真實走勢模擬每一檔的結果
+# 實盤追蹤的紀錄存在 stock-data 分支（不會動到 main）
 # 第一次使用：GitHub 專案 Settings → Pages → Build and deployment → Source 選「GitHub Actions」
 # 網址：https://<帳號>.github.io/<專案名稱>/stock-journal/
 name: 台股每日選股
 
 on:
   schedule:
-    - cron: "47 23 * * 0-4"   # UTC 週日～週四 23:47 = 台北 週一～週五 07:47（GitHub 排程可能延遲幾分鐘）
-  workflow_dispatch:           # 可在 Actions 頁面手動執行
+    - cron: "47 23 * * 0-4"   # UTC 週日～週四 23:47 = 台北 週一～週五 07:47：選股
+    - cron: "47 6 * * 1-5"    # UTC 週一～週五 06:47 = 台北 週一～週五 14:47：收盤後評估
+  workflow_dispatch:           # 可在 Actions 頁面手動執行（會重新選股）
   push:
     branches: [main]
     paths: ["stock-journal/**", ".github/workflows/stock-daily-picks.yml"]
 
 permissions:
-  contents: read
+  contents: write   # 把實盤追蹤紀錄推到 stock-data 分支
   pages: write
   id-token: write
 
@@ -20,21 +24,59 @@ concurrency:
   group: stock-pages
   cancel-in-progress: false
 
+env:
+  EVAL_ONLY: ${{ github.event.schedule == '47 6 * * 1-5' }}
+  TRACK_DIR: ${{ github.workspace }}/track
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: 取得實盤追蹤紀錄（stock-data 分支）
+        run: |
+          if git fetch --depth=1 origin stock-data; then
+            git worktree add -B stock-data track FETCH_HEAD
+          else
+            echo "第一次執行：建立 stock-data 分支"
+            git worktree add --orphan -b stock-data track
+          fi
+
       - name: 執行每日選股
+        if: env.EVAL_ONLY != 'true'
         run: node stock-journal/scripts/daily-picks.js
       - name: 更新回測成績（失敗不影響今日選股）
+        if: env.EVAL_ONLY != 'true'
         run: node stock-journal/scripts/backtest.js
         continue-on-error: true
         timeout-minutes: 10
+      - name: 記錄今日選股
+        if: env.EVAL_ONLY != 'true'
+        run: node stock-journal/scripts/forward.js save
+      - name: 收盤評估：沿用早上的選股資料
+        if: env.EVAL_ONLY == 'true'
+        run: node stock-journal/scripts/forward.js restore
+      - name: 評估實盤追蹤
+        run: node stock-journal/scripts/forward.js evaluate
+        continue-on-error: true
+
+      - name: 儲存實盤追蹤紀錄
+        run: |
+          cd track
+          git add -A
+          if git diff --cached --quiet; then
+            echo "沒有新資料"
+          else
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "實盤追蹤 $(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"
+            git push origin stock-data
+          fi
+
       - name: 準備網站檔案（維持 /stock-journal/ 網址）
         run: |
           mkdir -p _site

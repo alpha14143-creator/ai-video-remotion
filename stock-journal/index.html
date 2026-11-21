@@ -117,6 +117,7 @@
 <main>
   <!-- ========== 今日 10 檔 ========== -->
   <section class="tab" id="tab-picks">
+    <div id="fwMini"></div>
     <div id="usBox"></div>
     <div class="seg" id="pickSeg" style="display:none">
       <button data-k="" class="on">全部</button>
@@ -215,6 +216,7 @@
 
   <!-- ========== 回測成績 ========== -->
   <section class="tab" id="tab-backtest">
+    <div id="fwBox"></div>
     <div id="btBox"><div class="spinner">載入中…</div></div>
   </section>
 
@@ -783,7 +785,7 @@ function loadSettingsForm() { for (const [id,k] of Object.entries(SET_FIELDS)) $
 function saveSettings() {
   for (const [id,k] of Object.entries(SET_FIELDS)) { const v = parseFloat($(id).value); if (!isNaN(v)) settings[k] = v; }
   localStorage.setItem(SKEY, JSON.stringify(settings));
-  render(); if (picksData) renderPicks(); if (lastPlanInput) renderPlanResult(lastPlanInput);
+  render(); if (picksData) renderPicks(); if (lastPlanInput) renderPlanResult(lastPlanInput); renderForward();
   alert('設定已儲存');
 }
 
@@ -965,6 +967,74 @@ function renderBacktest() {
   $('btBox').innerHTML = html;
 }
 
+/* ================= 實盤追蹤（4 週） ================= */
+let fwData = null;
+async function loadForward() {
+  try {
+    const r = await fetch('data/forward.json?t=' + Date.now(), { cache:'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    fwData = await r.json();
+  } catch { fwData = null; }
+  renderForward();
+}
+const REASON = { stop:'停損', t1:'停利1', t2:'停利2', breakeven:'保本出', close:'收盤出', ma10:'破10日線', time:'到期出', open:'持有中' };
+const riskAmt = () => (settings.capital || 0) * (settings.risk || 0) / 100;
+const moneyR = R => R == null ? '' : `約 ${signed(Math.round(R * riskAmt()))} 元`;
+function fwStatus(r) {
+  if (r.status === 'filled') return `<b class="${cls(r.R)}">${r.R > 0 ? '✅' : '❌'} ${signed(r.R,2)}R</b> <span class="muted small">${REASON[r.reason] || ''} ${moneyR(r.R)}</span>`;
+  if (r.status === 'open') return `🔄 <span class="${cls(r.R)}">持有中 ${signed(r.R,2)}R</span> <span class="muted small">第 ${r.hold} 天</span>`;
+  if (r.status === 'nofill') return '<span class="muted">⚪ 沒觸發進場價</span>';
+  if (r.status === 'gap') return '<span class="muted">⏭️ 跳空不追</span>';
+  return '<span class="muted">⏳ 等待中</span>';
+}
+function renderForward() {
+  const d = fwData;
+  if (!d || (!d.days.length && !d.pending.length)) {
+    $('fwBox').innerHTML = `<div class="card"><h2>🧪 實盤追蹤（4 週）</h2><p class="muted" style="margin:0">從下一個交易日開始，每天自動記錄「今日10檔」並在收盤後評估結果。</p></div>`;
+    $('fwMini').innerHTML = '';
+    return;
+  }
+  const s = d.summary, bt = d.backtest || {};
+  const pct = Math.min(100, Math.round(d.progress / d.window * 100));
+  const done = d.progress >= d.window;
+  const stat = (k, v) => `<div class="stat"><div class="k">${k}</div><div class="v" style="font-size:16px">${v}</div></div>`;
+  const dt = s.daytrade, sw = s.swing;
+  let html = `<div class="card">
+    <h2>🧪 實盤追蹤 ${done ? '<span class="badge b-good">4 週完成</span>' : `第 ${d.progress} / ${d.window} 天`}</h2>
+    <div style="background:var(--soft); border-radius:999px; height:8px; overflow:hidden"><div style="width:${pct}%; height:100%; background:var(--accent)"></div></div>
+    <p class="muted small" style="line-height:1.6">${d.start ? `從 ${d.start} 開始` : `從 ${d.pending[0] ? '下一個交易日' : '-'} 開始`}，每天把「今日10檔」照頁面規則模擬交易：當沖用當天 5 分 K 精算，短線追蹤到出場為止。
+      金額依「設定」的本金 × 單筆風險（每 1R ≈ ${fmt(riskAmt())} 元）換算。</p>
+    <div class="stats">
+      ${stat('已實現合計', `<span class="${cls(s.totalR)}">${signed(s.totalR,2)}R</span><div class="small muted">${moneyR(s.totalR)}</div>`)}
+      ${stat('短線持有中', `${s.swingOpen.n} 筆 <span class="small ${cls(s.swingOpen.R)}">${signed(s.swingOpen.R,2)}R</span>`)}
+      ${stat('⚡ 當沖', dt.n ? `${dt.n} 筆 ・ 勝率 ${dt.winRate}%<div class="small">期望值 ${rTxt(dt.expR)}</div>` : '尚無成交')}
+      ${stat('📅 短線（已出場）', sw.n ? `${sw.n} 筆 ・ 勝率 ${sw.winRate}%<div class="small">期望值 ${rTxt(sw.expR)}</div>` : '尚無出場')}
+    </div>
+    ${bt.daytradeExpR != null ? `<p class="muted small" style="line-height:1.6; margin-bottom:0">對照回測：當沖期望值 ${rTxt(bt.daytradeExpR)}（勝率 ${bt.daytradeWin}%），短線 ${rTxt(bt.swingExpR)}（勝率 ${bt.swingWin}%）。
+      筆數少的時候結果波動很大，至少要累積幾十筆才有參考價值。</p>` : ''}
+  </div>`;
+  if (d.pending.length) html += `<div class="card"><p class="muted" style="margin:0">⏳ ${d.pending.map(p => `${mmdd(p.dataDate)} 收盤後選出的 ${p.n} 檔`).join('、')}：等下一個交易日收盤後評估。</p></div>`;
+  for (const day of d.days) {
+    const filled = day.rows.filter(r => r.status === 'filled');
+    const sumR = filled.reduce((a, r) => a + r.R, 0);
+    const openN = day.rows.filter(r => r.status === 'open').length;
+    html += `<div class="card"><details>
+      <summary>${mmdd(day.tradeDate)} 交易 ・ 已實現 <span class="${cls(sumR)}">${signed(sumR,2)}R</span>${openN ? ` ・ 持有中 ${openN}` : ''}</summary>
+      ${day.rows.map(r => `<div class="trade">
+        <div class="r1">${kindBadge(r.kind)} <b>${esc(r.code)} ${esc(r.name)}</b> <span class="muted small">${esc(r.label)}</span></div>
+        <div class="r2">進 ${pxFmt(r.entry)} ・ 損 ${pxFmt(r.stop)} ・ 利 ${pxFmt(r.t1)} / ${pxFmt(r.t2)}</div>
+        <div style="margin-top:4px">${fwStatus(r)}</div>
+      </div>`).join('')}
+    </details></div>`;
+  }
+  $('fwBox').innerHTML = html;
+  $('fwMini').innerHTML = `<div class="card" onclick="showTab('backtest')" style="cursor:pointer">
+    <div style="display:flex; justify-content:space-between; align-items:center">
+      <div><b>🧪 實盤追蹤 ${done ? '完成' : `第 ${d.progress}/${d.window} 天`}</b><div class="muted small">已實現 <span class="${cls(s.totalR)}">${signed(s.totalR,2)}R</span> ${moneyR(s.totalR)}・持有中 ${s.swingOpen.n} 筆</div></div>
+      <span class="muted">›</span>
+    </div></div>`;
+}
+
 /* ================= 初始化 ================= */
 form.openDate.value = today();
 loadSettingsForm();
@@ -973,6 +1043,7 @@ render();
 showTab(localStorage.getItem('stockJournal.tab') || 'picks');
 loadPicks();
 loadBacktest();
+loadForward();
 </script>
 </body>
 </html>
