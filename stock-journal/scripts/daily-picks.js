@@ -47,7 +47,7 @@ async function getJson(url, tries = 3, timeout = 30000) {
 }
 
 // ---------- 1. 股票池 ----------
-async function loadUniverse() {
+async function loadUniverse(n = UNIVERSE) {
   const [twse, tpex] = (await Promise.allSettled([
     getJson('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', 3, 90000),
     getJson('https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes', 3, 90000),
@@ -65,7 +65,7 @@ async function loadUniverse() {
   return list
     .filter((s) => /^(\d{4}|00\d{2,4}[A-Z]?)$/.test(s.code) && s.value > 0 && s.close > 0)
     .sort((a, b) => b.value - a.value)
-    .slice(0, UNIVERSE);
+    .slice(0, n);
 }
 
 async function loadDisposal() {
@@ -132,7 +132,11 @@ async function usOutlook(twii) {
   await mapLimit(US_SYMBOLS, 3, async ([sym]) => { series[sym] = await loadBars(sym, '1y'); });
   let fx = null;
   try { const f = await loadBars('TWD=X', '1mo'); fx = f[f.length - 1].close; } catch (e) { console.warn('匯率讀取失敗', e.message); }
+  return usPredict(twii, series, fx);
+}
 
+// 純計算（回測也用這個）：twii = 到台股最新交易日的日 K；series = 各美股日 K（只能包含下一個台股交易日之前的資料）
+function usPredict(twii, series, fx = null) {
   const twLast = twii[twii.length - 1];
   const indices = [], models = [];
   for (const [sym, name] of US_SYMBOLS) {
@@ -297,7 +301,9 @@ function usNote(plan, estOpen, usBias) {
 }
 
 // ---------- 主程式 ----------
-(async () => {
+module.exports = { getJson, loadUniverse, loadDisposal, loadBars, mapLimit, linreg, usPredict, stockBeta, screen, choose, US_SYMBOLS };
+
+if (require.main === module) (async () => {
   const t0 = Date.now();
   const [universe, disposal, twii] = await Promise.all([loadUniverse(), loadDisposal(), loadBars('^TWII', '1y')]);
   console.log(`股票池 ${universe.length} 檔，處置股 ${disposal.size} 檔，加權指數 ${twii.length} 天`);

@@ -2,12 +2,13 @@
 
 手機打開網址就能用，也可以「加入主畫面」當 App 使用。
 
-## 功能（下方 4 個分頁）
+## 功能（下方 5 個分頁）
 1. **🔥 今日 10 檔**：每個交易日早上 8 點前自動選出當沖 5 檔和短線 5 檔，附上進場、停損、停利 1、停利 2、建議股數、預估開盤價，以及扣掉手續費和稅之後的淨賺 / 淨賠
    - 上方顯示昨晚美股（費半、那斯達克、標普、道瓊、台積電 ADR 和溢價），並預估今天台股開盤漲跌
 2. **🎯 查價格**：輸入任何股票代號，算出當沖 4 種情境和短線 4 種情境的進出場價格
 3. **📒 紀錄**：記錄每筆交易，一鍵「平倉」，自動算損益、勝率、最大回撤和每月損益，並標示出場價比停損還差的交易
-4. **⚙️ 設定**：本金、單筆風險 %、券商手續費折扣、備份和匯入
+4. **📊 成績**：用過去約 1.5 年真實股價回測每一種情境的勝率、期望值、前後半段穩定度，並做 10,000 次蒙地卡羅模擬（每天自動更新）
+5. **⚙️ 設定**：本金、單筆風險 %、券商手續費折扣、備份和匯入
 
 ## 讓手機每天早上自動收到「今日 10 檔」（只要設定一次）
 1. 把這個分支合併到 `main`
@@ -22,6 +23,7 @@
 ```
 node stock-journal/scripts/daily-picks.js   # 產生今日 10 檔（約 2 分鐘）
 ASOF=2026-11-19 node stock-journal/scripts/daily-picks.js   # 回測：假裝是那一天，只印結果不寫檔
+node stock-journal/scripts/backtest.js      # 回測 + 10,000 次蒙地卡羅（約 1 分鐘）
 cd stock-journal && node server.js          # 打開 http://localhost:3000
 ```
 需要 Node.js 18 以上，不用安裝任何套件。
@@ -39,6 +41,7 @@ cd stock-journal && node server.js          # 打開 http://localhost:3000
 | `index.html` | 手機網頁 |
 | `plan-core.js` | 進出場價格計算（網頁和選股程式共用） |
 | `scripts/daily-picks.js` | 每日選股，產生 `data/picks.json`、`data/snapshot.json` |
+| `scripts/backtest.js` | 回測和蒙地卡羅模擬，產生 `data/backtest.json` |
 | `server.js` | 電腦上使用的本機伺服器 |
 | `../.github/workflows/stock-daily-picks.yml` | 每日自動選股並發佈到 GitHub Pages |
 

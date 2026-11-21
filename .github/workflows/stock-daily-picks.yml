@@ -31,6 +31,10 @@ jobs:
           node-version: 20
       - name: 執行每日選股
         run: node stock-journal/scripts/daily-picks.js
+      - name: 更新回測成績（失敗不影響今日選股）
+        run: node stock-journal/scripts/backtest.js
+        continue-on-error: true
+        timeout-minutes: 10
       - name: 準備網站檔案（維持 /stock-journal/ 網址）
         run: |
           mkdir -p _site

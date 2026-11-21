@@ -213,6 +213,11 @@
     </div>
   </section>
 
+  <!-- ========== 回測成績 ========== -->
+  <section class="tab" id="tab-backtest">
+    <div id="btBox"><div class="spinner">載入中…</div></div>
+  </section>
+
   <!-- ========== 設定 ========== -->
   <section class="tab" id="tab-settings">
     <div class="card">
@@ -272,6 +277,7 @@
   <button data-tab="picks" onclick="showTab('picks')"><span class="ic">🔥</span>今日10檔</button>
   <button data-tab="plan" onclick="showTab('plan')"><span class="ic">🎯</span>查價格</button>
   <button data-tab="journal" onclick="showTab('journal')"><span class="ic">📒</span>紀錄</button>
+  <button data-tab="backtest" onclick="showTab('backtest')"><span class="ic">📊</span>成績</button>
   <button data-tab="settings" onclick="showTab('settings')"><span class="ic">⚙️</span>設定</button>
 </nav>
 
@@ -299,7 +305,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const pxFmt = p => p == null || p === '' ? '-' : (Number.isInteger(+p) ? fmt(+p) : fmt(+p, 2));
 
 /* ================= 分頁 ================= */
-const TAB_TITLES = { picks:'今日 10 檔', plan:'查價格', journal:'交易紀錄', settings:'設定' };
+const TAB_TITLES = { picks:'今日 10 檔', plan:'查價格', journal:'交易紀錄', backtest:'回測成績', settings:'設定' };
 function showTab(name) {
   if (!TAB_TITLES[name]) name = 'picks';
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === 'tab-' + name));
@@ -464,6 +470,7 @@ function renderPicks() {
       </div>
       <div class="chips">${pk.reasons.map(r => `<span class="chip">${esc(r)}</span>`).join('')}</div>
       ${notes.length ? `<div class="small" style="margin-top:8px; line-height:1.6">${notes.map(n => `<div>${esc(n)}</div>`).join('')}</div>` : ''}
+      ${pickBacktestLine(p.id)}
       ${planCard(p, { dimBad:false })}
       <button class="block" style="margin-top:8px" onclick="openPlanFromPick('${pk.code}')">看完整計畫（多空 8 種情境）›</button>
     </div>`;
@@ -830,6 +837,134 @@ function importFile(input) {
   }).catch(err => alert('匯入失敗：' + err.message)).finally(() => { input.value = ''; });
 }
 
+/* ================= 回測成績 ================= */
+let btData = null;
+async function loadBacktest() {
+  try {
+    const r = await fetch('data/backtest.json?t=' + Date.now(), { cache:'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    btData = await r.json();
+    renderBacktest();
+    if (picksData) renderPicks();
+  } catch (e) {
+    $('btBox').innerHTML = `<div class="card"><p class="muted">還沒有回測資料（${esc(e.message)}）。在電腦執行 <code>node scripts/backtest.js</code> 產生。</p></div>`;
+  }
+}
+const SETUP_OF = id => btData && btData.setups.find(s => s.id === id);
+function verdict(s) {
+  const st = s.stats;
+  if (!st.n || st.n < 30) return ['mid', '樣本不足'];
+  if (s.kind === 'daytrade') {
+    if (s.opt && s.opt.expR < 0) return ['bad', '長期虧損'];
+    if (st.expR > 0) return ['good', '有效'];
+    return ['mid', '不確定'];
+  }
+  if (st.expR > 0 && s.probEdge >= 95) return ['good', '有效'];
+  if (st.expR < 0 && s.probEdge <= 5) return ['bad', '長期虧損'];
+  return ['mid', '不明顯'];
+}
+const vBadge = ([k, t]) => `<span class="badge b-${k === 'good' ? 'good' : k === 'bad' ? 'bad' : 'mid'}">${k === 'good' ? '✅' : k === 'bad' ? '❌' : '⚠️'} ${t}</span>`;
+const rTxt = v => v == null ? '-' : `<span class="${cls(v)}">${signed(v, 2)}R</span>`;
+const pTxt = v => v == null ? '-' : `<span class="${cls(v)}">${signed(v, 2)}%</span>`;
+function pickBacktestLine(planId) {
+  const s = SETUP_OF(planId); if (!s || !s.stats.n) return '';
+  const v = verdict(s);
+  const exp = s.kind === 'daytrade' && s.opt ? `${rTxt(s.stats.expR)} ～ ${rTxt(s.opt.expR)}` : rTxt(s.stats.expR);
+  return `<div class="small" style="margin-top:8px; line-height:1.6">📊 這個情境的回測：${vBadge(v)} 期望值 ${exp}・${s.stats.n} 筆</div>`;
+}
+function renderBacktest() {
+  const d = btData, us = d.summary.us, mc = d.montecarlo;
+  const stat = (k, v) => `<div class="stat"><div class="k">${k}</div><div class="v" style="font-size:16px">${v}</div></div>`;
+  let html = `<div class="card">
+    <h2>回測說明</h2>
+    <p class="muted" style="margin:0; line-height:1.7">用 ${d.period.from} ～ ${d.period.to}（約 ${d.period.years} 年、${d.period.days} 個交易日）的真實股價，
+      假裝每天早上執行一次「今日10檔」，再照頁面上的進出場規則模擬每一筆交易。成本：手續費 ${d.settings.fee}%（不打折）×2、
+      證交稅 當沖 ${d.settings.taxDayTrade}% / 短線 ${d.settings.taxSwing}%。</p>
+    <p class="muted small" style="margin:8px 0 0; line-height:1.6">「R」= 停損距離。+0.2R 代表平均每筆賺到停損金額的 0.2 倍。
+      例如每筆最多賠 5,000 元，+0.2R ≈ 平均每筆賺 1,000 元。</p>
+  </div>`;
+
+  // 結論
+  const dt = us.daytrade, sw = us.swing, ex = d.intraday && d.intraday.exact;
+  html += `<div class="card"><h2>重點結論</h2><div style="line-height:1.8; font-size:14px">
+    <div>${vBadge(ex && ex.expR > 0 ? ['good','有效'] : ['bad','目前虧損'])} <b>當沖</b>：最近 60 天用 5 分 K 精算，期望值 ${ex ? rTxt(ex.expR) : '-'}（每筆 ${ex ? pTxt(ex.expRet) : '-'}），勝率 ${ex ? ex.winRate : '-'}%。目前的當沖規則<b>長期是賠錢的</b>，建議先不要照著做。</div>
+    <div style="margin-top:6px">${vBadge(sw.expR > 0 ? ['good','有正期望'] : ['bad','虧損'])} <b>短線</b>：期望值 ${rTxt(sw.expR)}（每筆 ${pTxt(sw.expRet)}），勝率 ${sw.winRate}%，平均持有 ${sw.hold} 天。
+      但同期間「隨便買進持有 10 天」平均也有 ${pTxt(d.baseline.longRet)}，代表一大部分獲利來自大盤上漲，策略本身的優勢只有約 ${pTxt(+(d.swingSide.long.expRet - d.baseline.longRet).toFixed(2))}／筆。</div>
+    <div style="margin-top:6px">⚠️ 後半段（${d.period.mid} 之後）短線的表現明顯比前半段差，優勢在變小。</div>
+  </div></div>`;
+
+  // 各情境
+  html += `<div class="card"><h2>各情境成績</h2>`;
+  for (const s of d.setups) {
+    if (!s.stats.n) continue;
+    const st = s.stats;
+    html += `<div class="plan">
+      <div class="plan-h">${kindBadge(s.kind)} ${esc(s.label)} ${vBadge(verdict(s))}</div>
+      <div class="stats" style="margin-top:8px">
+        ${stat('成交筆數', `${st.n} <span class="muted small">/${st.signals} 訊號</span>`)}
+        ${stat('勝率', `${st.winRate}%${s.opt ? ` ～ ${s.opt.winRate}%` : ''}`)}
+        ${stat('期望值', s.opt ? `${rTxt(st.expR)} ～ ${rTxt(s.opt.expR)}` : rTxt(st.expR))}
+        ${stat('獲利因子', `${fmt(st.pf, 2)}${s.opt ? ` ～ ${fmt(s.opt.pf, 2)}` : ''}`)}
+        ${stat('前半 → 後半', `${rTxt(s.first.expR)} → ${rTxt(s.second.expR)}`)}
+        ${s.kind === 'swing' ? stat('不是運氣的機率', s.probEdge == null ? '-' : s.probEdge + '%') : stat('每筆平均', pTxt(st.expRet))}
+      </div>
+      ${s.opt ? '<div class="muted small" style="margin-top:6px">當沖用日 K 分不出先碰停損還是停利，所以列「悲觀 ～ 樂觀」兩種，真實結果在中間。</div>' : ''}
+    </div>`;
+  }
+  html += `</div>`;
+
+  // 5 分 K
+  if (d.intraday) {
+    const i = d.intraday;
+    html += `<div class="card"><h2>當沖：最近 60 天 5 分 K 精算</h2>
+      <div class="stats">
+        ${stat('交易筆數', i.exact.n)}
+        ${stat('勝率', i.exact.winRate + '%')}
+        ${stat('期望值', rTxt(i.exact.expR))}
+        ${stat('每筆平均', pTxt(i.exact.expRet))}
+      </div>
+      <p class="muted small" style="line-height:1.6">同樣這些交易，日 K 悲觀 ${rTxt(i.dailyPess.expR)}、樂觀 ${rTxt(i.dailyOpt.expR)}；5 分 K 精算的 ${rTxt(i.exact.expR)} 才是比較接近真實的結果。</p>
+    </div>`;
+  }
+
+  // 蒙地卡羅
+  const mcCard = (name, m, note) => !m ? '' : `<div class="plan">
+    <div class="plan-h">${name}</div>
+    <div class="stats" style="margin-top:8px">
+      ${stat('報酬 中位數', pTxt(m.ret.p50))}
+      ${stat('5% 最差 ～ 5% 最好', `${pTxt(m.ret.p5)} ～ ${pTxt(m.ret.p95)}`)}
+      ${stat('虧錢的機率', m.probLoss + '%')}
+      ${stat('最大回撤 中位 / 最差 5%', `${m.mdd.p50}% / ${m.mdd.p95}%`)}
+    </div>
+    <div class="muted small" style="margin-top:6px">${note}</div>
+  </div>`;
+  html += `<div class="card"><h2>🎲 蒙地卡羅 ${fmt(mc.swing ? mc.swing.runs : 10000)} 次模擬</h2>
+    <p class="muted small" style="margin-top:0; line-height:1.6">從回測交易中隨機抽 100 筆（可重複），每筆冒本金 ${d.settings.risk}% 的風險，重複 ${fmt(mc.swing ? mc.swing.runs : 10000)} 次，
+      看「運氣好」和「運氣差」時本金會變多少。</p>
+    ${mcCard('📅 短線', mc.swing, `樣本 ${mc.swing ? mc.swing.sampleN : 0} 筆`)}
+    ${mcCard('⚡ 當沖', mc.daytrade, `樣本只有最近 60 天的 ${mc.daytrade ? mc.daytrade.sampleN : 0} 筆（5 分 K 精算），數量少，參考就好`)}
+  </div>`;
+
+  // 美股
+  const n = d.summary.nous;
+  html += `<div class="card"><h2>參考美股有沒有幫助？</h2>
+    <table class="mini"><thead><tr><th>期望值</th><th>有參考美股</th><th>不參考</th></tr></thead><tbody>
+      <tr><td>當沖（悲觀～樂觀）</td><td>${rTxt(us.daytrade.pess.expR)} ～ ${rTxt(us.daytrade.opt.expR)}</td><td>${rTxt(n.daytrade.pess.expR)} ～ ${rTxt(n.daytrade.opt.expR)}</td></tr>
+      <tr><td>短線</td><td>${rTxt(us.swing.expR)}</td><td>${rTxt(n.swing.expR)}</td></tr>
+    </tbody></table>
+    <p class="muted small" style="line-height:1.6">兩者幾乎一樣：用美股預測來加減分，對選股結果沒有明顯幫助。美股比較適合用來判斷「開盤要不要追」和「部位要不要減半」。</p>
+  </div>`;
+
+  html += `<div class="card"><div class="warn"><b>回測的限制</b><br>
+    • 股票池是「現在」熱門的股票，已下市或變冷門的股票不在裡面，結果會偏樂觀。<br>
+    • 這段期間大多是多頭，多頭策略本來就比較容易賺；遇到空頭，結果可能差很多。<br>
+    • 沒有歷史的處置股、當沖資格資料，也沒有算融資融券利息、滑價。<br>
+    • 過去的成績不代表未來，請用小部位實測。
+  </div></div>
+  <p class="muted small center">回測更新於 ${new Date(d.generatedAt).toLocaleString('zh-TW')}</p>`;
+  $('btBox').innerHTML = html;
+}
+
 /* ================= 初始化 ================= */
 form.openDate.value = today();
 loadSettingsForm();
@@ -837,6 +972,7 @@ setType('daytrade');
 render();
 showTab(localStorage.getItem('stockJournal.tab') || 'picks');
 loadPicks();
+loadBacktest();
 </script>
 </body>
 </html>
