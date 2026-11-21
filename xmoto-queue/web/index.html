@@ -31,17 +31,24 @@ main{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:st
 @media(max-width:600px){main{grid-template-columns:1fr}.card{min-height:180px;padding:24px}.big{font-size:64px}}
 </style></head>
 <body>
-<div id="demo" class="demo-banner" hidden>版面示範中 · 以下並非現場資料 <a href="?">返回</a></div>
+<div id="demo" class="demo-banner" hidden>版面示範 · 並非現場資料 ·
+  <a href="?demo=busy">使用中</a> · <a href="?demo=free">空閒</a> · <a href="?demo=offline">連線中斷</a> · <a href="?">返回</a></div>
 <header><div class="brand"><span>X</span>Xmoto</div><div class="label">豐原-中正店</div></header>
 <main>
-  <section class="card"><h2>機器狀態</h2><div class="machines" id="machines" aria-live="polite"></div></section>
-  <section class="card queue"><h2>現場等待機車</h2><div class="big" aria-live="polite"><span id="count">—</span><small>台</small></div></section>
+  <section class="card"><h2>洗車機</h2><div class="machines" id="machines" aria-live="polite"></div></section>
+  <section class="card queue"><h2>等待洗車</h2><div class="big" aria-live="polite"><span id="count">—</span><small>台</small></div></section>
   <p class="foot" id="foot">讀取中…</p>
 </main>
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
-const demo = new URLSearchParams(location.search).get('demo') === '1';
+const demo = new URLSearchParams(location.search).get('demo');
+const DEMO = {
+  '1':    { connected: true, count: 3, machines: [{ name: '洗車機', inUse: true }] },
+  busy:   { connected: true, count: 3, machines: [{ name: '洗車機', inUse: true }] },
+  free:   { connected: true, count: 0, machines: [{ name: '洗車機', inUse: false }] },
+  offline:{ connected: true, count: 2, machines: [{ name: '洗車機', inUse: true }], stale: true },
+};
 const STALE_MS = 120000;
 
 function machinesHTML(list, fallback) {
@@ -72,12 +79,15 @@ function render(d) {
 }
 async function refresh() {
   try {
-    if (demo) return render({ connected: true, count: 3, machines: [{ name: '機器', inUse: true }], updatedAt: new Date().toISOString() });
+    if (demo && DEMO[demo]) {
+      const d = DEMO[demo];
+      return render({ ...d, updatedAt: new Date(Date.now() - (d.stale ? 600000 : 0)).toISOString() });
+    }
     const r = await fetch('./status.json?t=' + Date.now(), { cache: 'no-store', signal: AbortSignal.timeout(10000) });
     if (!r.ok) throw new Error('http');
     render(await r.json());
   } catch { unknown('—', '暫時無法更新，稍後自動重試'); }
 }
-$('demo').hidden = !demo;
+$('demo').hidden = !(demo && DEMO[demo]);
 refresh(); setInterval(refresh, 30000);
 </script></body></html>
