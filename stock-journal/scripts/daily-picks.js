@@ -17,7 +17,7 @@ const Core = require('../plan-core.js');
 const UNIVERSE = 300;
 const N_DAYTRADE = 5;
 const N_SWING = 5;
-const OUT_DIR = path.join(__dirname, '..', 'data');
+const OUT_DIR = process.env.PICKS_OUT_DIR || path.join(__dirname, '..', 'data'); // 測試時可指定別的資料夾
 // 測試用：ASOF=2026-11-19 node daily-picks.js 會假裝現在是那天，只印結果不寫檔
 const ASOF = process.env.ASOF || null;
 const UA = { 'User-Agent': 'Mozilla/5.0 (compatible; stock-journal/1.0)' };
@@ -357,17 +357,18 @@ if (require.main === module) (async () => {
       plan, beta: +beta.toFixed(2), estOpen, usNotes: usNote(plan, estOpen, usBias), x: s.x };
   });
 
-  if (!ASOF) fs.mkdirSync(OUT_DIR, { recursive: true });
+  const WRITE = !ASOF || !!process.env.PICKS_OUT_DIR;
+  if (WRITE) fs.mkdirSync(OUT_DIR, { recursive: true });
   const generatedAt = new Date().toISOString();
   if (us) us.indices = us.indices.map(({ sym, name, date: d, close, chg }) => ({ sym, name, date: d, close, chg }));
-  if (!ASOF) fs.writeFileSync(path.join(OUT_DIR, 'picks.json'), JSON.stringify({
+  if (WRITE) fs.writeFileSync(path.join(OUT_DIR, 'picks.json'), JSON.stringify({
     date, generatedAt, market, us,
     candidates: { daytrade: cands.filter((c) => c.kind === 'daytrade').length, swing: cands.filter((c) => c.kind === 'swing').length },
     picks,
   }, null, 1));
   const snapshot = { date, generatedAt, stocks: {} };
   for (const s of fresh) snapshot.stocks[s.code] = { name: s.name, market: s.market, x: s.x };
-  if (!ASOF) fs.writeFileSync(path.join(OUT_DIR, 'snapshot.json'), JSON.stringify(snapshot));
+  if (WRITE) fs.writeFileSync(path.join(OUT_DIR, 'snapshot.json'), JSON.stringify(snapshot));
 
   console.log(`資料日期 ${date}，候選：當沖 ${cands.filter((c) => c.kind === 'daytrade').length}、短線 ${cands.filter((c) => c.kind === 'swing').length}`);
   if (us) {
