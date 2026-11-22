@@ -6,6 +6,7 @@
 <title>Xmoto 豐原-中正店｜現場狀況</title>
 <style>
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{margin:0;min-height:100vh;background:#f6f5ef;color:#203c34;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;display:flex;flex-direction:column}
 header,main,.guide{width:min(100% - 40px,760px);margin:0 auto}
 header{display:flex;align-items:center;padding:28px 0}
@@ -54,6 +55,18 @@ main{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:start;pad
 #player .ptitle{color:#fff;font-weight:600;text-align:center}
 #player .open{color:#cfe3da;font-size:14px;padding:6px}
 .guide a{color:#175e4c}
+.contact{width:min(100% - 40px,760px);margin:0 auto 18px;background:#fff;border:1px solid #e0e5dc;border-radius:22px;padding:22px 26px;display:flex;gap:22px;align-items:center}
+.contact .info{flex:1;min-width:0}
+.contact h2{margin:0 0 4px;font-size:18px;color:#175e4c}
+.contact p{margin:0 0 14px;font-size:14px;color:#61736b}
+.contact .btns{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 18px;border-radius:14px;font-weight:700;font-size:16px;text-decoration:none}
+.btn.line{background:#06c755;color:#fff}
+.btn.tel{background:#eef3ec;color:#175e4c;border:1px solid #d5e0d2}
+.btn:focus-visible{outline:3px solid #dba84b;outline-offset:3px}
+.contact .qr{width:120px;height:120px;flex:none;text-align:center;font-size:12px;color:#8b978f}
+.contact .qr img{width:120px;height:120px;display:block}
+@media(max-width:600px){.contact{padding:22px}.contact .qr{display:none}}
 .demo-banner a{padding:8px 6px;display:inline-block}.demo-banner{background:#fff2ce;color:#705b20;padding:10px 20px;text-align:center;font-size:13px}
 @media(max-width:600px){main{grid-template-columns:1fr}.card{min-height:180px;padding:24px}.big{font-size:64px}}
 </style></head>
@@ -66,6 +79,20 @@ main{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:start;pad
   <section class="card queue"><h2>等待洗車</h2><div class="big" aria-live="polite"><span id="count">—</span><small>台</small></div></section>
   <p class="foot" id="foot">讀取中…</p>
 </main>
+
+<!-- ===================== 聯絡我們 ===================== -->
+<section class="contact" id="contact">
+  <div class="info">
+    <h2>需要協助？</h2>
+    <p>機器有問題或需要協助，請聯絡客服</p>
+    <div class="btns">
+      <a class="btn line" href="https://lin.ee/APSNC55" target="_blank" rel="noopener">加入 LINE 客服</a>
+      <!-- 客服電話：取得號碼後把下一行的 hidden 拿掉，並把 tel: 和顯示的號碼改成實際號碼 -->
+      <a class="btn tel" id="tel" href="tel:0000000000" hidden>撥打 24 小時客服 0000-000-000</a>
+    </div>
+  </div>
+  <div class="qr"><img src="line-qr.png" alt="LINE 客服 QR Code" width="120" height="120">手機掃描加入</div>
+</section>
 
 <!-- ===================== 使用說明區（下方內容在這裡編輯） =====================
   文字：在 <ul> 裡加一行 <li>內容</li>
