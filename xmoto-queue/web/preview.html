@@ -62,6 +62,19 @@ main{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:start;pad
 .contact .btns{display:flex;flex-wrap:wrap;gap:10px}
 .btn{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 18px;border-radius:14px;font-weight:700;font-size:16px;text-decoration:none}
 .btn.line{background:#06c755;color:#fff}
+.price{width:min(100% - 40px,760px);margin:0 auto 18px;background:#fff;border:1px solid #e0e5dc;border-radius:22px;padding:22px 26px}
+.price h2{margin:0 0 6px;font-size:18px;color:#175e4c}
+.plans{list-style:none;margin:0;padding:0}
+.plans li{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid #edf0e8}
+.plans li:last-child{border-bottom:0}
+.plans .n{flex:none;width:28px;height:28px;border-radius:50%;background:#eef3ec;color:#175e4c;font-weight:700;display:grid;place-items:center;font-size:14px}
+.plans .d{flex:1;min-width:0}
+.plans .name{font-weight:700;font-size:16px}
+.plans .steps{font-size:13px;color:#61736b;line-height:1.6;margin-top:2px}
+.plans .p{flex:none;font-size:22px;font-weight:800;color:#175e4c;white-space:nowrap}
+.plans .p small{font-size:13px;font-weight:600;margin-left:2px}
+.extra{margin-top:8px;padding:12px 14px;border-radius:14px;background:#f6f5ef;font-size:14px;line-height:1.7;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.extra b{color:#175e4c;white-space:nowrap}
 .btn.map{background:#175e4c;color:#fff}
 .contact .addr{font-size:16px;color:#203c34;line-height:1.7}
 .contact .open24{font-size:14px;color:#1f7f52;font-weight:600}
@@ -84,6 +97,18 @@ main{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:start;pad
 </main>
 
 <!-- ===================== 聯絡我們 ===================== -->
+<!-- ===================== 洗車方案與價格 ===================== -->
+<section class="price" id="price">
+  <h2>洗車方案與價格</h2>
+  <ul class="plans">
+    <li><span class="n">1</span><div class="d"><div class="name">簡單洗</div><div class="steps">柔水噴霧＋高壓風刀</div></div><span class="p">50<small>元</small></span></li>
+    <li><span class="n">2</span><div class="d"><div class="name">極致洗</div><div class="steps">強力水刀＋去污泡沫＋高壓風刀</div></div><span class="p">100<small>元</small></span></li>
+    <li><span class="n">3</span><div class="d"><div class="name">停機自助洗刷</div><div class="steps">雙重水刀＋強力去污＋入內洗刷＋高壓風刀</div></div><span class="p">100<small>元</small></span></li>
+    <li><span class="n">4</span><div class="d"><div class="name">XMOTO 水蠟美容</div><div class="steps">強力水刀＋強效去污＋XMOTO 水蠟＋高壓風刀</div></div><span class="p">150<small>元</small></span></li>
+  </ul>
+  <div class="extra"><span>暖風槍　<b>10 元／120 秒</b></span><span>使用時間 <b>08:00～22:00</b></span></div>
+</section>
+
 <section class="contact store" id="store">
   <div class="info">
     <h2>門市資訊</h2>
