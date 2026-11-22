@@ -7,12 +7,12 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;background:#f6f5ef;color:#203c34;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;display:flex;flex-direction:column}
-header,main{width:min(100% - 40px,760px);margin:0 auto}
-header{display:flex;justify-content:space-between;align-items:center;padding:28px 0}
-.brand{font-weight:800;letter-spacing:.08em}
-.brand span{display:inline-grid;place-items:center;background:#175e4c;color:#fff;width:34px;height:34px;border-radius:12px;margin-right:10px}
-.label{font-size:13px;color:#61736b}
-main{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:start;padding:20px 0 40px}
+header,main,.guide{width:min(100% - 40px,760px);margin:0 auto}
+header{display:flex;align-items:center;padding:28px 0}
+.brand{display:flex;align-items:center;gap:10px;margin:0;font-size:20px;font-weight:800;letter-spacing:.04em}
+.brand .logo{display:inline-grid;place-items:center;background:#175e4c;color:#fff;width:34px;height:34px;border-radius:12px;font-size:16px;flex:none}
+.brand .store{font-weight:700;letter-spacing:.02em}
+main{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:start;padding:20px 0 40px}
 .card{border-radius:26px;padding:30px;background:#fff;border:1px solid #e0e5dc;min-height:240px;display:flex;flex-direction:column}
 .card h2{margin:0;font-size:16px;font-weight:600;color:#61736b}
 .big{flex:1;display:flex;align-items:center;font-size:72px;font-weight:700;letter-spacing:-.03em;line-height:1.1}
@@ -27,18 +27,53 @@ main{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:st
 .free .dot{background:#2e9d68;box-shadow:0 0 0 6px #2e9d6822}.free .state{color:#1f7f52}
 .unknown .state{color:#9aa59e}
 .foot{grid-column:1/-1;text-align:center;font-size:12px;color:#8b978f}
+.guide{padding:8px 0 48px;display:grid;gap:18px;flex:1;align-content:start}
+.guide section{background:#fff;border:1px solid #e0e5dc;border-radius:22px;padding:24px 26px}
+.guide h2{margin:0 0 12px;font-size:18px;color:#175e4c}
+.guide ul,.guide ol{margin:0;padding-left:1.3em;line-height:1.9}
+.guide p{margin:0;line-height:1.8}
+.guide .empty{color:#9aa59e;font-size:14px}
+.video{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#000;margin-top:12px}
+.video iframe,.video video{position:absolute;inset:0;width:100%;height:100%;border:0}
+.guide a{color:#175e4c}
 .demo-banner{background:#fff2ce;color:#705b20;padding:10px 20px;text-align:center;font-size:13px}
 @media(max-width:600px){main{grid-template-columns:1fr}.card{min-height:180px;padding:24px}.big{font-size:64px}}
 </style></head>
 <body>
 <div id="demo" class="demo-banner" hidden>版面示範 · 並非現場資料 ·
   <a href="?demo=busy">使用中</a> · <a href="?demo=free">空閒</a> · <a href="?demo=offline">連線中斷</a> · <a href="?">返回</a></div>
-<header><div class="brand"><span>X</span>Xmoto</div><div class="label">豐原-中正店</div></header>
+<header><h1 class="brand"><span class="logo">X</span>Xmoto <span class="store">豐原-中正店</span></h1></header>
 <main>
   <section class="card"><h2>洗車機</h2><div class="machines" id="machines" aria-live="polite"></div></section>
   <section class="card queue"><h2>等待洗車</h2><div class="big" aria-live="polite"><span id="count">—</span><small>台</small></div></section>
   <p class="foot" id="foot">讀取中…</p>
 </main>
+
+<!-- ===================== 使用說明區（下方內容在這裡編輯） =====================
+  文字：在 <ul> 裡加一行 <li>內容</li>
+  文章連結：<li><a href="網址">標題</a></li>
+  YouTube 影片：<div class="video"><iframe src="https://www.youtube.com/embed/影片ID" loading="lazy" allowfullscreen></iframe></div>
+  有內容後，把該區的 <p class="empty">內容準備中</p> 刪掉
+============================================================================== -->
+<div class="guide">
+  <section id="rules">
+    <h2>使用須知</h2>
+    <p class="empty">內容準備中</p>
+    <ul hidden></ul>
+  </section>
+
+  <section id="tips">
+    <h2>溫馨小提醒</h2>
+    <p class="empty">內容準備中</p>
+    <ul hidden></ul>
+  </section>
+
+  <section id="tutorial">
+    <h2>使用教學</h2>
+    <p class="empty">內容準備中</p>
+    <ul hidden></ul>
+  </section>
+</div>
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
