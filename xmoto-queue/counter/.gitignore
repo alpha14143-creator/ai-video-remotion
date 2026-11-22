@@ -8,3 +8,8 @@ secrets.env
 venv/
 logs/
 parked_tracks.json
+emu-config.json
+empty_lf_*.jpg
+preview_*.jpg
+emu_counter.log
+status.json

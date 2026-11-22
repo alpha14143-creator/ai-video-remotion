@@ -1,0 +1,81 @@
+{
+  "name": "Xmoto 狀態上傳（辨識程式 → R2）",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "xmoto-status",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "d9a92af7-4cfc-43da-afda-005bb4adf3da",
+      "name": "接收狀態",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "xmoto-status-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 收到店內辨識程式送來的狀態 → 檢查格式 → 產生 status.json\nconst TOKEN = 'TOKEN_PLACEHOLDER';\nconst body = $input.first().json.body || {};\nif (body.token !== TOKEN) throw new Error('token 錯誤，拒絕上傳');\nconst s = body.status || {};\nif (s.connected !== true || !Number.isInteger(s.count) || s.count < 0 || s.count > 99 || !s.updatedAt) throw new Error('狀態格式錯誤');\nconst status = {\n  connected: true, open: s.open !== false, count: s.count,\n  machines: (s.machines || []).slice(0, 4).map(m => ({ name: String(m.name || '洗車機').slice(0, 20), inUse: m.inUse === true })),\n  updatedAt: String(s.updatedAt).slice(0, 40),\n};\nreturn [{ json: status, binary: { data: { data: Buffer.from(JSON.stringify(status), 'utf8').toString('base64'),\n  mimeType: 'application/json', fileName: 'status.json', fileExtension: 'json' } } }];"
+      },
+      "id": "0225355a-b26a-4b31-a546-6f7e04abbf3e",
+      "name": "檢查並產生 status.json",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "xmoto-queue",
+        "fileName": "status.json",
+        "binaryData": true,
+        "binaryPropertyName": "data",
+        "additionalFields": {}
+      },
+      "id": "a315ef22-18b8-4ce1-8ffc-aacd32197eff",
+      "name": "上傳到 R2",
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        480,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "接收狀態": {
+      "main": [
+        [
+          {
+            "node": "檢查並產生 status.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "檢查並產生 status.json": {
+      "main": [
+        [
+          {
+            "node": "上傳到 R2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": false
+  }
+}

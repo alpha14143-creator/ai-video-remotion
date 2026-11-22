@@ -1,0 +1,135 @@
+{
+  "adb_path": "C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe",
+  "adb_serial": "auto",
+  "app_package": "com.tplink.iot",
+  "cameras": {
+    "queue": {
+      "name": "豐原中正店-室外",
+      "index": 1
+    },
+    "machine": {
+      "name": "豐原中正店-洗車機左前",
+      "index": 0
+    }
+  },
+  "detection": {
+    "model": "yolov8s.pt",
+    "confidence": 0.3,
+    "image_size": 960,
+    "max_box_height": 0.9
+  },
+  "queue": {
+    "queue_zone": [
+      [
+        0.3,
+        0.24
+      ],
+      [
+        0.8,
+        0.24
+      ],
+      [
+        0.86,
+        0.42
+      ],
+      [
+        0.74,
+        1.0
+      ],
+      [
+        0.36,
+        1.0
+      ],
+      [
+        0.3,
+        0.62
+      ]
+    ],
+    "exclude_zones": [
+      {
+        "name": "上方路邊停放",
+        "zone": [
+          [
+            0.4,
+            0.0
+          ],
+          [
+            0.82,
+            0.0
+          ],
+          [
+            0.82,
+            0.24
+          ],
+          [
+            0.4,
+            0.24
+          ]
+        ]
+      },
+      {
+        "name": "左側靠牆停放",
+        "zone": [
+          [
+            0.0,
+            0.45
+          ],
+          [
+            0.3,
+            0.45
+          ],
+          [
+            0.36,
+            1.0
+          ],
+          [
+            0.0,
+            1.0
+          ]
+        ]
+      }
+    ]
+  },
+  "machine": {
+    "machine_zones": [
+      {
+        "name": "洗車機",
+        "zone": [
+          [
+            0.375,
+            0.24
+          ],
+          [
+            0.51,
+            0.22
+          ],
+          [
+            0.51,
+            0.67
+          ],
+          [
+            0.375,
+            0.66
+          ]
+        ],
+        "empty_references": [
+          "empty_lf_day.jpg",
+          "empty_lf_night.jpg"
+        ],
+        "change_threshold": 0.15
+      }
+    ]
+  },
+  "parked_filter": {
+    "enabled": true,
+    "parked_after_minutes": 30,
+    "grace_seconds": 180,
+    "match_iou": 0.4
+  },
+  "interval_seconds": 30,
+  "smoothing_samples": 3,
+  "upload": {
+    "webhook": "http://localhost:5678/webhook/xmoto-status",
+    "token": "請換成 n8n 流程裡的同一組"
+  }
+}
