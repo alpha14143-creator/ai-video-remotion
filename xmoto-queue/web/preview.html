@@ -34,13 +34,26 @@ main{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:start;pad
 .guide p{margin:0;line-height:1.8}
 .guide strong{color:#b8322d}
 .guide .empty{color:#9aa59e;font-size:14px}
-.video{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#000;margin-top:12px}
-.video iframe,.video video{position:absolute;inset:0;width:100%;height:100%;border:0}
+.media-grid{display:flex;flex-wrap:wrap;gap:14px;margin-top:6px}
+.thumb{all:unset;cursor:pointer;width:128px;display:flex;flex-direction:column;gap:6px;border-radius:14px}
+.thumb:focus-visible{outline:3px solid #dba84b;outline-offset:3px}
+.thumb .pic{position:relative;aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#175e4c center/cover no-repeat}
+.thumb.wide{width:200px}.thumb.wide .pic{aspect-ratio:16/9}
+.thumb .pic::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 55%,#0007)}
+.thumb .play{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:#fffd;z-index:1;display:grid;place-items:center;box-shadow:0 2px 10px #0004}
+.thumb .play::before{content:"";margin-left:4px;border-style:solid;border-width:9px 0 9px 15px;border-color:transparent transparent transparent #175e4c}
+.thumb .site{position:absolute;left:8px;bottom:7px;z-index:1;color:#fff;font-size:12px;font-weight:600}
+.thumb .title{font-size:14px;font-weight:600;line-height:1.4;color:#203c34}
+#player{border:0;padding:0;background:transparent;max-width:none;max-height:none;width:100%;height:100%;margin:0}
+#player::backdrop{background:#000000f2}
+#player .wrap{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:56px 16px 24px}
+#player .frame{position:relative;width:min(100%,calc((100vh - 140px) * 9 / 16));aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#000}
+#player .frame.wide{width:min(100%,900px,calc((100vh - 140px) * 16 / 9));aspect-ratio:16/9}
+#player iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+#player .close{position:fixed;top:12px;right:12px;width:44px;height:44px;border-radius:50%;border:0;background:#fff;color:#203c34;font-size:26px;line-height:1;cursor:pointer}
+#player .ptitle{color:#fff;font-weight:600;text-align:center}
+#player .open{color:#cfe3da;font-size:14px;padding:6px}
 .guide a{color:#175e4c}
-.video.tall{aspect-ratio:9/16;max-width:360px;margin-inline:auto}
-.media-item{margin-top:14px}
-.media-item .title{font-weight:600;margin-bottom:4px}
-.media-item .open{display:inline-block;margin-top:8px;font-size:14px;padding:6px 0}
 .demo-banner a{padding:8px 6px;display:inline-block}.demo-banner{background:#fff2ce;color:#705b20;padding:10px 20px;text-align:center;font-size:13px}
 @media(max-width:600px){main{grid-template-columns:1fr}.card{min-height:180px;padding:24px}.big{font-size:64px}}
 </style></head>
@@ -58,8 +71,8 @@ main{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:start;pad
   文字：在 <ul> 裡加一行 <li>內容</li>
   文章連結：<li><a href="網址">標題</a></li>
   影片（Facebook / Instagram / YouTube 都可以，貼「公開」貼文的網址）：
-    <a class="media" href="影片網址">影片標題</a>
-    網頁會自動變成可以播放的影片，下方附「到 Facebook / Instagram 觀看」連結
+    <a class="media" href="影片網址" data-thumb="縮圖檔名.jpg">影片標題</a>
+    網頁會顯示小縮圖，點一下放大播放（YouTube 會自動抓縮圖，FB / IG 的縮圖請 Claude 抓好放在同資料夾）
   有內容後，把該區的 <p class="empty">內容準備中</p> 刪掉
 ============================================================================== -->
 <div class="guide">
@@ -83,38 +96,70 @@ main{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:start;pad
 
   <section id="tutorial">
     <h2>使用教學</h2>
-    <a class="media" href="https://www.facebook.com/reel/2230488854054329/">LINE 好友優惠券使用方式</a>
+    <a class="media" href="https://www.facebook.com/reel/2230488854054329/" data-thumb="thumb-fb-2230488854054329.jpg">LINE 好友優惠券使用方式</a>
   </section>
 </div>
+
+<dialog id="player" aria-label="影片播放">
+  <div class="wrap">
+    <button class="close" type="button" aria-label="關閉">×</button>
+    <div class="ptitle"></div>
+    <div class="frame"><iframe allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>
+    <a class="open" target="_blank" rel="noopener"></a>
+  </div>
+</dialog>
 <script>
 'use strict';
-// 把 <a class="media" href="..."> 轉成內嵌影片（FB / IG / YouTube），並保留原連結
-document.querySelectorAll('a.media').forEach(a => {
-  const url = a.href, title = a.textContent.trim();
-  let src = '', tall = false, site = '';
+// 把 <a class="media" href="..." data-thumb="縮圖檔名"> 轉成小縮圖，點一下放大播放（FB / IG / YouTube）
+function parseVideo(url) {
+  let src = '', tall = false, site = '原網站', thumb = '';
   if (/facebook\.com|fb\.watch/.test(url)) {
-    site = 'Facebook';
-    tall = /\/reel\//.test(url);
-    src = 'https://www.facebook.com/plugins/video.php?show_text=false&href=' + encodeURIComponent(url);
+    site = 'Facebook'; tall = /\/reel\//.test(url);
+    src = 'https://www.facebook.com/plugins/video.php?show_text=false&autoplay=true&href=' + encodeURIComponent(url);
   } else if (/instagram\.com/.test(url)) {
     site = 'Instagram'; tall = true;
     const m = url.match(/instagram\.com\/(?:[^/]+\/)?(p|reel|reels|tv)\/([\w-]+)/);
     if (m) src = `https://www.instagram.com/${m[1] === 'reels' ? 'reel' : m[1]}/${m[2]}/embed`;
   } else if (/youtube\.com|youtu\.be/.test(url)) {
-    site = 'YouTube';
+    site = 'YouTube'; tall = /shorts\//.test(url);
     const m = url.match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/);
-    tall = /shorts\//.test(url);
-    if (m) src = 'https://www.youtube.com/embed/' + m[1];
+    if (m) { src = `https://www.youtube.com/embed/${m[1]}?autoplay=1&playsinline=1`; thumb = `https://i.ytimg.com/vi/${m[1]}/hqdefault.jpg`; }
   }
-  const box = document.createElement('div');
-  box.className = 'media-item';
-  box.innerHTML = (title ? '<div class="title"></div>' : '') +
-    (src ? `<div class="video${tall ? ' tall' : ''}"><iframe loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>` : '') +
-    `<a class="open" target="_blank" rel="noopener">到 ${site || '原網站'} 觀看 ↗</a>`;
-  if (title) box.querySelector('.title').textContent = title;
-  if (src) box.querySelector('iframe').src = src;
-  box.querySelector('.open').href = url;
-  a.replaceWith(box);
+  return { src, tall, site, thumb };
+}
+const player = document.getElementById('player');
+const pFrame = player.querySelector('iframe');
+function openPlayer(v, title, url) {
+  if (!v.src) { window.open(url, '_blank', 'noopener'); return; }
+  player.querySelector('.ptitle').textContent = title;
+  player.querySelector('.frame').classList.toggle('wide', !v.tall);
+  const open = player.querySelector('.open'); open.href = url; open.textContent = `播放不了？到 ${v.site} 觀看 ↗`;
+  pFrame.src = v.src;
+  if (player.showModal) player.showModal(); else player.setAttribute('open', '');
+}
+function closePlayer() { pFrame.src = 'about:blank'; if (player.close) player.close(); else player.removeAttribute('open'); }
+player.querySelector('.close').addEventListener('click', closePlayer);
+player.addEventListener('click', e => { if (e.target === player || e.target.classList.contains('wrap')) closePlayer(); });
+player.addEventListener('cancel', e => { e.preventDefault(); closePlayer(); });
+
+document.querySelectorAll('.guide section').forEach(sec => {
+  const links = [...sec.querySelectorAll('a.media')];
+  if (!links.length) return;
+  const grid = document.createElement('div'); grid.className = 'media-grid';
+  links[0].before(grid);
+  links.forEach(a => {
+    const url = a.href, title = a.textContent.trim(), v = parseVideo(url);
+    const thumb = a.dataset.thumb || v.thumb;
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'thumb' + (v.tall ? '' : ' wide');
+    btn.innerHTML = '<span class="pic"><span class="play"></span><span class="site"></span></span><span class="title"></span>';
+    if (thumb) btn.querySelector('.pic').style.backgroundImage = `url("${thumb}")`;
+    btn.querySelector('.site').textContent = v.site;
+    btn.querySelector('.title').textContent = title;
+    btn.setAttribute('aria-label', `播放影片：${title}`);
+    btn.addEventListener('click', () => openPlayer(v, title, url));
+    grid.append(btn); a.remove();
+  });
 });
 const $ = id => document.getElementById(id);
 let demo = new URLSearchParams(location.search).get('demo') || 'busy';  // 預覽版：預設示範模式
