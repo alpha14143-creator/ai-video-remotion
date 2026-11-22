@@ -7,3 +7,4 @@ empty_*.jpg
 secrets.env
 venv/
 logs/
+parked_tracks.json

@@ -289,14 +289,89 @@ class Counter:
             cv2.putText(img, label, tuple(pts[0] + [6, 34]), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (255, 120, 0), 3)
         for d in dets:
             x1, y1, x2, y2 = map(int, d["box"])
-            color = (80, 200, 80) if d["counted"] else (255, 120, 0) if d["machine"] is not None else (150, 150, 150)
+            color = ((0, 140, 255) if d.get("parked") else (80, 200, 80)) if d["counted"] else (255, 120, 0) if d["machine"] is not None else (150, 150, 150)
             cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
             cv2.circle(img, tuple(map(int, d["anchor"])), 6, color, -1)
             cv2.putText(img, f"{d['conf']:.2f}", (x1, max(20, y1 - 6)),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
-        n = sum(d["counted"] for d in dets)
+        n = sum(d["counted"] and not d.get("parked") for d in dets)
         cv2.putText(img, f"queue: {n}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 220, 255), 3)
         return img
+
+
+# ---------------------------------------------------------------- parked filter
+class ParkedFilter:
+    """太久沒動的機車不算等待。
+
+    每次偵測後，用位置重疊度（IoU）把這次的機車和之前看到的機車配對：
+    同一個位置連續出現超過 parked_after_minutes 分鐘 → 視為停放車，不算等待。
+    排隊的車會往前移或離開，所以不會被誤判（門檻要比最長等待時間長）。
+    偶爾被人擋住、漏偵測的車，grace_seconds 內再出現仍視為同一台。
+    追蹤資料存檔，每日重開機後不會把停放車重新算成等待。
+    """
+
+    def __init__(self, cfg: dict, state_file: str = "parked_tracks.json"):
+        pf = cfg.get("parked_filter", {})
+        self.enabled = bool(pf.get("enabled", True))
+        self.limit = float(pf.get("parked_after_minutes", 30)) * 60
+        self.grace = float(pf.get("grace_seconds", 180))
+        self.iou_min = float(pf.get("match_iou", 0.4))
+        self.state_file = Path(state_file)
+        self.tracks: list[dict] = []
+        self._load()
+
+    @staticmethod
+    def _iou(a, b) -> float:
+        ix = max(0.0, min(a[2], b[2]) - max(a[0], b[0]))
+        iy = max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
+        inter = ix * iy
+        union = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter
+        return inter / union if union > 0 else 0.0
+
+    def _load(self) -> None:
+        try:
+            data = json.loads(self.state_file.read_text(encoding="utf-8"))
+            if time.time() - data.get("savedAt", 0) < self.grace + 600:  # 停機太久就不沿用
+                self.tracks = data.get("tracks", [])
+        except (OSError, ValueError):
+            pass
+
+    def _save(self) -> None:
+        try:
+            self.state_file.write_text(json.dumps({"savedAt": time.time(), "tracks": self.tracks}), encoding="utf-8")
+        except OSError:
+            pass
+
+    def update(self, dets: list[dict], w: int, h: int, now: float | None = None) -> None:
+        """在每個 det 加上 parked（是否停放）與 stay_min（已停留分鐘）。"""
+        now = time.time() if now is None else now
+        for d in dets:
+            d["parked"], d["stay_min"] = False, 0.0
+        if not self.enabled:
+            return
+        boxes = [[d["box"][0] / w, d["box"][1] / h, d["box"][2] / w, d["box"][3] / h] for d in dets]
+        used: set[int] = set()
+        # 依重疊度由高到低配對
+        pairs = sorted(((self._iou(b, t["box"]), i, j) for i, b in enumerate(boxes)
+                        for j, t in enumerate(self.tracks)), reverse=True)
+        matched: dict[int, int] = {}
+        for iou, i, j in pairs:
+            if iou < self.iou_min or i in matched or j in used:
+                continue
+            matched[i] = j
+            used.add(j)
+        for i, b in enumerate(boxes):
+            if i in matched:
+                t = self.tracks[matched[i]]
+                t["box"], t["last"] = b, now
+            else:
+                t = {"box": b, "first": now, "last": now}
+                self.tracks.append(t)
+            stay = now - t["first"]
+            dets[i]["stay_min"] = stay / 60
+            dets[i]["parked"] = stay >= self.limit
+        self.tracks = [t for t in self.tracks if now - t["last"] <= self.grace]
+        self._save()
 
 
 # ---------------------------------------------------------------- publish
@@ -378,6 +453,7 @@ def main() -> int:
         log.info("已存成 %s，請把檔名加進 config.json 的 empty_references", args.save_reference)
         return 0
     counter = Counter(cfg)
+    parked = ParkedFilter(cfg)
     publisher = Publisher(cfg, enabled=not (args.no_upload or args.preview))
     history: deque[int] = deque(maxlen=max(1, window))
     machine_history: deque[list[bool]] = deque(maxlen=max(1, window))
@@ -408,7 +484,10 @@ def main() -> int:
                 else:
                     fails = 0
                     dets, in_use = counter.detect(frame)
-                    raw = sum(d["counted"] for d in dets)
+                    if not args.preview:
+                        parked.update(dets, frame.shape[1], frame.shape[0])
+                    n_parked = sum(d["counted"] and d.get("parked", False) for d in dets)
+                    raw = sum(d["counted"] and not d.get("parked", False) for d in dets)
                     if args.preview:
                         cv2.imwrite("preview.jpg", counter.annotate(frame, dets))
                         log.info("已輸出 preview.jpg（偵測到 %d 台機車，等候區 %d 台，機器使用中：%s，畫面變化：%s）",
@@ -424,7 +503,7 @@ def main() -> int:
                     status = {"connected": True, "open": True, "count": count,
                               "machines": machines, "updatedAt": now_iso()}
                     publisher.publish(status)
-                    log.info("等候 %d 台 → 顯示 %d 台；機器：%s", raw, count,
+                    log.info("等候 %d 台（另有停放 %d 台不算）→ 顯示 %d 台；機器：%s", raw, n_parked, count,
                              ", ".join(f"{m['name']}={'使用中' if m['inUse'] else '空閒'}" for m in machines) or "未設定")
         except Exception:
             log.exception("執行錯誤，稍後重試")

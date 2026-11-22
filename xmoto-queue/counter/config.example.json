@@ -115,5 +115,11 @@
   ],
   "interval_seconds": 30,
   "smoothing_samples": 3,
-  "business_hours": null
+  "business_hours": null,
+  "parked_filter": {
+    "enabled": true,
+    "parked_after_minutes": 30,
+    "grace_seconds": 180,
+    "match_iou": 0.4
+  }
 }

@@ -163,6 +163,7 @@ python queue_counter.py --config config.json --once
 |---|---|
 | `interval_seconds` | 幾秒算一次（預設 30，與網頁同步） |
 | `smoothing_samples` | 取最近幾次的中位數，避免路人經過數字亂跳（預設 3） |
+| `parked_filter` | 太久沒動的機車不算等待：同一位置停超過 `parked_after_minutes`（預設 30）分鐘就當作停放車。門檻要比最長的等待時間長。被人擋住漏偵測 `grace_seconds`（預設 180 秒）內仍視為同一台；每日重開機後會沿用紀錄 |
 | `business_hours` | 預設 `null` = 24 小時營業。若之後有固定休息時段，可設定如 `{"1":["09:00","20:00"], ..., "7":null}`（1=週一…7=週日），休息時網頁顯示「休息中」 |
 | `detection.model` | `yolov8n.pt` 較快、`yolov8s.pt` 較準（預設），電腦夠力可用 `yolov8m.pt` |
 | `detection.max_box_height` | 框的高度超過畫面幾成就忽略（避免把牆上的機車海報當成車），預設 0.7 |
