@@ -262,6 +262,9 @@ def main() -> int:
                     emu.tiles.clear()
             else:
                 fails = 0
+                # 保留最近一輪的截圖，方便檢查（覆蓋寫入，不會越存越多）
+                cv2.imwrite(str(base / "last_queue.jpg"), q_frame)
+                cv2.imwrite(str(base / "last_machine.jpg"), m_frame)
                 q_dets, _ = q_counter.detect(q_frame)
                 m_dets, in_use = m_counter.detect(m_frame)
                 if args.preview:

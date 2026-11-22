@@ -13,3 +13,5 @@ empty_lf_*.jpg
 preview_*.jpg
 emu_counter.log
 status.json
+last_*.jpg
+run.log
