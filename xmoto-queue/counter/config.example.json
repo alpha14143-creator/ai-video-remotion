@@ -9,8 +9,8 @@
   },
   "r2": {
     "account_id": "",
-    "bucket": "",
-    "key": "xmoto-queue/status.json",
+    "bucket": "xmoto-queue",
+    "key": "status.json",
     "access_key_id": "",
     "secret_access_key": ""
   },
