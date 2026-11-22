@@ -128,6 +128,17 @@ main{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:start;pad
 #player .ptitle{font-weight:700;text-align:center}
 #player .open{color:var(--amber);font-size:14px;padding:6px}
 
+/* 公告 */
+.notice{grid-column:1/-1;position:relative;border-radius:14px;padding:18px 22px 18px 30px;background:#2a2410;border:1px solid #5a4a14;overflow:hidden}
+.notice::before{content:"";position:absolute;left:0;top:0;bottom:0;width:10px;background:repeating-linear-gradient(-45deg,var(--amber) 0 8px,#15191b 8px 16px)}
+.notice .nt{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;color:var(--amber)}
+.notice .tag{font:700 11px/1 var(--mono);letter-spacing:.12em;padding:5px 8px;border-radius:5px;background:var(--amber);color:#15191b}
+.notice p{margin:6px 0 0;font-size:15px;line-height:1.7;color:#efe6c8}
+.notice .until{font-family:var(--mono);font-size:14px;color:#d8c98f}
+.notice.pause{background:#2d1816;border-color:#6b2a26}
+.notice.pause .nt{color:#ff8a82}.notice.pause .tag{background:var(--busy);color:#fff}
+.notice.pause::before{background:repeating-linear-gradient(-45deg,var(--busy) 0 8px,#15191b 8px 16px)}
+.paused .dot{background:var(--amber);box-shadow:0 0 0 5px #f2c23026,0 0 14px #f2c23088}.paused .state{color:var(--amber)}
 .demo-banner{background:var(--amber);color:#15191b;padding:10px 20px;text-align:center;font-size:13px;font-weight:600}
 .demo-banner a{color:#15191b;padding:8px 6px;display:inline-block}
 @media(max-width:600px){
@@ -136,9 +147,14 @@ main{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:start;pad
 </style></head>
 <body>
 <div id="demo" class="demo-banner" hidden>版面示範 · 並非現場資料 ·
-  <a href="?demo=busy">使用中</a> · <a href="?demo=free">空閒</a> · <a href="?demo=offline">連線中斷</a> · <a href="?">返回</a></div>
+  <a href="?demo=busy">使用中</a> · <a href="?demo=free">空閒</a> · <a href="?demo=offline">連線中斷</a> · <a href="?demo=paused">暫停服務</a> · <a href="?">返回</a></div>
 <header><h1 class="brand"><span class="logo">X</span>Xmoto <span class="store">豐原-中正店</span></h1><span class="live" aria-hidden="true"><i></i>LIVE</span></header>
 <main>
+  <div class="notice" id="notice" role="status" hidden>
+    <div class="nt"><span class="tag" id="nTag">公告</span><span id="nTitle"></span></div>
+    <p id="nMsg" hidden></p>
+    <p class="until" id="nUntil" hidden></p>
+  </div>
   <section class="card"><h2>洗車機</h2><div class="machines" id="machines" aria-live="polite"></div></section>
   <section class="card queue"><h2>等待洗車</h2><div class="big" aria-live="polite"><span id="count">—</span><small>台</small></div></section>
   <p class="foot" id="foot">讀取中…</p>
@@ -281,6 +297,8 @@ const DEMO = {
   busy:   { connected: true, count: 3, machines: [{ name: '洗車機', inUse: true }] },
   free:   { connected: true, count: 0, machines: [{ name: '洗車機', inUse: false }] },
   offline:{ connected: true, count: 2, machines: [{ name: '洗車機', inUse: true }], stale: true },
+  paused: { connected: true, count: 0, machines: [{ name: '洗車機', inUse: false }],
+            notice: { mode: 'pause', title: '洗車機暫停服務', message: '設備保養中，造成不便敬請見諒。', until: '預計 15:00 恢復' } },
 };
 const STALE_MS = 120000;
 
@@ -288,8 +306,8 @@ function machinesHTML(list, fallback) {
   if (!list || !list.length) list = [{ name: '機器', inUse: null }];
   const one = list.length === 1;
   return list.map(m => {
-    const cls = m.inUse === true ? 'busy' : m.inUse === false ? 'free' : 'unknown';
-    const text = m.inUse === true ? '使用中' : m.inUse === false ? '空閒' : fallback;
+    const cls = m.paused ? 'paused' : m.inUse === true ? 'busy' : m.inUse === false ? 'free' : 'unknown';
+    const text = m.paused ? '暫停服務' : m.inUse === true ? '使用中' : m.inUse === false ? '空閒' : fallback;
     const name = one ? '' : `<span class="name">${String(m.name).replace(/[<>&]/g, '')}</span>`;
     return `<div class="m ${cls}"><span class="dot"></span><span>${name}<span class="state">${text}</span></span></div>`;
   }).join('');
@@ -310,16 +328,42 @@ function render(d) {
   $('foot').textContent = (demo ? '示範資料 · ' : '') + '更新於 ' +
     t.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' · 每 30 秒自動更新';
 }
-async function refresh() {
+// 公告（notice.json，由 n8n「暫停公告」表單上傳）：mode = pause（暫停服務）/ info（一般公告）/ off（不顯示）
+function applyNotice(n) {
+  const box = $('notice');
+  const mode = n && (n.mode === 'pause' || n.mode === 'info') ? n.mode : null;
+  box.hidden = !mode;
+  if (!mode) return;
+  box.className = 'notice ' + mode;
+  $('nTag').textContent = mode === 'pause' ? '暫停' : '公告';
+  $('nTitle').textContent = n.title || (mode === 'pause' ? '洗車機暫停服務' : '店家公告');
+  $('nMsg').textContent = n.message || ''; $('nMsg').hidden = !n.message;
+  $('nUntil').textContent = n.until || ''; $('nUntil').hidden = !n.until;
+  if (mode === 'pause') {
+    $('machines').innerHTML = machinesHTML([{ name: '洗車機', paused: true }], '暫停服務');
+    $('count').textContent = '—';
+    $('foot').textContent = '洗車機暫停服務中' + (n.until ? '・' + n.until : '');
+  }
+}
+async function loadNotice() {
   try {
-    if (demo && DEMO[demo]) {
-      const d = DEMO[demo];
-      return render({ ...d, updatedAt: new Date(Date.now() - (d.stale ? 600000 : 0)).toISOString() });
-    }
+    const r = await fetch('./notice.json?t=' + Date.now(), { cache: 'no-store', signal: AbortSignal.timeout(10000) });
+    return r.ok ? await r.json() : null;
+  } catch { return null; }
+}
+async function refresh() {
+  if (demo && DEMO[demo]) {
+    const d = DEMO[demo];
+    render({ ...d, updatedAt: new Date(Date.now() - (d.stale ? 600000 : 0)).toISOString() });
+    return applyNotice(d.notice || null);
+  }
+  const notice = loadNotice();
+  try {
     const r = await fetch('./status.json?t=' + Date.now(), { cache: 'no-store', signal: AbortSignal.timeout(10000) });
     if (!r.ok) throw new Error('http');
     render(await r.json());
   } catch { unknown('—', '暫時無法更新，稍後自動重試'); }
+  applyNotice(await notice);
 }
 $('demo').hidden = !(demo && DEMO[demo]);
 refresh(); setInterval(refresh, 30000);

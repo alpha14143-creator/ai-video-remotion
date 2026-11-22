@@ -1,0 +1,167 @@
+{
+  "name": "Xmoto 網頁公告（暫停服務）",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "xmoto-notice",
+        "formTitle": "Xmoto 豐原-中正店｜網頁公告",
+        "formDescription": "選「暫停服務」：網頁會顯示紅色暫停公告，洗車機狀態改成「暫停服務」。\n選「一般公告」：只在上方顯示公告，狀態照常顯示。\n選「取消公告」：恢復正常。\n送出後約 30 秒內網頁會更新。",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "狀態",
+              "fieldType": "dropdown",
+              "requiredField": true,
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "暫停服務"
+                  },
+                  {
+                    "option": "一般公告"
+                  },
+                  {
+                    "option": "取消公告（恢復正常）"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "標題",
+              "placeholder": "例：洗車機暫停服務／今晚 23:00 清潔保養"
+            },
+            {
+              "fieldLabel": "說明",
+              "fieldType": "textarea",
+              "placeholder": "例：設備保養中，造成不便敬請見諒。"
+            },
+            {
+              "fieldLabel": "預計恢復時間",
+              "placeholder": "例：預計 15:00 恢復"
+            }
+          ]
+        },
+        "responseMode": "lastNode",
+        "options": {
+          "respondWithOptions": {
+            "values": {
+              "respondWith": "text",
+              "formSubmittedText": "已更新！約 30 秒內網頁會顯示新狀態。"
+            }
+          }
+        }
+      },
+      "id": "44a64cb3-f41d-4534-8bd0-241df6b7573b",
+      "name": "公告表單",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "xmoto-notice-form"
+    },
+    {
+      "parameters": {},
+      "id": "050a1c0f-9914-4569-9ae2-6bc2509a89e8",
+      "name": "手動測試（清除公告）",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { '狀態': '取消公告（恢復正常）' } }];"
+      },
+      "id": "b07760cc-8dbb-4ae7-8c6b-5e8d9a921a5d",
+      "name": "測試資料",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 把表單內容轉成 notice.json（網頁每 30 秒讀一次）\nconst f = $input.first().json;\nconst pick = (...keys) => { for (const k of keys) if (f[k] !== undefined && String(f[k]).trim() !== '') return String(f[k]).trim(); return ''; };\nconst choice = pick('狀態');\nconst mode = choice.includes('暫停') ? 'pause' : choice.includes('一般') ? 'info' : 'off';\nconst notice = mode === 'off' ? { mode: 'off' } : {\n  mode,\n  title: pick('標題') || (mode === 'pause' ? '洗車機暫停服務' : '店家公告'),\n  message: pick('說明'),\n  until: pick('預計恢復時間'),\n};\nnotice.updatedAt = new Date().toISOString();\nconst body = JSON.stringify(notice);\nreturn [{\n  json: { 結果: mode === 'pause' ? '已設定：暫停服務' : mode === 'info' ? '已設定：一般公告' : '已取消公告（恢復正常顯示）', notice },\n  binary: { data: { data: Buffer.from(body, 'utf8').toString('base64'), mimeType: 'application/json', fileName: 'notice.json', fileExtension: 'json' } },\n}];"
+      },
+      "id": "e736c9d0-4960-49b6-9e04-3ed79e90b53a",
+      "name": "產生公告",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "xmoto-queue",
+        "fileName": "notice.json",
+        "binaryData": true,
+        "binaryPropertyName": "data",
+        "additionalFields": {}
+      },
+      "id": "96d44ed3-9310-47fc-943a-680fc24e9667",
+      "name": "上傳到 R2",
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        660,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "公告表單": {
+      "main": [
+        [
+          {
+            "node": "產生公告",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "手動測試（清除公告）": {
+      "main": [
+        [
+          {
+            "node": "測試資料",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "測試資料": {
+      "main": [
+        [
+          {
+            "node": "產生公告",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "產生公告": {
+      "main": [
+        [
+          {
+            "node": "上傳到 R2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

@@ -8,8 +8,8 @@ def r(a, b):
     s = s.replace(a, b, 1)
 r("const demo = new URLSearchParams(location.search).get('demo');",
   "let demo = new URLSearchParams(location.search).get('demo') || 'busy';  // 預覽版：預設示範模式")
-r('<a href="?demo=busy">使用中</a> · <a href="?demo=free">空閒</a> · <a href="?demo=offline">連線中斷</a> · <a href="?">返回</a>',
-  '<a href="#" data-m="busy">使用中</a> · <a href="#" data-m="free">空閒</a> · <a href="#" data-m="offline">連線中斷</a>')
+r('<a href="?demo=busy">使用中</a> · <a href="?demo=free">空閒</a> · <a href="?demo=offline">連線中斷</a> · <a href="?demo=paused">暫停服務</a> · <a href="?">返回</a>',
+  '<a href="#" data-m="busy">使用中</a> · <a href="#" data-m="free">空閒</a> · <a href="#" data-m="offline">連線中斷</a> · <a href="#" data-m="paused">暫停服務</a>')
 r("$('demo').hidden = !(demo && DEMO[demo]);",
   "$('demo').hidden = !(demo && DEMO[demo]);\ndocument.querySelectorAll('[data-m]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); demo = a.dataset.m; refresh(); }));")
 r('.demo-banner{', '.demo-banner a{padding:8px 6px;display:inline-block}.demo-banner{')
