@@ -141,18 +141,32 @@ class Emulator:
 
     @staticmethod
     def video_region(img: np.ndarray) -> np.ndarray | None:
-        """從直式即時畫面中切出影像區（上下是黑邊、下面是按鈕）。"""
+        """從直式即時畫面中切出 16:9 影像區。
+
+        找出「有內容的連續橫列」中，高度最接近 16:9 的那一段，
+        這樣上方跳出的通知橫幅、下方的按鈕區都不會被誤當成影像。
+        """
         h, w = img.shape[:2]
+        vh = int(round(w * 9 / 16))
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        rows = gray[:, w // 10: w - w // 10].std(axis=1)
-        start = None
-        for y in range(int(h * 0.08), int(h * 0.7)):
-            if rows[y] > 12 and rows[y + 1] > 12 and rows[y + 2] > 12:
-                start = y
-                break
-        if start is None:
+        mid = gray[:, w // 10: w - w // 10]
+        content = (mid.std(axis=1) > 6) | (mid.mean(axis=1) > 20)
+        best = None
+        y = 0
+        while y < h:
+            if not content[y]:
+                y += 1
+                continue
+            start = y
+            while y < h and content[y]:
+                y += 1
+            length = y - start
+            if 0.85 * vh <= length <= 1.6 * vh:   # 影像區（下方可能直接接著按鈕區）
+                if best is None or abs(length - vh) < abs(best[1] - vh):
+                    best = (start, length)
+        if best is None:
             return None
-        vh = int(w * 9 / 16)
+        start = best[0]
         if start + vh > h:
             return None
         crop = img[start:start + vh]
