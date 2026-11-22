@@ -36,6 +36,10 @@ main{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:start;pad
 .video{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#000;margin-top:12px}
 .video iframe,.video video{position:absolute;inset:0;width:100%;height:100%;border:0}
 .guide a{color:#175e4c}
+.video.tall{aspect-ratio:9/16;max-width:360px;margin-inline:auto}
+.media-item{margin-top:14px}
+.media-item .title{font-weight:600;margin-bottom:4px}
+.media-item .open{display:inline-block;margin-top:8px;font-size:14px;padding:6px 0}
 .demo-banner a{padding:8px 6px;display:inline-block}.demo-banner{background:#fff2ce;color:#705b20;padding:10px 20px;text-align:center;font-size:13px}
 @media(max-width:600px){main{grid-template-columns:1fr}.card{min-height:180px;padding:24px}.big{font-size:64px}}
 </style></head>
@@ -52,7 +56,9 @@ main{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:start;pad
 <!-- ===================== 使用說明區（下方內容在這裡編輯） =====================
   文字：在 <ul> 裡加一行 <li>內容</li>
   文章連結：<li><a href="網址">標題</a></li>
-  YouTube 影片：<div class="video"><iframe src="https://www.youtube.com/embed/影片ID" loading="lazy" allowfullscreen></iframe></div>
+  影片（Facebook / Instagram / YouTube 都可以，貼「公開」貼文的網址）：
+    <a class="media" href="影片網址">影片標題</a>
+    網頁會自動變成可以播放的影片，下方附「到 Facebook / Instagram 觀看」連結
   有內容後，把該區的 <p class="empty">內容準備中</p> 刪掉
 ============================================================================== -->
 <div class="guide">
@@ -76,6 +82,34 @@ main{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:start;pad
 </div>
 <script>
 'use strict';
+// 把 <a class="media" href="..."> 轉成內嵌影片（FB / IG / YouTube），並保留原連結
+document.querySelectorAll('a.media').forEach(a => {
+  const url = a.href, title = a.textContent.trim();
+  let src = '', tall = false, site = '';
+  if (/facebook\.com|fb\.watch/.test(url)) {
+    site = 'Facebook';
+    tall = /\/reel\//.test(url);
+    src = 'https://www.facebook.com/plugins/video.php?show_text=false&href=' + encodeURIComponent(url);
+  } else if (/instagram\.com/.test(url)) {
+    site = 'Instagram'; tall = true;
+    const m = url.match(/instagram\.com\/(?:[^/]+\/)?(p|reel|reels|tv)\/([\w-]+)/);
+    if (m) src = `https://www.instagram.com/${m[1] === 'reels' ? 'reel' : m[1]}/${m[2]}/embed`;
+  } else if (/youtube\.com|youtu\.be/.test(url)) {
+    site = 'YouTube';
+    const m = url.match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/);
+    tall = /shorts\//.test(url);
+    if (m) src = 'https://www.youtube.com/embed/' + m[1];
+  }
+  const box = document.createElement('div');
+  box.className = 'media-item';
+  box.innerHTML = (title ? '<div class="title"></div>' : '') +
+    (src ? `<div class="video${tall ? ' tall' : ''}"><iframe loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>` : '') +
+    `<a class="open" target="_blank" rel="noopener">到 ${site || '原網站'} 觀看 ↗</a>`;
+  if (title) box.querySelector('.title').textContent = title;
+  if (src) box.querySelector('iframe').src = src;
+  box.querySelector('.open').href = url;
+  a.replaceWith(box);
+});
 const $ = id => document.getElementById(id);
 let demo = new URLSearchParams(location.search).get('demo') || 'busy';  // 預覽版：預設示範模式
 const DEMO = {
