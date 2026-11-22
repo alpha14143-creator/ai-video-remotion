@@ -54,23 +54,39 @@ class Emulator:
         r = subprocess.run(cmd, capture_output=True, timeout=timeout, creationflags=NO_WINDOW)
         return r.stdout if binary else r.stdout.decode("utf-8", "replace")
 
+    def _devices(self) -> list[str]:
+        out = subprocess.run([self.adb, "devices"], capture_output=True, timeout=10,
+                             creationflags=NO_WINDOW).stdout.decode()
+        return [p[0] for p in (l.split() for l in out.splitlines()) if len(p) == 2 and p[1] == "device"]
+
+    @staticmethod
+    def _bluestacks_ports() -> list[int]:
+        """從 BlueStacks 設定檔讀出目前使用的 ADB 埠。"""
+        import re
+        conf = Path(r"C:\ProgramData\BlueStacks_nxt\bluestacks.conf")
+        try:
+            text = conf.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            return []
+        return sorted({int(m) for m in re.findall(r'status\.adb_port="(\d+)"', text)})
+
     def connect(self) -> None:
         if self.serial not in ("", "auto"):
             subprocess.run([self.adb, "connect", self.serial], capture_output=True, timeout=15, creationflags=NO_WINDOW)
             return
-        # BlueStacks 的 ADB 埠可能是 5555、5556…，找第一個狀態為 device 的
-        for port in range(5555, 5566):
-            subprocess.run([self.adb, "connect", f"127.0.0.1:{port}"], capture_output=True, timeout=10,
-                           creationflags=NO_WINDOW)
-        out = subprocess.run([self.adb, "devices"], capture_output=True, timeout=10,
-                             creationflags=NO_WINDOW).stdout.decode()
-        for line in out.splitlines():
-            parts = line.split()
-            if len(parts) == 2 and parts[1] == "device":
-                self.serial = parts[0]
-                log.info("已連上模擬器 %s", self.serial)
-                return
-        raise RuntimeError("找不到模擬器（請確認 BlueStacks 已開啟，且設定 → 進階 → ADB 已開啟）")
+        found = [d for d in self._devices() if d.startswith("127.0.0.1:")]
+        if not found:
+            for port in self._bluestacks_ports() or range(5555, 5566):
+                try:
+                    subprocess.run([self.adb, "connect", f"127.0.0.1:{port}"], capture_output=True, timeout=4,
+                                   creationflags=NO_WINDOW)
+                except subprocess.TimeoutExpired:
+                    pass
+            found = [d for d in self._devices() if d.startswith("127.0.0.1:")] or self._devices()
+        if not found:
+            raise RuntimeError("找不到模擬器（請確認 BlueStacks 已開啟，且設定 → 進階 → ADB 已開啟）")
+        self.serial = found[0]
+        log.info("已連上模擬器 %s", self.serial)
 
     def screencap(self) -> np.ndarray | None:
         data = self.run("exec-out", "screencap", "-p", binary=True)
@@ -274,7 +290,9 @@ def main() -> int:
         except Exception:
             log.exception("執行錯誤，稍後重試")
             try:
-                emu.connect()
+                if emu.serial not in emu._devices():
+                    emu.serial = "auto"
+                    emu.connect()
             except Exception:
                 pass
         if args.once:
