@@ -254,6 +254,8 @@ def main() -> int:
     history: deque[int] = deque(maxlen=window)
     m_history: deque[list[bool]] = deque(maxlen=window)
     interval = float(cfg.get("interval_seconds", 30))
+    washed_window = int(float(cfg.get("washed_window_minutes", 5)) * 60)
+    washed_until, was_busy = 0.0, False
 
     stop = False
 
@@ -288,20 +290,30 @@ def main() -> int:
                              sum(d["counted"] for d in q_dets), in_use,
                              [None if s is None else round(s, 3) for s in m_counter.last_scores])
                     return 0
-                parked.update(q_dets, q_frame.shape[1], q_frame.shape[0])
-                raw = sum(d["counted"] and not d["parked"] for d in q_dets)
-                n_parked = sum(d["counted"] and d["parked"] for d in q_dets)
-                history.append(raw)
+                # 洗車機狀態（取最近幾次多數決）
                 m_history.append(in_use)
-                count = int(round(statistics.median(history)))
                 machines = [{"name": m["name"], "inUse": sum(h[i] for h in m_history) * 2 > len(m_history)}
                             for i, m in enumerate(m_counter.machines)]
+                busy = bool(machines and machines[0]["inUse"])
+                now_t = time.time()
+                if was_busy and not busy:  # 剛洗完 → 接下來幾分鐘新出現的車視為「洗完在擦車」
+                    washed_until = now_t + washed_window
+                    log.info("洗車機剛洗完，%d 分鐘內新出現的機車不算等待", washed_window // 60)
+                was_busy = busy
+                parked.update(q_dets, q_frame.shape[1], q_frame.shape[0], now=now_t,
+                              tag_new_as_washed=now_t < washed_until)
+                raw = sum(d["counted"] and not d["parked"] and not d["washed"] for d in q_dets)
+                n_parked = sum(d["counted"] and d["parked"] for d in q_dets)
+                n_washed = sum(d["counted"] and d["washed"] and not d["parked"] for d in q_dets)
+                history.append(raw)
+                count = int(round(statistics.median(history)))
                 status = {"connected": True, "open": True, "count": count,
                           "machines": machines, "updatedAt": now_iso()}
                 (base / "status.json").write_text(json.dumps(status, ensure_ascii=False), encoding="utf-8")
                 if not args.no_upload:
                     post_status(cfg, status)
-                log.info("等候 %d 台（停放 %d 台不算）→ 顯示 %d；洗車機=%s（變化 %s）", raw, n_parked, count,
+                log.info("等候 %d 台（停放 %d、洗完擦車 %d 台不算）→ 顯示 %d；洗車機=%s（變化 %s）",
+                         raw, n_parked, n_washed, count,
                          "使用中" if machines and machines[0]["inUse"] else "空閒",
                          [None if s is None else round(s, 3) for s in m_counter.last_scores])
         except Exception:

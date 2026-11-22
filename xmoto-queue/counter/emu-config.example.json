@@ -131,5 +131,6 @@
   "upload": {
     "webhook": "http://localhost:5678/webhook/xmoto-status",
     "token": "請換成 n8n 流程裡的同一組"
-  }
+  },
+  "washed_window_minutes": 5
 }

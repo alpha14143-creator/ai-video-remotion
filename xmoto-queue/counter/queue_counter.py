@@ -342,11 +342,16 @@ class ParkedFilter:
         except OSError:
             pass
 
-    def update(self, dets: list[dict], w: int, h: int, now: float | None = None) -> None:
-        """在每個 det 加上 parked（是否停放）與 stay_min（已停留分鐘）。"""
+    def update(self, dets: list[dict], w: int, h: int, now: float | None = None,
+               tag_new_as_washed: bool = False) -> None:
+        """在每個 det 加上 parked（是否停放）、washed（洗完在擦車）與 stay_min（已停留分鐘）。
+
+        tag_new_as_washed=True 時（洗車機剛洗完的幾分鐘內），這一輪「新出現」的機車
+        會被標成洗完的車，之後一直不算等待，直到離開。
+        """
         now = time.time() if now is None else now
         for d in dets:
-            d["parked"], d["stay_min"] = False, 0.0
+            d["parked"], d["washed"], d["stay_min"] = False, False, 0.0
         if not self.enabled:
             return
         boxes = [[d["box"][0] / w, d["box"][1] / h, d["box"][2] / w, d["box"][3] / h] for d in dets]
@@ -365,11 +370,12 @@ class ParkedFilter:
                 t = self.tracks[matched[i]]
                 t["box"], t["last"] = b, now
             else:
-                t = {"box": b, "first": now, "last": now}
+                t = {"box": b, "first": now, "last": now, "washed": tag_new_as_washed}
                 self.tracks.append(t)
             stay = now - t["first"]
             dets[i]["stay_min"] = stay / 60
             dets[i]["parked"] = stay >= self.limit
+            dets[i]["washed"] = bool(t.get("washed"))
         self.tracks = [t for t in self.tracks if now - t["last"] <= self.grace]
         self._save()
 
