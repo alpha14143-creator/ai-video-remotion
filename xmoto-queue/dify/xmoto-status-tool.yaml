@@ -1,0 +1,53 @@
+openapi: 3.0.1
+info:
+  title: Xmoto 豐原中正店即時狀態
+  description: 查詢 Xmoto 全自動洗機車（豐原中正店）洗車機是否使用中、現場等待台數，以及店家公告（暫停服務等）。
+  version: "1.0"
+servers:
+  - url: https://pub-f84e602f02924e6e8d238fe4ef0f3752.r2.dev
+paths:
+  /status.json:
+    get:
+      operationId: getWashStatus
+      summary: 查詢洗車機是否使用中與等待台數
+      description: >-
+        回傳洗車機目前狀態。count 是現場等待洗車的機車台數；machines[0].inUse 為 true 表示洗車機使用中；
+        updatedAt 是資料更新時間（UTC，ISO 8601）。若 updatedAt 距離現在超過 2 分鐘，代表系統暫時取不到現場資料。
+      responses:
+        "200":
+          description: 目前狀態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connected: { type: boolean }
+                  open: { type: boolean }
+                  count: { type: integer, description: 現場等待洗車的機車台數 }
+                  machines:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name: { type: string }
+                        inUse: { type: boolean, description: true=使用中，false=空閒 }
+                  updatedAt: { type: string, description: 資料更新時間（UTC） }
+  /notice.json:
+    get:
+      operationId: getStoreNotice
+      summary: 查詢店家公告（是否暫停服務）
+      description: >-
+        mode 為 pause 表示洗車機暫停服務（此時請以公告為準，不要說可以來洗）；info 為一般公告；off 或查不到代表沒有公告。
+        title、message、until 為公告標題、說明、預計恢復時間。
+      responses:
+        "200":
+          description: 公告
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mode: { type: string, enum: [pause, info, off] }
+                  title: { type: string }
+                  message: { type: string }
+                  until: { type: string }
