@@ -1,0 +1,49 @@
+
+/* ===== 2026-11 版面調整 ===== */
+/* 1. 頂部 LOGO + 選單固定 */
+#site-header{position:sticky;top:0;z-index:50;background:#f6f4ee}
+html{scroll-padding-top:120px}
+/* 2. 電腦/平板：選單全部攤開 */
+@media(min-width:601px){
+ #site-header .menu,#site-header:is(.extended-menu,.large-logo) .menu{display:none}
+ #site-header nav,#site-header:is(.extended-menu,.large-logo) nav{display:flex;position:static;padding:0;background:none;border:0;flex-direction:row;max-height:none;overflow:visible}
+ #site-header .nav-links{display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:12px 32px}
+ .nav-close{display:none}
+}
+@media(min-width:601px) and (max-width:1100px){#site-header .nav-links{gap:10px 18px;font-size:12px}#site-header .nav-contact{padding:9px 14px}}
+/* 3. 首頁：關於日常所放在大標題右側，上緣對齊 */
+.hero-heading{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:6%;align-items:start;padding-bottom:90px}
+.hero-intro{margin-top:40px}
+.hero-about>.eyebrow{margin-bottom:22px}
+.hero-about h2{font-size:clamp(26px,2.6vw,40px);line-height:1.55;letter-spacing:.07em}
+.hero-about p:not(.eyebrow){line-height:2;color:#697064;font-size:14px;max-width:570px}
+@media(max-width:850px){.hero-heading{display:block}.hero-about{margin-top:60px}}
+/* 4. 空間作品：一次一個案子 */
+.work-grid{grid-template-columns:1fr!important;gap:70px;max-width:1100px;margin:0 auto}
+.work:nth-child(2){margin-top:0}
+.work-image{aspect-ratio:16/10}
+.work-image img,.work-image.plan img{height:100%!important;aspect-ratio:auto}
+.work-meta h3{font-size:24px}
+/* 5. 手機：選單為全螢幕彈出頁 */
+@media(max-width:600px){
+ html{scroll-padding-top:90px}
+ .work-grid{gap:44px}
+ .work-image{aspect-ratio:4/3}
+ .work-meta h3{font-size:20px}
+ .hero-about{margin-top:50px}
+ #site-header nav,#site-header:is(.extended-menu,.large-logo) nav{display:none;position:fixed;inset:0;z-index:100;background:#f6f4ee;padding:0;border:0;max-height:none;overflow:auto;flex-direction:column;align-items:center;justify-content:flex-start}
+ #site-header nav.open{display:flex}
+ .nav-close{display:flex;align-items:center;justify-content:center;width:52px;height:64px;margin:28px auto 0;border:0;background:#44483d;color:#f6f4ee;font-size:24px;cursor:pointer;flex-shrink:0}
+ .nav-links{display:flex;flex-direction:column;align-items:center;gap:34px;margin:auto 0;padding:50px 0 80px;font-size:19px;letter-spacing:.2em}
+ .nav-links a{padding:4px 0;border-bottom:2px solid transparent}
+ .nav-links a:first-child{border-bottom-color:#33362e}
+ #site-header .nav-links .nav-contact{border:1px solid #a7aa9f;border-radius:30px;padding:12px 28px;letter-spacing:.12em}
+ html.menu-open,html.menu-open body{overflow:hidden}
+}
+/* 標題不斷行 */
+.hero-left h1{font-size:clamp(34px,4.3vw,76px);white-space:nowrap}
+@media(max-width:600px){
+ .hero-left h1{font-size:clamp(28px,9vw,40px)}
+ #site-header,#site-header:has(#header-brand.has-logo){min-height:68px;padding-top:8px;padding-bottom:8px}
+ #site-header .header-logo{width:auto!important;max-width:170px;max-height:52px}
+}
