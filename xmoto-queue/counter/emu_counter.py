@@ -78,6 +78,7 @@ class Emulator:
     def connect(self) -> None:
         if self.serial not in ("", "auto"):
             subprocess.run([self.adb, "connect", self.serial], capture_output=True, timeout=15, creationflags=NO_WINDOW)
+            self.mute()
             return
         found = [d for d in self._devices() if d.startswith("127.0.0.1:")]
         if not found:
@@ -92,6 +93,16 @@ class Emulator:
             raise RuntimeError("找不到模擬器（請確認 BlueStacks 已開啟，且設定 → 進階 → ADB 已開啟）")
         self.serial = found[0]
         log.info("已連上模擬器 %s", self.serial)
+        self.mute()
+
+    def mute(self) -> None:
+        """模擬器靜音：Tapo 即時畫面的現場聲音、通知音、點擊音都關掉。"""
+        try:
+            for stream in (3, 1, 2, 5):  # 媒體、系統、鈴聲、通知
+                self.run("shell", "cmd", "media_session", "volume", "--stream", str(stream), "--set", "0")
+            self.run("shell", "settings", "put", "system", "sound_effects_enabled", "0")
+        except Exception:
+            log.warning("模擬器靜音失敗（不影響判讀）")
 
     def screencap(self) -> np.ndarray | None:
         data = self.run("exec-out", "screencap", "-p", binary=True)
