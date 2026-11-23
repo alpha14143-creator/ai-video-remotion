@@ -132,5 +132,17 @@
     "webhook": "http://localhost:5678/webhook/xmoto-status",
     "token": "請換成 n8n 流程裡的同一組"
   },
-  "washed_window_minutes": 5
+  "washed_window_minutes": 5,
+  "restart_bluestacks_after_failures": 6,
+  "bluestacks": {
+    "player": "C:\\Program Files\\BlueStacks_nxt\\HD-Player.exe",
+    "args": [
+      "--instance",
+      "Tiramisu64",
+      "--cmd",
+      "launchApp",
+      "--package",
+      "com.tplink.iot"
+    ]
+  }
 }

@@ -48,6 +48,11 @@ class Emulator:
         self.pkg = cfg.get("app_package", "com.tplink.iot")
         self.home_activity = cfg.get("home_activity", "MainActivity")
         self.tiles: dict[tuple[str, int], tuple[int, int]] = {}
+        bs = cfg.get("bluestacks", {})
+        self.player = bs.get("player", r"C:\Program Files\BlueStacks_nxt\HD-Player.exe")
+        self.player_args = bs.get("args", ["--instance", "Tiramisu64", "--cmd", "launchApp", "--package", self.pkg])
+        self.anr_count = 0
+        self.last_restart = 0.0
 
     def run(self, *args: str, timeout: float = 20, binary: bool = False):
         cmd = [self.adb] + (["-s", self.serial] if self.serial not in ("", "auto") else []) + list(args)
@@ -121,14 +126,53 @@ class Emulator:
         if not (self.pkg in top and self.home_activity in top):
             raise RuntimeError(f"回不到 Tapo 首頁（目前：{top}）")
 
+    def dump_ui(self) -> str:
+        self.run("shell", "uiautomator", "dump", "/sdcard/xmoto_ui.xml", timeout=30)
+        xml = self.run("shell", "cat", "/sdcard/xmoto_ui.xml")
+        return xml[xml.find("<"):] if "<" in xml else ""
+
+    def dismiss_dialogs(self, xml: str) -> bool:
+        """處理 Android「○○沒有回應」視窗：先按「等候」，連續出現就按「關閉應用程式」。回傳是否有處理。"""
+        if not any(k in xml for k in ("沒有回應", "isn't responding", "not responding")):
+            self.anr_count = 0
+            return False
+        self.anr_count += 1
+        want = ("關閉應用程式", "Close app") if self.anr_count >= 2 else ("等候", "Wait")
+        for node in ET.fromstring(xml).iter("node"):
+            if node.get("text") in want:
+                nums = [int(v) for v in node.get("bounds", "").replace("][", ",").strip("[]").split(",")]
+                self.tap((nums[0] + nums[2]) // 2, (nums[1] + nums[3]) // 2)
+                log.warning("模擬器出現「沒有回應」視窗，已按「%s」", node.get("text"))
+                time.sleep(3)
+                return True
+        return False
+
+    def restart_bluestacks(self) -> None:
+        """模擬器卡死時：關掉 BlueStacks 再重新開啟（直接進 Tapo）。10 分鐘內最多一次。"""
+        if time.time() - self.last_restart < 600:
+            return
+        self.last_restart = time.time()
+        log.warning("連續失敗，重新啟動 BlueStacks")
+        subprocess.run(["taskkill", "/F", "/IM", "HD-Player.exe"], capture_output=True, creationflags=NO_WINDOW)
+        time.sleep(5)
+        subprocess.Popen([self.player] + list(self.player_args), creationflags=NO_WINDOW)
+        time.sleep(75)  # 等 Android 開機、Tapo 載入
+        self.tiles.clear()
+        self.serial = "auto"
+        try:
+            self.connect()
+        except Exception:
+            log.exception("重新連線模擬器失敗")
+
     def find_tile(self, name: str, index: int, refresh: bool = False) -> tuple[int, int]:
         key = (name, index)
         if key in self.tiles and not refresh:
             return self.tiles[key]
-        self.run("shell", "uiautomator", "dump", "/sdcard/xmoto_ui.xml", timeout=30)
-        xml = self.run("shell", "cat", "/sdcard/xmoto_ui.xml")
+        xml = self.dump_ui()
+        if self.dismiss_dialogs(xml):
+            xml = self.dump_ui()
         hits = []
-        for node in ET.fromstring(xml[xml.find("<"):]).iter("node"):
+        for node in ET.fromstring(xml).iter("node"):
             if node.get("text") == name:
                 nums = [int(v) for v in node.get("bounds", "").replace("][", ",").strip("[]").split(",")]
                 hits.append(((nums[1] + nums[3]) // 2, (nums[0] + nums[2]) // 2))  # (y, x)
@@ -266,6 +310,7 @@ def main() -> int:
     signal.signal(signal.SIGTERM, _stop)
 
     fails = 0
+    restart_after = int(cfg.get("restart_bluestacks_after_failures", 6))
     while not stop:
         started = time.monotonic()
         try:
@@ -317,13 +362,17 @@ def main() -> int:
                          "使用中" if machines and machines[0]["inUse"] else "空閒",
                          [None if s is None else round(s, 3) for s in m_counter.last_scores])
         except Exception:
-            log.exception("執行錯誤，稍後重試")
+            fails += 1
+            log.exception("執行錯誤（連續 %d 次），稍後重試", fails)
             try:
                 if emu.serial not in emu._devices():
                     emu.serial = "auto"
                     emu.connect()
             except Exception:
                 pass
+        if fails >= restart_after:  # 約 3～5 分鐘都失敗 → 模擬器可能卡死，自動重開 BlueStacks
+            emu.restart_bluestacks()
+            fails = 0
         if args.once:
             break
         time.sleep(max(1.0, interval - (time.monotonic() - started)))
