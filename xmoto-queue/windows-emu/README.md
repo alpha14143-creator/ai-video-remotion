@@ -17,6 +17,7 @@
 | Xmoto BlueStacks Tapo | `HD-Player.exe --instance Tiramisu64 --cmd launchApp --package "com.tplink.iot"`（延遲 30 秒） | 開 BlueStacks 並直接進 Tapo |
 | Xmoto Emu Counter | `wscript.exe run_hidden.vbs` → `run_emu.bat` | 辨識程式，當掉 20 秒後自動重啟 |
 | Xmoto n8n | `wscript.exe run_n8n.vbs` | 背景執行 n8n（上傳結果到 R2） |
+| Xmoto BlueStacks Daily Restart | 每天 04:00 執行 `restart_bluestacks.ps1` | 每日重開 BlueStacks，預防模擬器長時間運作卡死 |
 | Xmoto Desktop Commander | `wscript.exe run_dc_hidden.vbs` → `run_dc.bat` | 遠端維護連線，斷線 30 秒後自動重連 |
 
 需求：BlueStacks 開著、ADB 已開啟、Tapo App 停在首頁；家裡 n8n 開著（「Xmoto 狀態上傳」流程已發布）。
