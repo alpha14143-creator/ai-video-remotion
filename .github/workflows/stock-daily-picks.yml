@@ -1,6 +1,7 @@
 # 台股交易助手：
-#   早上 07:47（台北）選出「今日10檔」、更新回測，並發佈到 GitHub Pages
-#   下午 14:47（台北，收盤後）評估實盤追蹤：用當天真實走勢模擬每一檔的結果
+#   早上 07:17 / 07:47 / 08:17（台北）選出「今日10檔」、更新回測，並發佈到 GitHub Pages
+#   下午 14:47 / 16:17（台北，收盤後）評估實盤追蹤：用當天真實走勢模擬每一檔的結果
+#   GitHub 的排程偶爾會延遲或漏跑，所以每個時段排了備援；重複執行只會覆蓋同一天的資料，不會重複記錄
 # 實盤追蹤的紀錄存在 stock-data 分支（不會動到 main）
 # 第一次使用：GitHub 專案 Settings → Pages → Build and deployment → Source 選「GitHub Actions」
 # 網址：https://<帳號>.github.io/<專案名稱>/stock-journal/
@@ -8,8 +9,13 @@ name: 台股每日選股
 
 on:
   schedule:
-    - cron: "47 23 * * 0-4"   # UTC 週日～週四 23:47 = 台北 週一～週五 07:47：選股
-    - cron: "47 6 * * 1-5"    # UTC 週一～週五 06:47 = 台北 週一～週五 14:47：收盤後評估
+    # 選股（UTC 週日～週四 = 台北 週一～週五）
+    - cron: "17 23 * * 0-4"   # 台北 07:17
+    - cron: "47 23 * * 0-4"   # 台北 07:47
+    - cron: "17 0 * * 1-5"    # 台北 08:17（備援）
+    # 收盤後評估（UTC 週一～週五 = 台北 週一～週五）
+    - cron: "47 6 * * 1-5"    # 台北 14:47
+    - cron: "17 8 * * 1-5"    # 台北 16:17（備援）
   workflow_dispatch:           # 可在 Actions 頁面手動執行（會重新選股）
   push:
     branches: [main]
@@ -25,7 +31,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  EVAL_ONLY: ${{ github.event.schedule == '47 6 * * 1-5' }}
+  EVAL_ONLY: ${{ github.event.schedule == '47 6 * * 1-5' || github.event.schedule == '17 8 * * 1-5' }}
   TRACK_DIR: ${{ github.workspace }}/track
 
 jobs:
