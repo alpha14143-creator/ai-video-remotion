@@ -94,7 +94,10 @@ async function loadBars(symbol, range = '6mo') {
     const r = (x) => +x.toFixed(2);
     bars.push({ date, open: r(o), high: r(h), low: r(l), close: r(c), vol: Math.round((v || 0) / 1000) });
   });
-  return bars.filter((b, i) => (i === bars.length - 1 || bars[i + 1].date !== b.date) && (!ASOF || b.date <= ASOF));
+  // 台股盤中（台北 13:35 收盤前）還沒收完的今天這根 K 棒不能用，否則會用半天的資料選股
+  const nowTpe = new Date(Date.now() + 8 * 3600 * 1000).toISOString();
+  const partialToday = /\.(TW|TWO)$|^\^TWII$/.test(symbol) && nowTpe.slice(11, 16) < '13:35' ? nowTpe.slice(0, 10) : null;
+  return bars.filter((b, i) => (i === bars.length - 1 || bars[i + 1].date !== b.date) && (!ASOF || b.date <= ASOF) && b.date !== partialToday);
 }
 
 async function mapLimit(items, limit, fn) {
