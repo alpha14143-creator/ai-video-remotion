@@ -47,3 +47,12 @@ html{scroll-padding-top:120px}
  #site-header,#site-header:has(#header-brand.has-logo){min-height:68px;padding-top:8px;padding-bottom:8px}
  #site-header .header-logo{width:auto!important;max-width:170px;max-height:52px}
 }
+/* 手機：標題縮小、關於日常所往上 */
+@media(max-width:600px){
+ .hero-left h1{font-size:clamp(24px,7.6vw,32px);line-height:1.5}
+ .hero-heading{padding-bottom:40px}
+ .hero-intro{margin-top:22px}
+ .hero-about{margin-top:34px}
+ .hero-about>.eyebrow{margin-bottom:14px}
+ .hero-about h2{font-size:22px;line-height:1.6}
+}
