@@ -228,14 +228,19 @@ class Emulator:
         t0 = time.monotonic()
         frame = None
         try:
+            time.sleep(2.5)  # 點開後畫面至少要 2～3 秒才會出來，先等一下，減少對模擬器的操作次數
+            checked = False
             while time.monotonic() - t0 < timeout:
-                time.sleep(1)
+                time.sleep(1.5)
                 img = self.screencap()
                 if img is None:
                     continue
-                if self.home_activity in self.top_activity():  # 沒點進去（位置變了）
-                    self.tiles.pop((name, index), None)
-                    break
+                # 只在等了一段時間還沒畫面時，才查一次是否根本沒點進去（這個查詢比較吃資源）
+                if not checked and time.monotonic() - t0 > 6 and self.video_region(img) is None:
+                    checked = True
+                    if self.home_activity in self.top_activity():  # 沒點進去（位置變了）
+                        self.tiles.pop((name, index), None)
+                        break
                 if self.video_region(img) is not None:
                     time.sleep(settle)  # 等畫面從快取縮圖換成即時影像
                     img = self.screencap()
