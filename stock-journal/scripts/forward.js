@@ -74,19 +74,25 @@ async function evaluate() {
     intra[code] = await loadIntraday(code, codes.get(code));
   });
 
+  // 盤中（台北 13:35 收盤前）不評估今天的交易，避免用半天的資料當成結果
+  const nowTpe = new Date(Date.now() + 8 * 3600 * 1000).toISOString();
+  const todayTpe = nowTpe.slice(0, 10), beforeClose = nowTpe.slice(11, 16) < '13:35';
   const results = [];
   for (const d of window) {
+    const notYet = d.tradeDate === todayTpe && beforeClose;
     const rows = d.picks.map((pk) => {
       const base = { code: pk.code, name: pk.name, kind: pk.kind, label: pk.plan.label, side: pk.plan.side,
         entry: pk.plan.entry, stop: pk.plan.stop, t1: pk.plan.t1, t2: pk.plan.t2 };
       let r;
       if (pk.kind === 'daytrade') {
         const b5 = intra[pk.code] && intra[pk.code][d.tradeDate];
-        r = !b5 || b5.length < 10 ? { status: 'waiting' } : B.evalDayIntraday(pk.plan, b5);
+        r = notYet || !b5 || b5.length < 10 ? { status: 'waiting' } : B.evalDayIntraday(pk.plan, b5);
       } else {
         const bars = daily[pk.code] || [];
         const jn = bars.findIndex((b) => b.date === d.tradeDate);
-        r = jn < 0 ? { status: 'waiting' } : B.evalSwing(pk.plan, bars, jn);
+        // 盤中時去掉今天還沒收完的日 K
+        const usable = beforeClose && bars.length && bars[bars.length - 1].date === todayTpe ? bars.slice(0, -1) : bars;
+        r = notYet || jn < 0 || jn >= usable.length ? { status: 'waiting' } : B.evalSwing(pk.plan, usable, jn);
       }
       return { ...base, status: r.status, R: r2(r.R), ret: r2(r.ret != null ? r.ret * 100 : null), reason: r.reason || null, hold: r.hold ?? null };
     });
