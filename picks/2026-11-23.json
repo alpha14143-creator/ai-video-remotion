@@ -1,9 +1,9 @@
 {
  "date": "2026-11-23",
- "generatedAt": "2026-11-24T00:56:49.754Z",
+ "generatedAt": "2026-11-24T01:01:46.672Z",
  "us": {
   "available": true,
-  "predGap": 0.53
+  "predGap": 2.66
  },
  "picks": [
   {
@@ -25,7 +25,7 @@
     "valid": true,
     "rr": 1.67
    },
-   "estOpen": 2040,
+   "estOpen": 2075,
    "reasons": [
     "空頭趨勢，月線向下",
     "每日波動 5.0%",
@@ -52,7 +52,7 @@
     "valid": true,
     "rr": 1.33
    },
-   "estOpen": 165,
+   "estOpen": 166,
    "reasons": [
     "多頭趨勢，月線向上",
     "每日波動 2.9%",
@@ -79,7 +79,7 @@
     "valid": true,
     "rr": 1.46
    },
-   "estOpen": 359.5,
+   "estOpen": 362,
    "reasons": [
     "多頭趨勢，月線向上",
     "每日波動 5.7%",
@@ -106,7 +106,7 @@
     "valid": true,
     "rr": 1.45
    },
-   "estOpen": 52.1,
+   "estOpen": 52.7,
    "reasons": [
     "多頭趨勢，月線向上",
     "每日波動 6.4%",
@@ -133,7 +133,7 @@
     "valid": true,
     "rr": 1.7
    },
-   "estOpen": 58.6,
+   "estOpen": 59.3,
    "reasons": [
     "空頭趨勢，月線向下",
     "每日波動 5.8%",
@@ -160,7 +160,7 @@
     "valid": true,
     "rr": 1.93
    },
-   "estOpen": 270.5,
+   "estOpen": 272,
    "reasons": [
     "多頭趨勢中拉回",
     "距 10 日線 +0.1 個 ATR",
@@ -186,7 +186,7 @@
     "valid": true,
     "rr": 1.99
    },
-   "estOpen": 5175,
+   "estOpen": 5380,
    "reasons": [
     "帶量跌破 20 日低點",
     "成交量為均量 2.8 倍",
@@ -213,7 +213,7 @@
     "valid": true,
     "rr": 1.97
    },
-   "estOpen": 107,
+   "estOpen": 111,
    "reasons": [
     "帶量跌破 20 日低點",
     "成交量為均量 2.3 倍",
@@ -240,7 +240,7 @@
     "valid": true,
     "rr": 1.96
    },
-   "estOpen": 325,
+   "estOpen": 336.5,
    "reasons": [
     "帶量跌破 20 日低點",
     "成交量為均量 2.2 倍",
@@ -267,7 +267,7 @@
     "valid": true,
     "rr": 2
    },
-   "estOpen": 137.5,
+   "estOpen": 142,
    "reasons": [
     "帶量跌破 20 日低點",
     "成交量為均量 2.0 倍",

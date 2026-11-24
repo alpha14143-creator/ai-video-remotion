@@ -1,36 +1,215 @@
 {
- "generatedAt": "2026-11-24T00:57:34.500Z",
+ "generatedAt": "2026-11-24T01:04:28.688Z",
  "window": 20,
- "start": null,
- "progress": 0,
- "lastTradeDate": "2026-11-20",
+ "start": "2026-11-23",
+ "progress": 1,
+ "lastTradeDate": "2026-11-23",
  "summary": {
   "daytrade": {
-   "signals": 0,
-   "n": 0
+   "signals": 5,
+   "n": 2,
+   "fillRate": 40,
+   "winRate": 50,
+   "avgWinR": 2.18,
+   "avgLossR": -1.23,
+   "expR": 0.475,
+   "expRet": 0.8,
+   "pf": 1.77
   },
   "swing": {
-   "signals": 0,
-   "n": 0
+   "signals": 1,
+   "n": 1,
+   "fillRate": 100,
+   "winRate": 0,
+   "avgWinR": null,
+   "avgLossR": -1.69,
+   "expR": -1.69,
+   "expRet": -13.89,
+   "pf": 0,
+   "hold": 0
   },
   "swingOpen": {
-   "n": 0,
-   "R": 0
+   "n": 2,
+   "R": -1.71
   },
-  "totalR": 0
+  "totalR": -0.74
  },
  "backtest": {
-  "daytradeExpR": -0.268,
-  "daytradeWin": 37.9,
-  "swingExpR": 0.197,
-  "swingWin": 48.6
+  "daytradeExpR": -0.246,
+  "daytradeWin": 38.2,
+  "swingExpR": 0.2,
+  "swingWin": 48.8
  },
- "days": [],
- "pending": [
+ "days": [
   {
    "dataDate": "2026-11-20",
-   "n": 10
-  },
+   "tradeDate": "2026-11-23",
+   "usPredGap": -2.4,
+   "rows": [
+    {
+     "code": "2330",
+     "name": "台積電",
+     "kind": "daytrade",
+     "label": "做空・跌破",
+     "side": "short",
+     "entry": 1960,
+     "stop": 1990,
+     "t1": 1915,
+     "t2": 1865,
+     "status": "nofill",
+     "R": null,
+     "ret": null,
+     "reason": null,
+     "hold": null
+    },
+    {
+     "code": "2317",
+     "name": "鴻海",
+     "kind": "daytrade",
+     "label": "做空・跌破",
+     "side": "short",
+     "entry": 206.5,
+     "stop": 210,
+     "t1": 200.5,
+     "t2": 195,
+     "status": "gap",
+     "R": null,
+     "ret": null,
+     "reason": null,
+     "hold": null
+    },
+    {
+     "code": "2887",
+     "name": "台新新光金",
+     "kind": "daytrade",
+     "label": "做空・跌破",
+     "side": "short",
+     "entry": 33.25,
+     "stop": 33.85,
+     "t1": 32.3,
+     "t2": 31.3,
+     "status": "filled",
+     "R": 2.18,
+     "ret": 3.93,
+     "reason": "t2",
+     "hold": null
+    },
+    {
+     "code": "2357",
+     "name": "華碩",
+     "kind": "daytrade",
+     "label": "做空・跌破",
+     "side": "short",
+     "entry": 738,
+     "stop": 752,
+     "t1": 717,
+     "t2": 695,
+     "status": "nofill",
+     "R": null,
+     "ret": null,
+     "reason": null,
+     "hold": null
+    },
+    {
+     "code": "2883",
+     "name": "凱基金",
+     "kind": "daytrade",
+     "label": "做空・跌破",
+     "side": "short",
+     "entry": 29.05,
+     "stop": 29.6,
+     "t1": 28.25,
+     "t2": 27.35,
+     "status": "filled",
+     "R": -1.23,
+     "ret": -2.33,
+     "reason": "stop",
+     "hold": null
+    },
+    {
+     "code": "8033",
+     "name": "雷虎",
+     "kind": "swing",
+     "label": "做空・跌破空",
+     "side": "short",
+     "entry": 107.5,
+     "stop": 116.5,
+     "t1": 90.3,
+     "t2": 81.7,
+     "status": "waiting",
+     "R": null,
+     "ret": null,
+     "reason": null,
+     "hold": null
+    },
+    {
+     "code": "2328",
+     "name": "廣宇",
+     "kind": "swing",
+     "label": "做空・跌破空",
+     "side": "short",
+     "entry": 33.1,
+     "stop": 35.75,
+     "t1": 27.85,
+     "t2": 25.2,
+     "status": "waiting",
+     "R": null,
+     "ret": null,
+     "reason": null,
+     "hold": null
+    },
+    {
+     "code": "2404",
+     "name": "漢唐",
+     "kind": "swing",
+     "label": "做空・跌破空",
+     "side": "short",
+     "entry": 811,
+     "stop": 876,
+     "t1": 682,
+     "t2": 617,
+     "status": "open",
+     "R": -0.86,
+     "ret": -6.97,
+     "reason": "open",
+     "hold": 0
+    },
+    {
+     "code": "8299",
+     "name": "群聯",
+     "kind": "swing",
+     "label": "做空・跌破空",
+     "side": "short",
+     "entry": 1305,
+     "stop": 1410,
+     "t1": 1100,
+     "t2": 992,
+     "status": "filled",
+     "R": -1.69,
+     "ret": -13.89,
+     "reason": "stop",
+     "hold": 0
+    },
+    {
+     "code": "2027",
+     "name": "大成鋼",
+     "kind": "swing",
+     "label": "做空・跌破空",
+     "side": "short",
+     "entry": 42.4,
+     "stop": 45.8,
+     "t1": 35.65,
+     "t2": 32.25,
+     "status": "open",
+     "R": -0.85,
+     "ret": -6.89,
+     "reason": "open",
+     "hold": 0
+    }
+   ]
+  }
+ ],
+ "pending": [
   {
    "dataDate": "2026-11-23",
    "n": 10

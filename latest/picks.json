@@ -1,11 +1,11 @@
 {
  "date": "2026-11-23",
- "generatedAt": "2026-11-24T00:56:49.754Z",
+ "generatedAt": "2026-11-24T01:01:46.672Z",
  "market": {
-  "close": 36033.29,
-  "chg": -6.23,
+  "close": 36811.89,
+  "chg": 2.16,
   "trend": "空頭（收盤 < 月線 < 季線，月線向下）",
-  "date": "2026-11-20",
+  "date": "2026-11-23",
   "up": 211,
   "down": 75,
   "upTrendPct": 5,
@@ -44,61 +44,61 @@
    {
     "sym": "TSM",
     "name": "台積電 ADR",
-    "date": "2026-11-23",
-    "close": 363.6,
-    "chg": 14.08
+    "date": "2026-11-20",
+    "close": 318.71,
+    "chg": -9.48
    }
   ],
-  "fx": 32.83,
-  "twDate": "2026-11-20",
+  "fx": 32.78,
+  "twDate": "2026-11-23",
   "window": 60,
   "models": [
    {
     "sym": "^SOX",
     "name": "費城半導體",
-    "beta": 0.213,
-    "r": 0.67,
+    "beta": 0.185,
+    "r": 0.63,
     "n": 60,
-    "move": 1.79,
-    "pred": 0.38
+    "move": 14.03,
+    "pred": 2.61
    },
    {
     "sym": "^IXIC",
     "name": "那斯達克",
-    "beta": 0.492,
-    "r": 0.65,
+    "beta": 0.408,
+    "r": 0.6,
     "n": 60,
-    "move": 0.88,
-    "pred": 0.43
+    "move": 6.51,
+    "pred": 2.67
    },
    {
     "sym": "^GSPC",
     "name": "標普 500",
-    "beta": 0.673,
-    "r": 0.65,
+    "beta": 0.567,
+    "r": 0.6,
     "n": 60,
-    "move": 0.85,
-    "pred": 0.57
+    "move": 4.73,
+    "pred": 2.7
    },
    {
     "sym": "TSM",
     "name": "台積電 ADR",
-    "beta": 0.235,
-    "r": 0.65,
+    "beta": 0.204,
+    "r": 0.61,
     "n": 60,
-    "move": 3.27,
-    "pred": 0.75
+    "move": null,
+    "pred": null
    }
   ],
   "available": true,
-  "predGap": 0.53,
-  "predLow": 0.38,
-  "predHigh": 0.75,
-  "predIndex": 36224,
+  "predGap": 2.66,
+  "predLow": 2.61,
+  "predHigh": 2.7,
+  "predIndex": 37791,
   "hitRate": 79,
-  "hitN": 33,
-  "avgR": 0.65,
-  "adrPremium": 17.6
+  "hitN": 34,
+  "avgR": 0.61,
+  "adrPremium": 2.9
  },
  "candidates": {
   "daytrade": 35,
@@ -131,11 +131,10 @@
     "valid": true,
     "rr": 1.67
    },
-   "beta": 0.84,
-   "estOpen": 2040,
+   "beta": 0.83,
+   "estOpen": 2075,
    "usNotes": [
-    "⚠️ 和美股方向相反，部位減半",
-    "預估開盤就在進場價之下，開盤不追空，等反彈到進場價再空"
+    "⚠️ 和美股方向相反，部位減半"
    ],
    "x": {
     "n": 125,
@@ -200,7 +199,7 @@
     "rr": 1.33
    },
    "beta": 0.3,
-   "estOpen": 165,
+   "estOpen": 166,
    "usNotes": [
     "✅ 和美股方向一致"
    ],
@@ -267,7 +266,7 @@
     "rr": 1.46
    },
    "beta": 0.3,
-   "estOpen": 359.5,
+   "estOpen": 362,
    "usNotes": [
     "✅ 和美股方向一致",
     "預估開盤就在進場價之上，開盤不追，等拉回進場價再買"
@@ -334,8 +333,8 @@
     "valid": true,
     "rr": 1.45
    },
-   "beta": 0.62,
-   "estOpen": 52.1,
+   "beta": 0.61,
+   "estOpen": 52.7,
    "usNotes": [
     "✅ 和美股方向一致"
    ],
@@ -401,8 +400,8 @@
     "valid": true,
     "rr": 1.7
    },
-   "beta": 0.6,
-   "estOpen": 58.6,
+   "beta": 0.57,
+   "estOpen": 59.3,
    "usNotes": [
     "⚠️ 和美股方向相反，部位減半",
     "預估開盤就在進場價之下，開盤不追空，等反彈到進場價再空"
@@ -469,7 +468,7 @@
     "rr": 1.93
    },
    "beta": 0.3,
-   "estOpen": 270.5,
+   "estOpen": 272,
    "usNotes": [
     "✅ 和美股方向一致"
    ],
@@ -535,8 +534,8 @@
     "valid": true,
     "rr": 1.99
    },
-   "beta": 1.99,
-   "estOpen": 5175,
+   "beta": 1.9,
+   "estOpen": 5380,
    "usNotes": [
     "⚠️ 和美股方向相反，部位減半"
    ],
@@ -602,8 +601,8 @@
     "valid": true,
     "rr": 1.97
    },
-   "beta": 1.78,
-   "estOpen": 107,
+   "beta": 1.72,
+   "estOpen": 111,
    "usNotes": [
     "⚠️ 和美股方向相反，部位減半"
    ],
@@ -669,8 +668,8 @@
     "valid": true,
     "rr": 1.96
    },
-   "beta": 1.8,
-   "estOpen": 325,
+   "beta": 1.71,
+   "estOpen": 336.5,
    "usNotes": [
     "⚠️ 和美股方向相反，部位減半"
    ],
@@ -736,8 +735,8 @@
     "valid": true,
     "rr": 2
    },
-   "beta": 1.77,
-   "estOpen": 137.5,
+   "beta": 1.73,
+   "estOpen": 142,
    "usNotes": [
     "⚠️ 和美股方向相反，部位減半"
    ],
