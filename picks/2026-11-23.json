@@ -1,0 +1,279 @@
+{
+ "date": "2026-11-23",
+ "generatedAt": "2026-11-24T00:56:49.754Z",
+ "us": {
+  "available": true,
+  "predGap": 0.53
+ },
+ "picks": [
+  {
+   "code": "2330",
+   "name": "台積電",
+   "market": "上市",
+   "kind": "daytrade",
+   "plan": {
+    "id": "dt4",
+    "label": "做空・反彈遇壓",
+    "side": "short",
+    "when": "反彈到 2,065.00（R1 壓力）過不去、出現黑 K 時先賣",
+    "entry": 2065,
+    "stop": 2095,
+    "t1": 2015,
+    "t2": 1965,
+    "type": "daytrade",
+    "rec": "good",
+    "valid": true,
+    "rr": 1.67
+   },
+   "estOpen": 2040,
+   "reasons": [
+    "空頭趨勢，月線向下",
+    "每日波動 5.0%",
+    "20 日均成交 937 億",
+    "近 5 日量增 1.4 倍"
+   ]
+  },
+  {
+   "code": "2412",
+   "name": "中華電",
+   "market": "上市",
+   "kind": "daytrade",
+   "plan": {
+    "id": "dt1",
+    "label": "做多・突破",
+    "side": "long",
+    "when": "價格站上 166.50（R1 壓力）並且量增時買進",
+    "entry": 166.5,
+    "stop": 165,
+    "t1": 168.5,
+    "t2": 171,
+    "type": "daytrade",
+    "rec": "good",
+    "valid": true,
+    "rr": 1.33
+   },
+   "estOpen": 165,
+   "reasons": [
+    "多頭趨勢，月線向上",
+    "每日波動 2.9%",
+    "20 日均成交 28.8 億",
+    "近 5 日量增 1.6 倍"
+   ]
+  },
+  {
+   "code": "1476",
+   "name": "儒鴻",
+   "market": "上市",
+   "kind": "daytrade",
+   "plan": {
+    "id": "dt2",
+    "label": "做多・回測支撐",
+    "side": "long",
+    "when": "拉回到 350.00（S1 支撐）附近止跌、出現紅 K 時買進",
+    "entry": 350,
+    "stop": 343.5,
+    "t1": 359.5,
+    "t2": 370,
+    "type": "daytrade",
+    "rec": "good",
+    "valid": true,
+    "rr": 1.46
+   },
+   "estOpen": 359.5,
+   "reasons": [
+    "多頭趨勢，月線向上",
+    "每日波動 5.7%",
+    "20 日均成交 10.5 億",
+    "近 5 日量增 1.4 倍"
+   ]
+  },
+  {
+   "code": "9933",
+   "name": "中鼎",
+   "market": "上市",
+   "kind": "daytrade",
+   "plan": {
+    "id": "dt1",
+    "label": "做多・突破",
+    "side": "long",
+    "when": "價格站上 53.70（R1 壓力）並且量增時買進",
+    "entry": 53.7,
+    "stop": 52.6,
+    "t1": 55.3,
+    "t2": 57,
+    "type": "daytrade",
+    "rec": "good",
+    "valid": true,
+    "rr": 1.45
+   },
+   "estOpen": 52.1,
+   "reasons": [
+    "多頭趨勢，月線向上",
+    "每日波動 6.4%",
+    "20 日均成交 9.2 億",
+    "近 5 日量增 2.3 倍"
+   ]
+  },
+  {
+   "code": "2885",
+   "name": "元大金",
+   "market": "上市",
+   "kind": "daytrade",
+   "plan": {
+    "id": "dt4",
+    "label": "做空・反彈遇壓",
+    "side": "short",
+    "when": "反彈到 60.00（R1 壓力）過不去、出現黑 K 時先賣",
+    "entry": 60,
+    "stop": 61,
+    "t1": 58.3,
+    "t2": 56.6,
+    "type": "daytrade",
+    "rec": "good",
+    "valid": true,
+    "rr": 1.7
+   },
+   "estOpen": 58.6,
+   "reasons": [
+    "空頭趨勢，月線向下",
+    "每日波動 5.8%",
+    "20 日均成交 22.1 億",
+    "近 5 日量增 1.3 倍"
+   ]
+  },
+  {
+   "code": "7765",
+   "name": "中華資安",
+   "market": "上市",
+   "kind": "swing",
+   "plan": {
+    "id": "sw1",
+    "label": "做多・拉回買",
+    "side": "long",
+    "type": "swing",
+    "rec": "good",
+    "when": "拉回到 10 日線附近 268.00 不破時分批買進",
+    "entry": 268,
+    "stop": 246,
+    "t1": 310.5,
+    "t2": 332,
+    "valid": true,
+    "rr": 1.93
+   },
+   "estOpen": 270.5,
+   "reasons": [
+    "多頭趨勢中拉回",
+    "距 10 日線 +0.1 個 ATR",
+    "RSI 60"
+   ]
+  },
+  {
+   "code": "3443",
+   "name": "創意",
+   "market": "上市",
+   "kind": "swing",
+   "plan": {
+    "id": "sw4",
+    "label": "做空・跌破空",
+    "side": "short",
+    "type": "swing",
+    "rec": "good",
+    "when": "收盤跌破 20 日低點 4,860.00 時融券賣出",
+    "entry": 4855,
+    "stop": 5245,
+    "t1": 4080,
+    "t2": 3690,
+    "valid": true,
+    "rr": 1.99
+   },
+   "estOpen": 5175,
+   "reasons": [
+    "帶量跌破 20 日低點",
+    "成交量為均量 2.8 倍",
+    "RSI 38",
+    "需融券"
+   ]
+  },
+  {
+   "code": "3265",
+   "name": "台星科",
+   "market": "上櫃",
+   "kind": "swing",
+   "plan": {
+    "id": "sw4",
+    "label": "做空・跌破空",
+    "side": "short",
+    "type": "swing",
+    "rec": "good",
+    "when": "收盤跌破 20 日低點 99.10 時融券賣出",
+    "entry": 99,
+    "stop": 107,
+    "t1": 83.2,
+    "t2": 75.3,
+    "valid": true,
+    "rr": 1.97
+   },
+   "estOpen": 107,
+   "reasons": [
+    "帶量跌破 20 日低點",
+    "成交量為均量 2.3 倍",
+    "RSI 23",
+    "需融券"
+   ]
+  },
+  {
+   "code": "3163",
+   "name": "波若威",
+   "market": "上櫃",
+   "kind": "swing",
+   "plan": {
+    "id": "sw4",
+    "label": "做空・跌破空",
+    "side": "short",
+    "type": "swing",
+    "rec": "good",
+    "when": "收盤跌破 20 日低點 308.00 時融券賣出",
+    "entry": 307.5,
+    "stop": 332.5,
+    "t1": 258.5,
+    "t2": 234,
+    "valid": true,
+    "rr": 1.96
+   },
+   "estOpen": 325,
+   "reasons": [
+    "帶量跌破 20 日低點",
+    "成交量為均量 2.2 倍",
+    "RSI 32",
+    "需融券"
+   ]
+  },
+  {
+   "code": "8028",
+   "name": "昇陽半導體",
+   "market": "上市",
+   "kind": "swing",
+   "plan": {
+    "id": "sw4",
+    "label": "做空・跌破空",
+    "side": "short",
+    "type": "swing",
+    "rec": "good",
+    "when": "收盤跌破 20 日低點 125.50 時融券賣出",
+    "entry": 125,
+    "stop": 135,
+    "t1": 105,
+    "t2": 95,
+    "valid": true,
+    "rr": 2
+   },
+   "estOpen": 137.5,
+   "reasons": [
+    "帶量跌破 20 日低點",
+    "成交量為均量 2.0 倍",
+    "RSI 24",
+    "需融券"
+   ]
+  }
+ ]
+}
