@@ -500,6 +500,7 @@ function renderPicks() {
     當沖：用開盤 30 分鐘突破法，09:30 後才進場，13:25 前平倉。<br>
     短線：條件成立才進場，收盤跌破停損就出場。<br>這是技術面的機械篩選，不是投資建議。</p>`;
   $('picksBox').innerHTML = html;
+  d.picks.filter(pk => pk.kind === 'daytrade').forEach(pk => orbCalc(pk.code));
 }
 function openPlanFromPick(code) {
   const pk = picksData.picks.find(p => p.code === code);
@@ -971,26 +972,77 @@ function confLine(pk) {
 }
 function orbCard(pk) {
   const A = pk.x.atr, ban = picksData && picksData.shortBan;
+  const saved = JSON.parse(localStorage.getItem(orbKey(pk.code)) || '{}');
   return `<div class="plan">
     <div class="plan-h">⏱️ 開盤 30 分鐘突破法</div>
     <div class="when" style="line-height:1.7">
-      1. 先看 09:00～09:30 這段時間的<b>最高價</b>和<b>最低價</b>。<br>
+      1. 09:30 時，在國泰 App 看 09:00～09:30 的<b>最高價</b>和<b>最低價</b>，填在下面。<br>
       2. 09:30 以後，價格<b>漲破最高價就買進</b>${ban ? '' : '；<b>跌破最低價就先賣</b>'}。12:30 以後不再進場。<br>
-      3. 停損：設在區間的另一邊（買進就設在最低價）。<br>
-      4. 停利：漲了「最高價減最低價」的 1 倍先賣一半，停損移到買進價；漲 2 倍全部賣出；都沒到就 13:25 前賣出。<br>
-      5. 最高價減最低價<b>超過 ${fmt(1.2 * A, 1)} 元</b>或<b>少於 ${fmt(0.15 * A, 1)} 元</b>就不做。
+      3. 停損、停利和股數會自動算好；都沒到停利就 13:25 前賣出。
     </div>
+    <div class="form-grid">
+      <label>09:30 最高價<input id="orbH-${pk.code}" type="number" inputmode="decimal" step="0.01" value="${saved.H ?? ''}" oninput="orbCalc('${pk.code}')"></label>
+      <label>09:30 最低價<input id="orbL-${pk.code}" type="number" inputmode="decimal" step="0.01" value="${saved.L ?? ''}" oninput="orbCalc('${pk.code}')"></label>
+    </div>
+    <div id="orbRes-${pk.code}" style="margin-top:8px"></div>
     ${ban ? '<div class="muted small">禁空令期間只做多（只在往上突破時買進）。</div>' : ''}
     <div class="plan-f"><span>昨收 ${pxFmt(pk.x.last.close)}${pk.estOpen ? ` ・ 預估開盤 ${pxFmt(pk.estOpen)}` : ''}</span>
       <button class="sm" onclick="orbToJournal('${pk.code}')">帶入紀錄</button></div>
   </div>`;
 }
+// 填的價格存在手機裡（每天、每檔分開），重新整理也不會不見
+const orbKey = code => `stockJournal.orb.${today()}.${code}`;
+// 依填入的最高、最低價算出開盤突破法的買進價、停損、停利、股數和金額（已扣手續費和稅）
+function orbPlan(pk, H, L, side = 'long') {
+  const etf = PlanCore.isEtf(pk.code), A = pk.x.atr, range = H - L;
+  if (!(H > 0 && L > 0)) return null;
+  if (range <= 0) return { error: '最高價要大於最低價' };
+  if (range > 1.2 * A) return { skip: `區間 ${fmt(range, 2)} 元，太寬（超過 ${fmt(1.2 * A, 1)} 元），今天不做` };
+  if (range < 0.15 * A) return { skip: `區間 ${fmt(range, 2)} 元，太窄（少於 ${fmt(0.15 * A, 1)} 元），今天不做` };
+  const long = side === 'long', entry = long ? H : L, stop = long ? L : H;
+  const t1 = PlanCore.roundTick(long ? entry + range : entry - range, etf, long ? 'down' : 'up');
+  const t2 = PlanCore.roundTick(long ? entry + 2 * range : entry - 2 * range, etf, long ? 'down' : 'up');
+  const qty = sizeFor({ type: 'daytrade', side, entry, stop }, etf);
+  const pnl = px => qty ? calc({ type: 'daytrade', side, qty, etf: etf ? '1' : '0', openDate: today(), closeDate: today(), openPrice: entry, closePrice: px }).net : null;
+  return { side, entry, stop, t1, t2, qty, range,
+    loss: pnl(stop), winBoth: pnl((t1 + t2) / 2), winT1: pnl((t1 + entry) / 2) };
+}
+function orbCalc(code) {
+  const pk = picksData.picks.find(p => p.code === code); if (!pk) return;
+  const H = parseFloat($(`orbH-${code}`).value), L = parseFloat($(`orbL-${code}`).value);
+  localStorage.setItem(orbKey(code), JSON.stringify({ H: isNaN(H) ? null : H, L: isNaN(L) ? null : L }));
+  const box = $(`orbRes-${code}`);
+  const sides = picksData.shortBan ? ['long'] : ['long', 'short'];
+  const plans = sides.map(sd => orbPlan(pk, H, L, sd)).filter(Boolean);
+  if (!plans.length) { box.innerHTML = '<p class="muted small" style="margin:0">填好最高價和最低價，就會算出買進價、停損和停利。</p>'; return; }
+  if (plans[0].error) { box.innerHTML = `<div class="err small">${plans[0].error}</div>`; return; }
+  if (plans[0].skip) { box.innerHTML = `<div class="warn">⛔ ${plans[0].skip}</div>`; return; }
+  const qtyTxt2 = q => !q ? '-' : q >= 1000 && q % 1000 === 0 ? `${q / 1000} 張` : `${fmt(q)} 股`;
+  box.innerHTML = plans.map(p => `<div style="margin-top:6px">
+    <div class="small" style="margin-bottom:4px"><b>${p.side === 'long' ? `漲破 ${pxFmt(p.entry)} 就買進` : `跌破 ${pxFmt(p.entry)} 就先賣`}</b> ・ 建議 ${qtyTxt2(p.qty)}</div>
+    <div class="prices">
+      <div class="entry"><small>${p.side === 'long' ? '買進' : '先賣'}</small><b>${pxFmt(p.entry)}</b></div>
+      <div><small>停損</small><b class="down">${pxFmt(p.stop)}</b></div>
+      <div><small>停利 1（一半）</small><b class="up">${pxFmt(p.t1)}</b></div>
+      <div><small>停利 2</small><b class="up">${pxFmt(p.t2)}</b></div>
+    </div>
+    <div class="small" style="margin-top:6px; line-height:1.6">碰到停損：<b class="down">${ntd(p.loss)}</b><br>
+      到停利 1 後回到買進價出場：<b class="up">${ntd(p.winT1)}</b>・兩個停利都到：<b class="up">${ntd(p.winBoth)}</b></div>
+  </div>`).join('');
+}
 function orbToJournal(code) {
   const pk = picksData.picks.find(p => p.code === code); if (!pk) return;
+  const H = parseFloat(($(`orbH-${code}`) || {}).value), L = parseFloat(($(`orbL-${code}`) || {}).value);
+  const p = orbPlan(pk, H, L, 'long');
   showTab('journal'); closeForm(); form.openDate.value = today(); setType('daytrade');
   form.side.value = 'long'; form.code.value = pk.code; form.name.value = pk.name || '';
   form.etf.value = PlanCore.isEtf(pk.code) ? '1' : '0'; form.strategy.value = '開盤突破';
-  form.note.value = '開盤 30 分鐘突破法：09:30 後漲破 09:00～09:30 最高價買進，停損設在最低價。';
+  if (p && !p.error && !p.skip) {
+    form.qty.value = p.qty || ''; form.openPrice.value = p.entry; form.stopPrice.value = p.stop; form.targetPrice.value = p.t1;
+    form.note.value = `開盤突破：09:00～09:30 最高 ${H}、最低 ${L}。漲破 ${p.entry} 買進，停損 ${p.stop}，停利 1 ${p.t1}（一半）、停利 2 ${p.t2}。`;
+  } else {
+    form.note.value = '開盤 30 分鐘突破法：09:30 後漲破 09:00～09:30 最高價買進，停損設在最低價。';
+  }
   updatePreview(); openForm();
 }
 
