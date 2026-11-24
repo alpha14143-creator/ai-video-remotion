@@ -1,6 +1,6 @@
 {
  "date": "2026-11-23",
- "generatedAt": "2026-11-24T02:30:40.562Z",
+ "generatedAt": "2026-11-24T03:12:35.949Z",
  "market": {
   "close": 36811.89,
   "chg": 2.16,
@@ -49,7 +49,7 @@
     "chg": 14.08
    }
   ],
-  "fx": 32.93,
+  "fx": 32.86,
   "twDate": "2026-11-23",
   "window": 60,
   "models": [
@@ -98,7 +98,7 @@
   "hitRate": 79,
   "hitN": 34,
   "avgR": 0.61,
-  "adrPremium": 18
+  "adrPremium": 17.7
  },
  "shortBan": true,
  "candidates": {
