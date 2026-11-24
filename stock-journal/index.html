@@ -105,6 +105,9 @@
   table.mini th { color:var(--muted); font-weight:500; }
   details summary { cursor:pointer; font-weight:600; padding:4px 0; }
   .center { text-align:center; }
+  .suggest { display:flex; flex-direction:column; margin-top:6px; border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  .suggest button { border:none; border-bottom:1px solid var(--line); border-radius:0; text-align:left; padding:10px 12px; font-size:15px; background:#fff; }
+  .suggest button:last-child { border-bottom:none; }
   .spinner { padding:30px; text-align:center; color:var(--muted); }
 </style>
 </head>
@@ -132,10 +135,12 @@
   <section class="tab" id="tab-plan">
     <div class="card">
       <div style="display:flex; gap:8px">
-        <input id="pCode" placeholder="輸入股票代號，例：2330" inputmode="numeric" autocomplete="off"
+        <input id="pCode" placeholder="代號或名稱，例：2330、台積電" autocomplete="off"
+          onfocus="loadNames()" oninput="showSuggest()"
           onkeydown="if(event.key==='Enter'){this.blur();runPlan()}">
         <button class="primary" id="pBtn" onclick="runPlan()" style="white-space:nowrap">計算</button>
       </div>
+      <div id="pSuggest"></div>
       <div class="muted small" id="pStatus" style="margin-top:8px"></div>
       <div class="err" id="pErr"></div>
       <details style="margin-top:6px">
@@ -534,10 +539,47 @@ async function fetchLive(code) {
   }
   return fetchTwseDirect(code);
 }
+/* 用名稱找股票：data/names.json 是全部上市櫃股票的代號和名稱，每天自動更新 */
+let namesList = null, namesLoading = null;
+function loadNames() {
+  if (namesList || namesLoading) return namesLoading;
+  namesLoading = fetch('data/names.json', { cache:'no-store' }).then(r => r.ok ? r.json() : null)
+    .then(j => { namesList = j ? j.stocks : []; if ($('pCode').value.trim()) showSuggest(); return namesList; })
+    .catch(() => (namesList = []));
+  return namesLoading;
+}
+function findStocks(q) {
+  q = q.trim().toUpperCase();
+  if (!q || !namesList) return [];
+  const score = s => s.c === q ? 0 : s.n === q ? 1 : s.c.startsWith(q) ? 2 : s.n.toUpperCase().startsWith(q) ? 3 : s.n.toUpperCase().includes(q) ? 4 : 9;
+  return namesList.map(s => ({ s, k: score(s) })).filter(x => x.k < 9)
+    .sort((a, b) => a.k - b.k || a.s.c.length - b.s.c.length || a.s.c.localeCompare(b.s.c)).map(x => x.s);
+}
+function showSuggest() {
+  const q = $('pCode').value.trim();
+  const list = /^\d{4,6}[A-Z]?$/i.test(q) && namesList && namesList.some(s => s.c === q.toUpperCase()) ? [] : findStocks(q).slice(0, 8);
+  $('pSuggest').innerHTML = list.length ? `<div class="suggest">${list.map(s =>
+    `<button type="button" onclick="pickStock('${s.c}')"><b>${esc(s.c)}</b> ${esc(s.n)} <span class="muted small">${s.m === 1 ? '上市' : '上櫃'}</span></button>`).join('')}</div>` : '';
+}
+function pickStock(code) { $('pCode').value = code; $('pSuggest').innerHTML = ''; runPlan(); }
+// 把輸入的文字（代號或名稱）轉成股票代號；找到好幾檔時請使用者選
+async function resolveCode(q) {
+  q = q.trim().toUpperCase();
+  if (/^\d{4,6}[A-Z]?$/.test(q)) return q;
+  await loadNames();
+  const found = findStocks(q);
+  if (!found.length) throw new Error(`找不到「${q}」，請確認名稱或改用代號`);
+  if (found[0].n.toUpperCase() === q || found.length === 1) return found[0].c;
+  showSuggest();
+  throw new Error(`「${q}」有 ${found.length} 檔符合，請在上面的清單點選一檔`);
+}
 async function runPlan(forceLive = false) {
-  const code = $('pCode').value.trim().toUpperCase();
   $('pErr').textContent = '';
-  if (!code) { $('pErr').textContent = '請輸入股票代號'; return; }
+  const raw = $('pCode').value.trim();
+  if (!raw) { $('pErr').textContent = '請輸入股票代號或名稱'; return; }
+  let code;
+  try { code = await resolveCode(raw); } catch (e) { $('pErr').textContent = e.message; return; }
+  $('pCode').value = code; $('pSuggest').innerHTML = '';
   $('pBtn').disabled = true;
   try {
     const snap = forceLive ? null : await getSnapshot();
