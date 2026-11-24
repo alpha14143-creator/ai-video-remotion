@@ -1,6 +1,6 @@
 {
  "date": "2026-11-24",
- "generatedAt": "2026-11-24T09:57:30.381Z",
+ "generatedAt": "2026-11-24T12:47:13.086Z",
  "market": {
   "close": 40122.35,
   "chg": 8.99,
@@ -49,7 +49,7 @@
     "chg": 14.08
    }
   ],
-  "fx": 32.93,
+  "fx": 32.91,
   "twDate": "2026-11-24",
   "window": 60,
   "models": [
@@ -92,7 +92,7 @@
   ],
   "available": false,
   "reason": "美股 2026-11-24 的交易還沒收盤，早上 8 點更新後才有預測",
-  "adrPremium": 7.4
+  "adrPremium": 7.3
  },
  "shortBan": true,
  "candidates": {

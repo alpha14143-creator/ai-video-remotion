@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-24T09:58:52.432Z",
+ "generatedAt": "2026-11-24T12:49:21.200Z",
  "window": 20,
  "start": "2026-11-23",
  "progress": 2,
@@ -37,7 +37,7 @@
  "backtest": {
   "daytradeExpR": -0.099,
   "daytradeWin": 41.2,
-  "swingExpR": 0.246,
+  "swingExpR": 0.248,
   "swingWin": 49.6
  },
  "days": [
