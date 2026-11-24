@@ -94,7 +94,8 @@ async function evaluate() {
         const usable = beforeClose && bars.length && bars[bars.length - 1].date === todayTpe ? bars.slice(0, -1) : bars;
         r = notYet || jn < 0 || jn >= usable.length ? { status: 'waiting' } : B.evalSwing(pk.plan, usable, jn);
       }
-      return { ...base, status: r.status, R: r2(r.R), ret: r2(r.ret != null ? r.ret * 100 : null), reason: r.reason || null, hold: r.hold ?? null };
+      return { ...base, status: r.status, R: r2(r.R), ret: r2(r.ret != null ? r.ret * 100 : null), reason: r.reason || null, hold: r.hold ?? null,
+        fill: r.fill ?? null, exits: r.status === 'filled' ? r.exits : null, lastClose: r.lastClose ?? null };
     });
     results.push({ dataDate: d.dataDate, tradeDate: d.tradeDate, usPredGap: d.us && d.us.available ? d.us.predGap : null, rows });
   }

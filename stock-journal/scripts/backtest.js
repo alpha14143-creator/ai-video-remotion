@@ -48,7 +48,9 @@ function settle(p, entry, exits, tax, reason) {
     pnl += w * ((long ? x - entry : entry - x) - FEE * (entry + x) - tax * sell);
   }
   const risk = Math.abs(p.entry - p.stop);
-  return { status: 'filled', R: pnl / risk, ret: pnl / entry, reason };
+  // fill = 實際進場價；exits = 每一次出場的價格和比例（例如停利 1 出一半、停利 2 出一半）
+  return { status: 'filled', R: pnl / risk, ret: pnl / entry, reason, fill: entry,
+    exits: exits.map(([x, w]) => ({ px: +x.toFixed(2), w })), exitPx: +exits.reduce((s2, [x, w]) => s2 + x * w, 0).toFixed(2) };
 }
 
 // 當沖（日 K）：mode = 'pess' 先碰停損 / 'opt' 先碰停利
