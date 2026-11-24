@@ -35,6 +35,6 @@ const OPEN_BARS = 6; // 09:00、09:05 … 09:25 共 6 根 5 分 K = 09:00～09:3
     levels[pk.code] = { name: pk.name, H: +H.toFixed(2), L: +Lo.toFixed(2) };
     console.log(`${pk.code} ${pk.name}：最高 ${levels[pk.code].H}、最低 ${levels[pk.code].L}`);
   });
-  fs.writeFileSync(path.join(DATA, 'orb.json'), JSON.stringify({ date: today, generatedAt: new Date().toISOString(), source: 'Yahoo 5 分 K（約延遲 20 分鐘）', levels }, null, 1));
+  fs.writeFileSync(path.join(DATA, 'orb.json'), JSON.stringify({ date: today, picksDate: picks.date, generatedAt: new Date().toISOString(), source: 'Yahoo 5 分 K（約延遲 20 分鐘）', levels }, null, 1));
   console.log(`完成：${Object.keys(levels).length}／${dt.length} 檔有開盤區間`);
 })().catch((e) => { console.error(e); process.exit(1); });
