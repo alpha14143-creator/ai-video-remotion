@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-24T06:31:17.542Z",
+ "generatedAt": "2026-11-24T06:59:42.481Z",
  "window": 20,
  "start": "2026-11-23",
  "progress": 2,
@@ -35,10 +35,10 @@
   "totalR": -4.06
  },
  "backtest": {
-  "daytradeExpR": -0.122,
-  "daytradeWin": 39.7,
-  "swingExpR": 0.23,
-  "swingWin": 49.2
+  "daytradeExpR": -0.125,
+  "daytradeWin": 40.3,
+  "swingExpR": 0.226,
+  "swingWin": 49.1
  },
  "days": [
   {
@@ -604,5 +604,10 @@
    ]
   }
  ],
- "pending": []
+ "pending": [
+  {
+   "dataDate": "2026-11-24",
+   "n": 10
+  }
+ ]
 }
