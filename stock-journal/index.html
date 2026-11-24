@@ -973,17 +973,21 @@ function confLine(pk) {
 function orbCard(pk) {
   const A = pk.x.atr, ban = picksData && picksData.shortBan;
   const saved = JSON.parse(localStorage.getItem(orbKey(pk.code)) || '{}');
+  const auto = orbAutoFor(pk.code);
+  // 自己填過的數字優先；沒填過就用自動抓到的 09:00～09:30 最高最低價
+  const H0 = saved.user ? saved.H : auto ? auto.H : saved.H, L0 = saved.user ? saved.L : auto ? auto.L : saved.L;
   return `<div class="plan">
     <div class="plan-h">⏱️ 開盤 30 分鐘突破法</div>
     <div class="when" style="line-height:1.7">
-      1. 09:30 時，在國泰 App 看 09:00～09:30 的<b>最高價</b>和<b>最低價</b>，填在下面。<br>
+      1. 09:00～09:30 的<b>最高價</b>和<b>最低價</b>：約 10:00 自動帶入；也可以自己在國泰 App 看了填進去。<br>
       2. 09:30 以後，價格<b>漲破最高價就買進</b>${ban ? '' : '；<b>跌破最低價就先賣</b>'}。12:30 以後不再進場。<br>
       3. 停損、停利和股數會自動算好；都沒到停利就 13:25 前賣出。
     </div>
     <div class="form-grid">
-      <label>09:30 最高價<input id="orbH-${pk.code}" type="number" inputmode="decimal" step="0.01" value="${saved.H ?? ''}" oninput="orbCalc('${pk.code}')"></label>
-      <label>09:30 最低價<input id="orbL-${pk.code}" type="number" inputmode="decimal" step="0.01" value="${saved.L ?? ''}" oninput="orbCalc('${pk.code}')"></label>
+      <label>09:30 最高價<input id="orbH-${pk.code}" type="number" inputmode="decimal" step="0.01" value="${H0 ?? ''}" oninput="orbCalc('${pk.code}', true)"></label>
+      <label>09:30 最低價<input id="orbL-${pk.code}" type="number" inputmode="decimal" step="0.01" value="${L0 ?? ''}" oninput="orbCalc('${pk.code}', true)"></label>
     </div>
+    <div class="muted small" id="orbSrc-${pk.code}" style="margin-top:4px">${saved.user ? '✏️ 你自己填的價格' : auto ? `🤖 已自動帶入（${tpeTxt(orbAuto.generatedAt)} 更新，資料約延遲 20 分鐘）` : '⏳ 約 10:00 自動帶入'}</div>
     <div id="orbRes-${pk.code}" style="margin-top:8px"></div>
     ${ban ? '<div class="muted small">禁空令期間只做多（只在往上突破時買進）。</div>' : ''}
     <div class="plan-f"><span>昨收 ${pxFmt(pk.x.last.close)}${pk.estOpen ? ` ・ 預估開盤 ${pxFmt(pk.estOpen)}` : ''}</span>
@@ -996,7 +1000,8 @@ const orbKey = code => `stockJournal.orb.${today()}.${code}`;
 function orbPlan(pk, H, L, side = 'long') {
   const etf = PlanCore.isEtf(pk.code), A = pk.x.atr, range = H - L;
   if (!(H > 0 && L > 0)) return null;
-  if (range <= 0) return { error: '最高價要大於最低價' };
+  if (range < 0) return { error: '最高價要大於最低價' };
+  if (range === 0) return { skip: '09:00～09:30 價格沒有變動（可能一開盤就鎖漲停或跌停），今天不做' };
   if (range > 1.2 * A) return { skip: `區間 ${fmt(range, 2)} 元，太寬（超過 ${fmt(1.2 * A, 1)} 元），今天不做` };
   if (range < 0.15 * A) return { skip: `區間 ${fmt(range, 2)} 元，太窄（少於 ${fmt(0.15 * A, 1)} 元），今天不做` };
   const long = side === 'long', entry = long ? H : L, stop = long ? L : H;
@@ -1007,10 +1012,20 @@ function orbPlan(pk, H, L, side = 'long') {
   return { side, entry, stop, t1, t2, qty, range,
     loss: pnl(stop), winBoth: pnl((t1 + t2) / 2), winT1: pnl((t1 + entry) / 2) };
 }
-function orbCalc(code) {
+// 自動抓到的開盤區間（data/orb.json，只用今天的）
+let orbAuto = null;
+const orbAutoFor = code => orbAuto && orbAuto.date === today() && orbAuto.levels && orbAuto.levels[code] || null;
+async function loadOrb() {
+  try { const r = await fetch('data/orb.json?t=' + Date.now(), { cache:'no-store' }); if (r.ok) orbAuto = await r.json(); } catch {}
+  if (orbAuto && picksData) renderPicks();
+}
+function orbCalc(code, byUser = false) {
   const pk = picksData.picks.find(p => p.code === code); if (!pk) return;
   const H = parseFloat($(`orbH-${code}`).value), L = parseFloat($(`orbL-${code}`).value);
-  localStorage.setItem(orbKey(code), JSON.stringify({ H: isNaN(H) ? null : H, L: isNaN(L) ? null : L }));
+  if (byUser) {
+    localStorage.setItem(orbKey(code), JSON.stringify({ H: isNaN(H) ? null : H, L: isNaN(L) ? null : L, user: true }));
+    const src = $(`orbSrc-${code}`); if (src) src.textContent = '✏️ 你自己填的價格';
+  }
   const box = $(`orbRes-${code}`);
   const sides = picksData.shortBan ? ['long'] : ['long', 'short'];
   const plans = sides.map(sd => orbPlan(pk, H, L, sd)).filter(Boolean);
@@ -1355,6 +1370,7 @@ loadPicks();
 loadBacktest();
 loadForward();
 loadTestlog();
+loadOrb();
 </script>
 </body>
 </html>
