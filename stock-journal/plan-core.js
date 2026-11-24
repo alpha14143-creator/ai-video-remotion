@@ -87,10 +87,10 @@
     if (x.vol20 != null && x.vol20 < 1000) warnings.push('日均量不到 1000 張，流動性差，不建議當沖');
     if (A / C < 0.015) warnings.push('每日波動小於 1.5%，扣掉成本後利潤很薄');
     const plans = [
-      { id: 'dt1', label: '做多・突破', side: 'long', when: `價格站上 ${f(R1)}（R1 壓力）並且量增時買進`, entry: R1, stop: R1 - d, t1: R1 + g1, t2: Math.max(R1 + g2, R2) },
-      { id: 'dt2', label: '做多・回測支撐', side: 'long', when: `拉回到 ${f(S1)}（S1 支撐）附近止跌、出現紅 K 時買進`, entry: S1, stop: S1 - d, t1: S1 + g1, t2: Math.max(S1 + g2, P) },
-      { id: 'dt3', label: '做空・跌破', side: 'short', when: `價格跌破 ${f(S1)}（S1 支撐）並且量增時先賣（需有先賣後買資格）`, entry: S1, stop: S1 + d, t1: S1 - g1, t2: Math.min(S1 - g2, S2) },
-      { id: 'dt4', label: '做空・反彈遇壓', side: 'short', when: `反彈到 ${f(R1)}（R1 壓力）過不去、出現黑 K 時先賣`, entry: R1, stop: R1 + d, t1: R1 - g1, t2: Math.min(R1 - g2, P) },
+      { id: 'dt1', label: '做多・突破', side: 'long', when: `價格站上 ${f(R1)}（壓力位）並且量增時買進`, entry: R1, stop: R1 - d, t1: R1 + g1, t2: Math.max(R1 + g2, R2) },
+      { id: 'dt2', label: '做多・回測支撐', side: 'long', when: `拉回到 ${f(S1)}（支撐位）附近止跌、出現紅 K 時買進`, entry: S1, stop: S1 - d, t1: S1 + g1, t2: Math.max(S1 + g2, P) },
+      { id: 'dt3', label: '做空・跌破', side: 'short', when: `價格跌破 ${f(S1)}（支撐位）並且量增時先賣（需有先賣後買資格）`, entry: S1, stop: S1 + d, t1: S1 - g1, t2: Math.min(S1 - g2, S2) },
+      { id: 'dt4', label: '做空・反彈遇壓', side: 'short', when: `反彈到 ${f(R1)}（壓力位）過不去、出現黑 K 時先賣`, entry: R1, stop: R1 + d, t1: R1 - g1, t2: Math.min(R1 - g2, P) },
     ].map((p) => finalize({ ...p, type: 'daytrade', rec: rec(p.side) }, etf, lim));
     return {
       bias, warnings, plans,
