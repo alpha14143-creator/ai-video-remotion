@@ -1096,12 +1096,17 @@ function renderForward() {
       <div style="margin-top:4px">${fwStatus(r)}</div></div>`).join('')}</div>`;
   }
   for (const day of d.days) {
-    const rows = day.rows.filter(r => r.kind === fwKind);
-    if (!rows.length) continue;
+    const all = day.rows.filter(r => r.kind === fwKind);
+    if (!all.length) continue;
+    // 只列出真的有進場的交易（已成交、持有中）；沒觸發、跳空不追、等待中只顯示數量
+    const rows = all.filter(r => r.status === 'filled' || r.status === 'open');
+    const skipped = all.length - rows.length;
     const sumR = rows.filter(r => r.status === 'filled').reduce((a, r) => a + r.R, 0);
     const openN = rows.filter(r => r.status === 'open').length;
     html += `<div class="card"><details>
-      <summary>${mmdd(day.tradeDate)} ${fwKind === 'daytrade' ? '當沖' : '短線'} ・ 已實現 <span class="${cls(sumR)}">${moneyR(sumR)}</span>${openN ? ` ・ 持有中 ${openN}` : ''}</summary>
+      <summary>${mmdd(day.tradeDate)} ${fwKind === 'daytrade' ? '當沖' : '短線'} ・ ${rows.length ? `已實現 <span class="${cls(sumR)}">${moneyR(sumR)}</span>${openN ? ` ・ 持有中 ${openN}` : ''}` : '沒有進場'}</summary>
+      ${rows.length ? '' : '<p class="muted small">這天選出的股票都沒有觸發進場價。</p>'}
+      ${skipped && rows.length ? `<p class="muted small" style="margin:6px 0 0">另有 ${skipped} 檔沒有進場（沒觸發進場價、跳空不追或還在等待）。</p>` : ''}
       ${rows.map(r => `<div class="trade">
         <div class="r1"><b>${esc(r.code)} ${esc(r.name)}</b> <span class="muted small">${esc(r.label)}</span></div>
         <div class="r2">進 ${pxFmt(r.entry)} ・ 損 ${pxFmt(r.stop)} ・ 利 ${pxFmt(r.t1)} / ${pxFmt(r.t2)}</div>
