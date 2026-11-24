@@ -1,9 +1,10 @@
 {
  "date": "2026-11-24",
- "generatedAt": "2026-11-24T12:53:36.379Z",
+ "generatedAt": "2026-11-24T23:40:58.620Z",
  "shortBan": true,
  "us": {
-  "available": false
+  "available": true,
+  "predGap": -0.97
  },
  "picks": [
   {
@@ -25,65 +26,11 @@
     "valid": true,
     "rr": 1.43
    },
-   "estOpen": null,
+   "estOpen": 2210,
    "reasons": [
     "空頭趨勢，月線向下",
     "每日波動 4.9%",
-    "20 日均成交 909 億"
-   ]
-  },
-  {
-   "code": "2618",
-   "name": "長榮航",
-   "market": "上市",
-   "kind": "daytrade",
-   "plan": {
-    "id": "dt1",
-    "label": "做多・突破",
-    "side": "long",
-    "when": "價格站上 49.85（壓力位）並且量增時買進",
-    "entry": 49.85,
-    "stop": 49.1,
-    "t1": 51,
-    "t2": 52.3,
-    "type": "daytrade",
-    "rec": "good",
-    "valid": true,
-    "rr": 1.53
-   },
-   "estOpen": null,
-   "reasons": [
-    "多頭趨勢，月線向上",
-    "每日波動 5.0%",
-    "20 日均成交 14.9 億",
-    "近 5 日量增 1.4 倍"
-   ]
-  },
-  {
-   "code": "2412",
-   "name": "中華電",
-   "market": "上市",
-   "kind": "daytrade",
-   "plan": {
-    "id": "dt2",
-    "label": "做多・回測支撐",
-    "side": "long",
-    "when": "拉回到 160.00（支撐位）附近止跌、出現紅 K 時買進",
-    "entry": 160,
-    "stop": 158,
-    "t1": 162,
-    "t2": 165,
-    "type": "daytrade",
-    "rec": "good",
-    "valid": true,
-    "rr": 1
-   },
-   "estOpen": null,
-   "reasons": [
-    "多頭趨勢，月線向上",
-    "每日波動 3.2%",
-    "20 日均成交 32.8 億",
-    "近 5 日量增 1.8 倍"
+    "20 日均成交 908 億"
    ]
   },
   {
@@ -105,7 +52,7 @@
     "valid": true,
     "rr": 1.69
    },
-   "estOpen": null,
+   "estOpen": 36.05,
    "reasons": [
     "空頭趨勢，月線向下",
     "每日波動 6.0%",
@@ -132,12 +79,65 @@
     "valid": true,
     "rr": 1.5
    },
-   "estOpen": null,
+   "estOpen": 103.5,
    "reasons": [
     "空頭趨勢，月線向下",
     "每日波動 6.0%",
     "20 日均成交 34.0 億",
     "近 5 日量增 1.4 倍"
+   ]
+  },
+  {
+   "code": "2357",
+   "name": "華碩",
+   "market": "上市",
+   "kind": "daytrade",
+   "plan": {
+    "id": "dt4",
+    "label": "做空・反彈遇壓",
+    "side": "short",
+    "when": "反彈到 836.00（壓力位）過不去、出現黑 K 時先賣",
+    "entry": 836,
+    "stop": 851,
+    "t1": 813,
+    "t2": 789,
+    "type": "daytrade",
+    "rec": "good",
+    "valid": true,
+    "rr": 1.53
+   },
+   "estOpen": 815,
+   "reasons": [
+    "空頭趨勢，月線向下",
+    "每日波動 5.8%",
+    "20 日均成交 29.4 億",
+    "近 5 日量增 1.3 倍"
+   ]
+  },
+  {
+   "code": "2317",
+   "name": "鴻海",
+   "market": "上市",
+   "kind": "daytrade",
+   "plan": {
+    "id": "dt3",
+    "label": "做空・跌破",
+    "side": "short",
+    "when": "價格跌破 226.50（支撐位）並且量增時先賣（需有先賣後買資格）",
+    "entry": 226.5,
+    "stop": 230.5,
+    "t1": 220.5,
+    "t2": 214,
+    "type": "daytrade",
+    "rec": "good",
+    "valid": true,
+    "rr": 1.5
+   },
+   "estOpen": 224.5,
+   "reasons": [
+    "空頭趨勢，月線向下",
+    "每日波動 5.5%",
+    "20 日均成交 109 億"
    ]
   },
   {
@@ -159,11 +159,37 @@
     "valid": true,
     "rr": 1.93
    },
-   "estOpen": null,
+   "estOpen": 53.7,
    "reasons": [
     "多頭趨勢中拉回",
     "距 10 日線 +0.2 個 ATR",
     "RSI 61"
+   ]
+  },
+  {
+   "code": "2412",
+   "name": "中華電",
+   "market": "上市",
+   "kind": "swing",
+   "plan": {
+    "id": "sw1",
+    "label": "做多・拉回買",
+    "side": "long",
+    "type": "swing",
+    "rec": "good",
+    "when": "拉回到 10 日線附近 164.00 不破時分批買進",
+    "entry": 164,
+    "stop": 156,
+    "t1": 179,
+    "t2": 187,
+    "valid": true,
+    "rr": 1.88
+   },
+   "estOpen": 164,
+   "reasons": [
+    "多頭趨勢中拉回",
+    "距 10 日線 +0.1 個 ATR",
+    "RSI 57"
    ]
   },
   {
@@ -185,7 +211,7 @@
     "valid": true,
     "rr": 1.95
    },
-   "estOpen": null,
+   "estOpen": 282,
    "reasons": [
     "多頭趨勢中拉回",
     "距 10 日線 +0.5 個 ATR",
@@ -193,8 +219,8 @@
    ]
   },
   {
-   "code": "2355",
-   "name": "敬鵬",
+   "code": "6782",
+   "name": "視陽",
    "market": "上市",
    "kind": "swing",
    "plan": {
@@ -203,71 +229,46 @@
     "side": "long",
     "type": "swing",
     "rec": "good",
-    "when": "拉回到 10 日線附近 57.20 不破時分批買進",
-    "entry": 57.2,
-    "stop": 52.5,
-    "t1": 66.3,
-    "t2": 70.8,
+    "when": "拉回到 10 日線附近 280.50 不破時分批買進",
+    "entry": 280.5,
+    "stop": 257.5,
+    "t1": 325,
+    "t2": 347.5,
     "valid": true,
-    "rr": 1.94
+    "rr": 1.93
    },
-   "estOpen": null,
+   "estOpen": 291.5,
    "reasons": [
     "多頭趨勢中拉回",
-    "距 10 日線 +0.3 個 ATR",
-    "RSI 59"
+    "距 10 日線 +0.6 個 ATR",
+    "RSI 64"
    ]
   },
   {
-   "code": "6199",
-   "name": "天品",
-   "market": "上櫃",
-   "kind": "swing",
-   "plan": {
-    "id": "sw1",
-    "label": "做多・拉回買",
-    "side": "long",
-    "type": "swing",
-    "rec": "good",
-    "when": "拉回到 10 日線附近 170.50 不破時分批買進",
-    "entry": 170.5,
-    "stop": 167,
-    "t1": 177,
-    "t2": 180,
-    "valid": true,
-    "rr": 1.86
-   },
-   "estOpen": null,
-   "reasons": [
-    "多頭趨勢中拉回",
-    "距 10 日線 +0.9 個 ATR",
-    "RSI 67"
-   ]
-  },
-  {
-   "code": "2610",
-   "name": "華航",
+   "code": "2354",
+   "name": "鴻準",
    "market": "上市",
    "kind": "swing",
    "plan": {
-    "id": "sw1",
-    "label": "做多・拉回買",
-    "side": "long",
+    "id": "sw3",
+    "label": "做空・反彈空",
+    "side": "short",
     "type": "swing",
     "rec": "good",
-    "when": "目前在 10 日線（22.56）下方，等收盤站回 10 日線再買；價格是用現價算的參考",
-    "entry": 22.5,
-    "stop": 20.9,
-    "t1": 25.7,
-    "t2": 27.3,
+    "when": "反彈到 10 日線附近 49.65 過不去時融券賣出",
+    "entry": 49.65,
+    "stop": 53.7,
+    "t1": 41.75,
+    "t2": 37.75,
     "valid": true,
-    "rr": 2
+    "rr": 1.95
    },
-   "estOpen": null,
+   "estOpen": 48.5,
    "reasons": [
-    "多頭趨勢中拉回",
-    "距 10 日線 -0.1 個 ATR",
-    "RSI 61"
+    "空頭趨勢中反彈",
+    "距 10 日線 0.3 個 ATR",
+    "RSI 34",
+    "需融券"
    ]
   }
  ]

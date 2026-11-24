@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-24T19:29:58.258Z",
+ "generatedAt": "2026-11-24T23:42:04.685Z",
  "window": 20,
  "start": "2026-11-23",
  "progress": 2,
@@ -17,28 +17,28 @@
    "pf": 2.41
   },
   "swing": {
-   "signals": 1,
-   "n": 1,
+   "signals": 3,
+   "n": 3,
    "fillRate": 100,
    "winRate": 0,
    "avgWinR": null,
-   "avgLossR": -1.67,
-   "expR": -1.67,
-   "expRet": -13.67,
+   "avgLossR": -1.88,
+   "expR": -1.88,
+   "expRet": -15.273,
    "pf": 0,
-   "hold": 0
+   "hold": 0.7
   },
   "swingOpen": {
-   "n": 2,
-   "R": -1.66
+   "n": 4,
+   "R": 0.02
   },
-  "totalR": -0.09
+  "totalR": -4.06
  },
  "backtest": {
   "daytradeExpR": -0.11,
   "daytradeWin": 40.9,
-  "swingExpR": 0.248,
-  "swingWin": 49.6
+  "swingExpR": 0.22,
+  "swingWin": 49.2
  },
  "days": [
   {
@@ -235,14 +235,14 @@
      "stop": 1595,
      "t1": 1240,
      "t2": 1125,
-     "status": "waiting",
-     "R": null,
-     "ret": null,
-     "reason": null,
-     "hold": null,
-     "fill": null,
+     "status": "open",
+     "R": -0.05,
+     "ret": -0.38,
+     "reason": "open",
+     "hold": 0,
+     "fill": 1570,
      "exits": null,
-     "lastClose": null,
+     "lastClose": 1570,
      "orb": null
     },
     {
@@ -255,14 +255,14 @@
      "stop": 233,
      "t1": 181,
      "t2": 164,
-     "status": "waiting",
-     "R": null,
-     "ret": null,
-     "reason": null,
-     "hold": null,
-     "fill": null,
+     "status": "open",
+     "R": -0.05,
+     "ret": -0.38,
+     "reason": "open",
+     "hold": 0,
+     "fill": 231.5,
      "exits": null,
-     "lastClose": null,
+     "lastClose": 231.5,
      "orb": null
     },
     {
@@ -275,14 +275,14 @@
      "stop": 23.6,
      "t1": 18.35,
      "t2": 16.6,
-     "status": "waiting",
-     "R": null,
-     "ret": null,
-     "reason": null,
-     "hold": null,
-     "fill": null,
+     "status": "open",
+     "R": 0.17,
+     "ret": 1.38,
+     "reason": "open",
+     "hold": 0,
+     "fill": 22.7,
      "exits": null,
-     "lastClose": null,
+     "lastClose": 22.3,
      "orb": null
     },
     {
@@ -295,14 +295,14 @@
      "stop": 4120,
      "t1": 3205,
      "t2": 2900,
-     "status": "waiting",
-     "R": null,
-     "ret": null,
-     "reason": null,
-     "hold": null,
-     "fill": null,
+     "status": "open",
+     "R": -0.05,
+     "ret": -0.38,
+     "reason": "open",
+     "hold": 0,
+     "fill": 4050,
      "exits": null,
-     "lastClose": null,
+     "lastClose": 4050,
      "orb": null
     }
    ]
@@ -536,14 +536,19 @@
      "stop": 876,
      "t1": 682,
      "t2": 617,
-     "status": "open",
-     "R": -0.83,
-     "ret": -6.76,
-     "reason": "open",
-     "hold": 0,
+     "status": "filled",
+     "R": -2.14,
+     "ret": -17.39,
+     "reason": "stop",
+     "hold": 1,
      "fill": 800,
-     "exits": null,
-     "lastClose": 851,
+     "exits": [
+      {
+       "px": 936,
+       "w": 1
+      }
+     ],
+     "lastClose": null,
      "orb": null
     },
     {
@@ -581,14 +586,19 @@
      "stop": 45.8,
      "t1": 35.65,
      "t2": 32.25,
-     "status": "open",
-     "R": -0.83,
-     "ret": -6.68,
-     "reason": "open",
-     "hold": 0,
+     "status": "filled",
+     "R": -1.83,
+     "ret": -14.76,
+     "reason": "stop",
+     "hold": 1,
      "fill": 42.1,
-     "exits": null,
-     "lastClose": 44.75,
+     "exits": [
+      {
+       "px": 48.15,
+       "w": 1
+      }
+     ],
+     "lastClose": null,
      "orb": null
     }
    ]
