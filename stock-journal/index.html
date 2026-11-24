@@ -272,7 +272,7 @@
         <b>⚠️ 計算方式和風險</b><br>
         • <b>今日 10 檔</b>：每天早上 8 點，從成交金額前 300 名的上市櫃股票（排除處置股）中，用均線趨勢、波動和量能篩選，選出當沖 5 檔、短線 5 檔。和美股方向一致的股票會加分。<br>
         • <b>美股預測</b>：用最近 60 個交易日的資料，算出費半、那斯達克、標普、台積電 ADR 的漲跌和台股開盤跳空的關係，再依相關程度加權平均。美股和台股的關係只有一部分，大漲大跌時常常低估，只能當方向參考。<br>
-        • <b>當沖</b>：用昨日高、低、收盤算樞紐點（R1/S1）當進場位置。停損 0.3 個 ATR，停利 1 是 0.5 個 ATR，停利 2 是 1 個 ATR，價格限制在漲跌停內。<br>
+        • <b>當沖</b>：用昨日高、低、收盤算出支撐和壓力價位，當作進場位置。停損 0.3 個 ATR，停利 1 是 0.5 個 ATR，停利 2 是 1 個 ATR，價格限制在漲跌停內。<br>
         • <b>短線</b>：用 10 / 20 / 60 日線判斷趨勢。停損抓近 10 日的高低點，限制在 1 到 3 個 ATR、最多 8%。停利是停損距離的 2 倍和 3 倍。<br>
         • 這是機械式的技術分析計算，不是投資建議，也不保證獲利。財報、新聞、法說、當沖資格都不在計算範圍，請自行判斷，自負盈虧。
       </div>
@@ -371,7 +371,7 @@ const qtyTxt = q => !q ? '-' : q >= 1000 ? `${q / 1000} 張` : `${q} 股`;
 function planCard(p, { dimBad = true } = {}) {
   return `<div class="plan ${dimBad && p.rec === 'bad' ? 'dim' : ''}">
     <div class="plan-h">${recBadge(p.rec)} ${esc(p.label)}</div>
-    <div class="when">${esc(p.when)}</div>
+    <div class="when">${esc(String(p.when).replace('（R1 壓力）', '（壓力位）').replace('（S1 支撐）', '（支撐位）'))}</div>
     <div class="prices">
       <div class="entry"><small>進場</small><b>${pxFmt(p.entry)}</b></div>
       <div><small>停損</small><b class="down">${pxFmt(p.stop)}</b></div>
@@ -592,7 +592,7 @@ function renderPlanResult(info) {
   html += `<div class="card"><h2>⚡ 當沖 <span class="muted">${dt.bias === 'long' ? '偏多，以做多為主' : dt.bias === 'short' ? '偏空，以做空為主' : '方向不明，等盤中方向出來'}</span></h2>
     ${dt.warnings.map(w => `<div class="warn" style="margin-bottom:6px">⚠️ ${esc(w)}</div>`).join('')}
     ${dt.plans.map(p => planCard(enrich(p, code, name))).join('')}
-    <div class="chips" style="margin-top:10px">${Object.entries(dt.pivots).map(([k,v]) => `<span class="chip">${k} ${pxFmt(v)}</span>`).join('')}</div>
+    <div class="chips" style="margin-top:10px">${Object.entries(dt.pivots).map(([k,v]) => `<span class="chip">${({ R2:'壓力2', R1:'壓力1', P:'中心', S1:'支撐1', S2:'支撐2' })[k] || k} ${pxFmt(v)}</span>`).join('')}</div>
     <p class="muted small" style="line-height:1.6">到停利 1 先出一半，剩下的停損移到進場價；停損到了就出場不要凹；13:25 前平倉。金額已扣手續費和當沖稅。</p>
   </div>`;
 
@@ -893,13 +893,14 @@ function verdict(s) {
   return ['mid', '不明顯'];
 }
 const vBadge = ([k, t]) => `<span class="badge b-${k === 'good' ? 'good' : k === 'bad' ? 'bad' : 'mid'}">${k === 'good' ? '✅' : k === 'bad' ? '❌' : '⚠️'} ${t}</span>`;
-const rTxt = v => v == null ? '-' : `<span class="${cls(v)}">${signed(v, 2)}R</span>`;
+// 金額 = 回測的倍數 × 每筆最多虧損金額（設定的本金 × 單筆最多虧損 %）
+const rTxt = v => v == null ? '-' : `<span class="${cls(v)}">${signed(Math.round(v * riskAmt()))} 元</span>`;
 const pTxt = v => v == null ? '-' : `<span class="${cls(v)}">${signed(v, 2)}%</span>`;
 function pickBacktestLine(planId) {
   const s = SETUP_OF(planId); if (!s || !s.stats.n) return '';
   const v = verdict(s);
   const exp = s.kind === 'daytrade' && s.opt ? `${rTxt(s.stats.expR)} ～ ${rTxt(s.opt.expR)}` : rTxt(s.stats.expR);
-  return `<div class="small" style="margin-top:8px; line-height:1.6">📊 這個情境的回測：${vBadge(v)} 期望值 ${exp}・${s.stats.n} 筆</div>`;
+  return `<div class="small" style="margin-top:8px; line-height:1.6">📊 這個情境的回測：${vBadge(v)} 平均每筆 ${exp}・${s.stats.n} 筆</div>`;
 }
 function renderBacktest() {
   const d = btData, us = d.summary.us, mc = d.montecarlo;
@@ -909,15 +910,14 @@ function renderBacktest() {
     <p class="muted" style="margin:0; line-height:1.7">用 ${d.period.from} ～ ${d.period.to}（約 ${d.period.years} 年、${d.period.days} 個交易日）的真實股價，
       假裝每天早上執行一次「今日10檔」，再照頁面上的進出場規則模擬每一筆交易。成本：手續費 ${d.settings.fee}%（不打折）×2、
       證交稅 當沖 ${d.settings.taxDayTrade}% / 短線 ${d.settings.taxSwing}%。</p>
-    <p class="muted small" style="margin:8px 0 0; line-height:1.6">「R」= 停損距離。+0.2R 代表平均每筆賺到停損金額的 0.2 倍。
-      例如每筆最多賠 5,000 元，+0.2R ≈ 平均每筆賺 1,000 元。</p>
+    <p class="muted small" style="margin:8px 0 0; line-height:1.6">金額依「設定」的本金 × 單筆最多虧損 % 換算：目前每筆碰到停損大約賠 ${fmt(riskAmt())} 元。改設定後金額會跟著變。</p>
   </div>`;
 
   // 結論
   const dt = us.daytrade, sw = us.swing, ex = d.intraday && d.intraday.exact;
   html += `<div class="card"><h2>重點結論</h2><div style="line-height:1.8; font-size:14px">
-    <div>${vBadge(ex && ex.expR > 0 ? ['good','有效'] : ['bad','目前虧損'])} <b>當沖</b>：最近 60 天用 5 分 K 精算，期望值 ${ex ? rTxt(ex.expR) : '-'}（每筆 ${ex ? pTxt(ex.expRet) : '-'}），勝率 ${ex ? ex.winRate : '-'}%。目前的當沖規則<b>長期是賠錢的</b>，建議先不要照著做。</div>
-    <div style="margin-top:6px">${vBadge(sw.expR > 0 ? ['good','有正期望'] : ['bad','虧損'])} <b>短線</b>：期望值 ${rTxt(sw.expR)}（每筆 ${pTxt(sw.expRet)}），勝率 ${sw.winRate}%，平均持有 ${sw.hold} 天。
+    <div>${vBadge(ex && ex.expR > 0 ? ['good','有效'] : ['bad','目前虧損'])} <b>當沖</b>：最近 60 天用 5 分 K 精算，平均每筆 ${ex ? rTxt(ex.expR) : '-'}（每筆 ${ex ? pTxt(ex.expRet) : '-'}），勝率 ${ex ? ex.winRate : '-'}%。目前的當沖規則<b>長期是賠錢的</b>，建議先不要照著做。</div>
+    <div style="margin-top:6px">${vBadge(sw.expR > 0 ? ['good','有正期望'] : ['bad','虧損'])} <b>短線</b>：平均每筆 ${rTxt(sw.expR)}（每筆 ${pTxt(sw.expRet)}），勝率 ${sw.winRate}%，平均持有 ${sw.hold} 天。
       但同期間「隨便買進持有 10 天」平均也有 ${pTxt(d.baseline.longRet)}，代表一大部分獲利來自大盤上漲，策略本身的優勢只有約 ${pTxt(+(d.swingSide.long.expRet - d.baseline.longRet).toFixed(2))}／筆。</div>
     <div style="margin-top:6px">⚠️ 後半段（${d.period.mid} 之後）短線的表現明顯比前半段差，優勢在變小。</div>
   </div></div>`;
@@ -932,7 +932,7 @@ function renderBacktest() {
       <div class="stats" style="margin-top:8px">
         ${stat('成交筆數', `${st.n} <span class="muted small">/${st.signals} 訊號</span>`)}
         ${stat('勝率', `${st.winRate}%${s.opt ? ` ～ ${s.opt.winRate}%` : ''}`)}
-        ${stat('期望值', s.opt ? `${rTxt(st.expR)} ～ ${rTxt(s.opt.expR)}` : rTxt(st.expR))}
+        ${stat('平均每筆賺賠', s.opt ? `${rTxt(st.expR)} ～ ${rTxt(s.opt.expR)}` : rTxt(st.expR))}
         ${stat('獲利因子', `${fmt(st.pf, 2)}${s.opt ? ` ～ ${fmt(s.opt.pf, 2)}` : ''}`)}
         ${stat('前半 → 後半', `${rTxt(s.first.expR)} → ${rTxt(s.second.expR)}`)}
         ${s.kind === 'swing' ? stat('不是運氣的機率', s.probEdge == null ? '-' : s.probEdge + '%') : stat('每筆平均', pTxt(st.expRet))}
@@ -949,7 +949,7 @@ function renderBacktest() {
       <div class="stats">
         ${stat('交易筆數', i.exact.n)}
         ${stat('勝率', i.exact.winRate + '%')}
-        ${stat('期望值', rTxt(i.exact.expR))}
+        ${stat('平均每筆賺賠', rTxt(i.exact.expR))}
         ${stat('每筆平均', pTxt(i.exact.expRet))}
       </div>
       <p class="muted small" style="line-height:1.6">同樣這些交易，日 K 悲觀 ${rTxt(i.dailyPess.expR)}、樂觀 ${rTxt(i.dailyOpt.expR)}；5 分 K 精算的 ${rTxt(i.exact.expR)} 才是比較接近真實的結果。</p>
@@ -977,7 +977,7 @@ function renderBacktest() {
   // 美股
   const n = d.summary.nous;
   html += `<div class="card"><h2>參考美股有沒有幫助？</h2>
-    <table class="mini"><thead><tr><th>期望值</th><th>有參考美股</th><th>不參考</th></tr></thead><tbody>
+    <table class="mini"><thead><tr><th>平均每筆賺賠</th><th>有參考美股</th><th>不參考</th></tr></thead><tbody>
       <tr><td>當沖（悲觀～樂觀）</td><td>${rTxt(us.daytrade.pess.expR)} ～ ${rTxt(us.daytrade.opt.expR)}</td><td>${rTxt(n.daytrade.pess.expR)} ～ ${rTxt(n.daytrade.opt.expR)}</td></tr>
       <tr><td>短線</td><td>${rTxt(us.swing.expR)}</td><td>${rTxt(n.swing.expR)}</td></tr>
     </tbody></table>
@@ -1007,10 +1007,10 @@ async function loadForward() {
 }
 const REASON = { stop:'停損', t1:'停利1', t2:'停利2', breakeven:'保本出', close:'收盤出', ma10:'破10日線', time:'到期出', open:'持有中' };
 const riskAmt = () => (settings.capital || 0) * (settings.risk || 0) / 100;
-const moneyR = R => R == null ? '' : `約 ${signed(Math.round(R * riskAmt()))} 元`;
+const moneyR = R => R == null ? '' : `${signed(Math.round(R * riskAmt()))} 元`;
 function fwStatus(r) {
-  if (r.status === 'filled') return `<b class="${cls(r.R)}">${r.R > 0 ? '✅' : '❌'} ${signed(r.R,2)}R</b> <span class="muted small">${REASON[r.reason] || ''} ${moneyR(r.R)}</span>`;
-  if (r.status === 'open') return `🔄 <span class="${cls(r.R)}">持有中 ${signed(r.R,2)}R</span> <span class="muted small">第 ${r.hold} 天 ${moneyR(r.R)}</span>`;
+  if (r.status === 'filled') return `<b class="${cls(r.R)}">${r.R > 0 ? '✅' : '❌'} ${moneyR(r.R)}</b> <span class="muted small">${REASON[r.reason] || ''}</span>`;
+  if (r.status === 'open') return `🔄 <span class="${cls(r.R)}">持有中 ${moneyR(r.R)}</span> <span class="muted small">第 ${r.hold} 天（尚未出場）</span>`;
   if (r.status === 'nofill') return '<span class="muted">⚪ 沒觸發進場價</span>';
   if (r.status === 'gap') return '<span class="muted">⏭️ 跳空不追</span>';
   return '<span class="muted">⏳ 等待中</span>';
@@ -1053,17 +1053,17 @@ function renderForward() {
     <h2>🧪 實盤追蹤 ${done ? '<span class="badge b-good">4 週完成</span>' : `第 ${d.progress} / ${d.window} 天`}</h2>
     <div style="background:var(--soft); border-radius:999px; height:8px; overflow:hidden"><div style="width:${pct}%; height:100%; background:var(--accent)"></div></div>
     <p class="muted small" style="line-height:1.6">${d.start ? `從 ${d.start} 開始` : '從下一個交易日開始'}，每天把「今日10檔」照頁面規則模擬交易。
-      金額依「設定」的本金 × 單筆風險換算（每 1R ≈ ${fmt(riskAmt())} 元）。</p>
+      金額依「設定」的本金 × 單筆最多虧損 % 換算（目前每筆碰到停損大約賠 ${fmt(riskAmt())} 元）。</p>
     <div class="seg" style="margin-top:6px">
-      <button class="${fwKind === 'daytrade' ? 'on' : ''}" onclick="setFwKind('daytrade')">⚡ 當沖 <span class="${cls(dt.totalR)}">${signed(dt.totalR,1)}R</span></button>
-      <button class="${fwKind === 'swing' ? 'on' : ''}" onclick="setFwKind('swing')">📅 短線 <span class="${cls(sw.totalR)}">${signed(sw.totalR,1)}R</span></button>
+      <button class="${fwKind === 'daytrade' ? 'on' : ''}" onclick="setFwKind('daytrade')">⚡ 當沖 <span class="${cls(dt.totalR)}">${moneyR(dt.totalR)}</span></button>
+      <button class="${fwKind === 'swing' ? 'on' : ''}" onclick="setFwKind('swing')">📅 短線 <span class="${cls(sw.totalR)}">${moneyR(sw.totalR)}</span></button>
     </div>`;
   if (fwKind === 'daytrade') {
     html += `<div class="stats" style="margin-top:10px">
-      ${stat('已實現合計', `<span class="${cls(dt.totalR)}">${signed(dt.totalR,2)}R</span><div class="small muted">${moneyR(dt.totalR)}</div>`)}
+      ${stat('已實現合計', `<span class="${cls(dt.totalR)}">${moneyR(dt.totalR)}</span>`)}
       ${stat('成交筆數', `${dt.n} <span class="muted small">/ ${dt.signals} 檔</span>`)}
       ${stat('勝率', pctTxt(dt.winRate))}
-      ${stat('平均每筆', rTxt(dt.expR))}
+      ${stat('平均每筆賺賠', rTxt(dt.expR))}
       ${stat('平均賺 / 平均賠', `${rTxt(dt.avgWin)} / ${rTxt(dt.avgLoss)}`)}
       ${stat('最大回撤', rTxt(dt.mdd))}
       ${stat('沒觸發 / 跳空不追', `${dt.nofill} / ${dt.gap}`)}
@@ -1072,11 +1072,11 @@ function renderForward() {
     <p class="muted small" style="margin-bottom:0; line-height:1.6">當沖用當天 5 分 K 精算：碰停損全出、到停利 1 出一半後停損移到成本、到停利 2 全出，沒碰到就收盤出場。</p>`;
   } else {
     html += `<div class="stats" style="margin-top:10px">
-      ${stat('已實現合計', `<span class="${cls(sw.totalR)}">${signed(sw.totalR,2)}R</span><div class="small muted">${moneyR(sw.totalR)}</div>`)}
-      ${stat('持有中（未實現）', `${sw.openN} 筆 <span class="${cls(sw.openR)}">${signed(sw.openR,2)}R</span><div class="small muted">${moneyR(sw.openR)}</div>`)}
+      ${stat('已實現合計', `<span class="${cls(sw.totalR)}">${moneyR(sw.totalR)}</span>`)}
+      ${stat('持有中（未實現）', `${sw.openN} 筆<div class="${cls(sw.openR)}">${moneyR(sw.openR)}</div>`)}
       ${stat('已出場筆數', `${sw.n} <span class="muted small">/ ${sw.signals} 檔</span>`)}
       ${stat('勝率', pctTxt(sw.winRate))}
-      ${stat('平均每筆', rTxt(sw.expR))}
+      ${stat('平均每筆賺賠', rTxt(sw.expR))}
       ${stat('平均賺 / 平均賠', `${rTxt(sw.avgWin)} / ${rTxt(sw.avgLoss)}`)}
       ${stat('沒觸發 / 等待掛單', `${sw.nofill + sw.gap} / ${sw.waiting}`)}
       ${stat('回測對照', bt.swingExpR != null ? `${rTxt(bt.swingExpR)}<div class="small muted">勝率 ${bt.swingWin}%</div>` : '-')}
@@ -1101,7 +1101,7 @@ function renderForward() {
     const sumR = rows.filter(r => r.status === 'filled').reduce((a, r) => a + r.R, 0);
     const openN = rows.filter(r => r.status === 'open').length;
     html += `<div class="card"><details>
-      <summary>${mmdd(day.tradeDate)} ${fwKind === 'daytrade' ? '當沖' : '短線'} ・ 已實現 <span class="${cls(sumR)}">${signed(sumR,2)}R</span>${openN ? ` ・ 持有中 ${openN}` : ''}</summary>
+      <summary>${mmdd(day.tradeDate)} ${fwKind === 'daytrade' ? '當沖' : '短線'} ・ 已實現 <span class="${cls(sumR)}">${moneyR(sumR)}</span>${openN ? ` ・ 持有中 ${openN}` : ''}</summary>
       ${rows.map(r => `<div class="trade">
         <div class="r1"><b>${esc(r.code)} ${esc(r.name)}</b> <span class="muted small">${esc(r.label)}</span></div>
         <div class="r2">進 ${pxFmt(r.entry)} ・ 損 ${pxFmt(r.stop)} ・ 利 ${pxFmt(r.t1)} / ${pxFmt(r.t2)}</div>
@@ -1113,8 +1113,8 @@ function renderForward() {
   $('fwMini').innerHTML = `<div class="card" onclick="showTab('backtest')" style="cursor:pointer">
     <div style="display:flex; justify-content:space-between; align-items:center">
       <div style="line-height:1.6"><b>🧪 實盤追蹤 ${done ? '完成' : `第 ${d.progress}/${d.window} 天`}</b>
-        <div class="small">⚡ 當沖 <b class="${cls(dt.totalR)}">${signed(dt.totalR,2)}R</b> <span class="muted">${dt.n} 筆${dt.winRate != null ? `・勝率 ${fmt(dt.winRate,0)}%` : ''}</span></div>
-        <div class="small">📅 短線 <b class="${cls(sw.totalR)}">${signed(sw.totalR,2)}R</b> <span class="muted">已出場 ${sw.n}・持有中 ${sw.openN}（${signed(sw.openR,1)}R）</span></div>
+        <div class="small">⚡ 當沖 <b class="${cls(dt.totalR)}">${moneyR(dt.totalR)}</b> <span class="muted">${dt.n} 筆${dt.winRate != null ? `・勝率 ${fmt(dt.winRate,0)}%` : ''}</span></div>
+        <div class="small">📅 短線 <b class="${cls(sw.totalR)}">${moneyR(sw.totalR)}</b> <span class="muted">已出場 ${sw.n}・持有中 ${sw.openN}（${moneyR(sw.openR)}）</span></div>
       </div>
       <span class="muted">›</span>
     </div></div>`;
