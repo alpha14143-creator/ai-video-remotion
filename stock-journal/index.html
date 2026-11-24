@@ -484,19 +484,20 @@ function renderPicks() {
         <div>
           <div class="rank">#${i + 1} ・ ${esc(pk.market)}</div>
           <div class="name">${esc(pk.code)} ${esc(pk.name)}</div>
-          <div style="margin-top:4px">${kindBadge(pk.kind)} <span class="badge ${p.side === 'long' ? 'b-good' : 'b-bad'}">${p.side === 'long' ? '做多' : '做空'}</span></div>
+          <div style="margin-top:4px">${kindBadge(pk.kind)} ${pk.kind === 'daytrade' ? '' : `<span class="badge ${p.side === 'long' ? 'b-good' : 'b-bad'}">${p.side === 'long' ? '做多' : '做空'}</span>`}</div>
         </div>
         <div class="px"><div class="muted small">昨收</div><b class="${cls(chg)}">${pxFmt(x.last.close)}</b><div class="small ${cls(chg)}">${signed(chg,2)}%</div>
           ${pk.estOpen ? `<div class="small" style="margin-top:4px">預估開 <b class="${cls(pk.estOpen - x.last.close)}">${pxFmt(pk.estOpen)}</b></div>` : ''}</div>
       </div>
       <div class="chips">${pk.reasons.map(r => `<span class="chip">${esc(r)}</span>`).join('')}</div>
-      ${notes.length ? `<div class="small" style="margin-top:8px; line-height:1.6">${notes.map(n => `<div>${esc(n)}</div>`).join('')}</div>` : ''}
-      ${pickBacktestLine(p.id)}
-      ${planCard(p, { dimBad:false })}
+      ${confLine(pk)}
+      ${pk.kind !== 'daytrade' && notes.length ? `<div class="small" style="margin-top:8px; line-height:1.6">${notes.map(n => `<div>${esc(n)}</div>`).join('')}</div>` : ''}
+      ${pk.kind === 'daytrade' ? orbCard(pk) : planCard(p, { dimBad:false })}
       <button class="block" style="margin-top:8px" onclick="openPlanFromPick('${pk.code}')">看完整計畫（多空 8 種情境）›</button>
     </div>`;
   });
-  html += `<p class="muted small center" style="line-height:1.6">當沖：盤中符合「什麼時候進場」的條件才進場，13:25 前平倉。<br>
+  html += `<p class="muted small center" style="line-height:1.6">✅ 建議：把握 80% 以上 ・ 👀 只觀察：還沒到 80%，先看不要下單<br>
+    當沖：用開盤 30 分鐘突破法，09:30 後才進場，13:25 前平倉。<br>
     短線：條件成立才進場，收盤跌破停損就出場。<br>這是技術面的機械篩選，不是投資建議。</p>`;
   $('picksBox').innerHTML = html;
 }
@@ -951,6 +952,48 @@ function pickBacktestLine(planId) {
   const exp = s.kind === 'daytrade' && s.opt ? `${rTxt(s.stats.expR)} ～ ${rTxt(s.opt.expR)}` : rTxt(s.stats.expR);
   return `<div class="small" style="margin-top:8px; line-height:1.6">📊 這個情境的回測：${vBadge(v)} 平均每筆 ${exp}・${s.stats.n} 筆</div>`;
 }
+// 把握度：短線＝贏過隨便買的機率；當沖＝開盤 30 分鐘突破法不是運氣的機率（都來自回測，每天更新）
+function confidenceOf(pk) {
+  if (!btData) return null;
+  if (pk.kind === 'daytrade') return btData.intraday ? btData.intraday.orbEdge : null;
+  const s = btData.setups.find(x => x.id === pk.plan.id);
+  return s ? s.probBeat : null;
+}
+function confLine(pk) {
+  if (!btData) return '';
+  const c = confidenceOf(pk);
+  if (c == null) return `<div style="margin-top:8px"><span class="badge b-mid">👀 只觀察・過去資料不足</span>
+    <span class="muted small">過去 1.5 年這種方法的交易太少，無法判斷</span></div>`;
+  return `<div style="margin-top:8px">${c >= 80
+    ? `<span class="badge b-good">✅ 建議・把握 ${fmt(c, 0)}%</span>`
+    : `<span class="badge b-mid">👀 只觀察・把握 ${fmt(c, 0)}%</span>`}
+    <span class="muted small">${pk.kind === 'daytrade' ? '開盤突破法過去 60 天的表現' : '過去 1.5 年這種方法贏過隨便買的機率'}</span></div>`;
+}
+function orbCard(pk) {
+  const A = pk.x.atr, ban = picksData && picksData.shortBan;
+  return `<div class="plan">
+    <div class="plan-h">⏱️ 開盤 30 分鐘突破法</div>
+    <div class="when" style="line-height:1.7">
+      1. 先看 09:00～09:30 這段時間的<b>最高價</b>和<b>最低價</b>。<br>
+      2. 09:30 以後，價格<b>漲破最高價就買進</b>${ban ? '' : '；<b>跌破最低價就先賣</b>'}。12:30 以後不再進場。<br>
+      3. 停損：設在區間的另一邊（買進就設在最低價）。<br>
+      4. 停利：漲了「最高價減最低價」的 1 倍先賣一半，停損移到買進價；漲 2 倍全部賣出；都沒到就 13:25 前賣出。<br>
+      5. 最高價減最低價<b>超過 ${fmt(1.2 * A, 1)} 元</b>或<b>少於 ${fmt(0.15 * A, 1)} 元</b>就不做。
+    </div>
+    ${ban ? '<div class="muted small">禁空令期間只做多（只在往上突破時買進）。</div>' : ''}
+    <div class="plan-f"><span>昨收 ${pxFmt(pk.x.last.close)}${pk.estOpen ? ` ・ 預估開盤 ${pxFmt(pk.estOpen)}` : ''}</span>
+      <button class="sm" onclick="orbToJournal('${pk.code}')">帶入紀錄</button></div>
+  </div>`;
+}
+function orbToJournal(code) {
+  const pk = picksData.picks.find(p => p.code === code); if (!pk) return;
+  showTab('journal'); closeForm(); form.openDate.value = today(); setType('daytrade');
+  form.side.value = 'long'; form.code.value = pk.code; form.name.value = pk.name || '';
+  form.etf.value = PlanCore.isEtf(pk.code) ? '1' : '0'; form.strategy.value = '開盤突破';
+  form.note.value = '開盤 30 分鐘突破法：09:30 後漲破 09:00～09:30 最高價買進，停損設在最低價。';
+  updatePreview(); openForm();
+}
+
 function renderBacktest() {
   const d = btData, us = d.summary.us, mc = d.montecarlo;
   const stat = (k, v) => `<div class="stat"><div class="k">${k}</div><div class="v" style="font-size:16px">${v}</div></div>`;
@@ -1044,7 +1087,7 @@ function renderBacktest() {
 }
 
 /* ================= 實盤追蹤（4 週）：當沖、短線分開記錄 ================= */
-let fwData = null, fwKind = localStorage.getItem('stockJournal.fwKind') || 'daytrade';
+let fwData = null, fwKind = localStorage.getItem('stockJournal.fwKind2') || 'orb';
 async function loadForward() {
   try {
     const r = await fetch('data/forward.json?t=' + Date.now(), { cache:'no-store' });
@@ -1059,13 +1102,14 @@ const riskAmt = () => (settings.capital || 0) * (settings.risk || 0) / 100;
 const moneyR = R => R == null ? '' : `${signed(Math.round(R * riskAmt()))} 元`;
 const ntd = v => v == null ? '-' : `${signed(Math.round(v))} 元`;
 // 依「設定」的本金和單筆最多虧損 % 算出這筆會買幾股（和今日10檔的建議股數相同）
-const fwQty = r => sizeFor({ type: r.kind, side: r.side, entry: r.entry, stop: r.stop }, PlanCore.isEtf(r.code));
+const fwType = r => r.kind === 'swing' ? 'swing' : 'daytrade';
+const fwQty = r => sizeFor({ type: fwType(r), side: r.side, entry: r.entry, stop: r.stop }, PlanCore.isEtf(r.code));
 // 這筆交易的賺賠金額（已扣手續費和證交稅）；持有中用最新收盤價估算
 function fwMoney(r) {
   const qty = fwQty(r);
   if (r.fill == null || !qty) return r.R == null ? null : r.R * riskAmt(); // 舊資料沒有成交價時用比例估算
   const exitPx = r.status === 'open' ? r.lastClose : r.exits.reduce((s, e) => s + e.px * e.w, 0);
-  return calc({ type: r.kind, side: r.side, qty, etf: PlanCore.isEtf(r.code) ? '1' : '0',
+  return calc({ type: fwType(r), side: r.side, qty, etf: PlanCore.isEtf(r.code) ? '1' : '0',
     openDate: '2000-01-01', closeDate: '2000-01-01', openPrice: r.fill, closePrice: exitPx }).net;
 }
 function fwTradeRow(r) {
@@ -1084,9 +1128,16 @@ function fwTradeRow(r) {
     <div style="margin-top:4px">${res}</div>
   </div>`;
 }
-// 某一類（當沖 / 短線）的統計，全部用台幣
+// 某一天、某一本帳的交易。orb＝當沖開盤 30 分鐘突破法（用同一批當沖股票另外計算）
+function rowsOf(day, kind) {
+  if (kind !== 'orb') return day.rows.filter(r => r.kind === kind);
+  return day.rows.filter(r => r.kind === 'daytrade' && r.orb).map(r => ({ code: r.code, name: r.name, kind: 'orb', label: '開盤突破',
+    side: r.orb.side || 'long', entry: r.orb.fill, stop: r.orb.stop, fill: r.orb.fill, exits: r.orb.exits,
+    status: r.orb.status === 'skip' ? 'nofill' : r.orb.status, R: r.orb.R, reason: r.orb.reason, H: r.orb.H, L: r.orb.L }));
+}
+// 某一本帳的統計，全部用台幣
 function fwStats(kind) {
-  const rows = fwData.days.flatMap(d => d.rows.filter(r => r.kind === kind).map(r => ({ ...r, tradeDate: d.tradeDate, m: fwMoney(r) })));
+  const rows = fwData.days.flatMap(d => rowsOf(d, kind).map(r => ({ ...r, tradeDate: d.tradeDate, m: fwMoney(r) })));
   const filled = rows.filter(r => r.status === 'filled'), open = rows.filter(r => r.status === 'open');
   const wins = filled.filter(r => r.m > 0), losses = filled.filter(r => r.m <= 0);
   const sum = a => a.reduce((s, r) => s + (r.m || 0), 0);
@@ -1102,7 +1153,7 @@ function fwStats(kind) {
     openN: open.length, openM: sum(open), mdd,
   };
 }
-function setFwKind(k) { fwKind = k; localStorage.setItem('stockJournal.fwKind', k); renderForward(); }
+function setFwKind(k) { fwKind = k; localStorage.setItem('stockJournal.fwKind2', k); renderForward(); }
 function renderForward() {
   const d = fwData;
   if (!d || (!d.days.length && !d.pending.length)) {
@@ -1112,11 +1163,12 @@ function renderForward() {
   }
   const pct = Math.min(100, Math.round(d.progress / d.window * 100));
   const done = d.progress >= d.window;
-  const dt = fwStats('daytrade'), sw = fwStats('swing');
+  const dt = fwStats('daytrade'), sw = fwStats('swing'), ob = fwStats('orb');
+  const KIND_NAME = { orb: '⚡ 開盤突破', swing: '📅 短線', daytrade: '原當沖方法' };
   const stat = (k, v) => `<div class="stat"><div class="k">${k}</div><div class="v" style="font-size:16px">${v}</div></div>`;
   const money = v => `<span class="${cls(v)}">${ntd(v)}</span>`;
   const pctTxt = v => v == null ? '-' : fmt(v, 1) + '%';
-  const s = fwKind === 'daytrade' ? dt : sw;
+  const s = fwKind === 'daytrade' ? dt : fwKind === 'orb' ? ob : sw;
 
   let html = `<div class="card">
     <h2>🧪 實盤測試 ${done ? '<span class="badge b-good">4 週完成</span>' : `第 ${d.progress} / ${d.window} 天`}</h2>
@@ -1124,8 +1176,7 @@ function renderForward() {
     <p class="muted small" style="line-height:1.6">${d.start ? `從 ${d.start} 開始` : '從下一個交易日開始'}，每天照「今日10檔」的價格模擬買賣。
       股數依「設定」的本金 ${fmt(settings.capital)} 元、每筆最多虧損 ${settings.risk}% 計算，金額已扣手續費和證交稅。</p>
     <div class="seg" style="margin-top:6px">
-      <button class="${fwKind === 'daytrade' ? 'on' : ''}" onclick="setFwKind('daytrade')">⚡ 當沖 ${money(dt.total)}</button>
-      <button class="${fwKind === 'swing' ? 'on' : ''}" onclick="setFwKind('swing')">📅 短線 ${money(sw.total)}</button>
+      ${[['orb', ob], ['swing', sw], ['daytrade', dt]].map(([k, st]) => `<button class="${fwKind === k ? 'on' : ''}" onclick="setFwKind('${k}')" style="font-size:13px">${KIND_NAME[k]}<br>${money(st.total)}</button>`).join('')}
     </div>
     <div class="stats" style="margin-top:10px">
       ${stat('已實現賺賠', money(s.total))}
@@ -1135,8 +1186,10 @@ function renderForward() {
       ${stat('平均每筆', money(s.avg))}
       ${stat('平均賺 / 平均賠', `${money(s.avgWin)} / ${money(s.avgLoss)}`)}
     </div>
-    <p class="muted small" style="line-height:1.6; margin-bottom:0">${fwKind === 'daytrade'
-      ? '當沖：到進場價才進場；碰停損全部出場，到停利 1 先出一半，到停利 2 全部出場，都沒碰到就收盤出場。'
+    <p class="muted small" style="line-height:1.6; margin-bottom:0">${fwKind === 'orb'
+      ? '開盤 30 分鐘突破法（目前使用的當沖方法）：09:30 後漲破 09:00～09:30 最高價就買進（禁空令期間只做多），停損在區間最低價；到 1 倍區間寬度先賣一半、停損移到成本，到 2 倍全賣，沒到就收盤賣出。'
+      : fwKind === 'daytrade'
+      ? '原當沖方法（已停用，只保留比較）：開盤前用支撐壓力算好價格，到進場價才進場。回測長期虧損。'
       : '短線：掛單 3 天有效；收盤跌破停損出場，到停利 1 先出一半，到停利 2 全部出場，最多持有 20 天。'}
       ${s.skipped || s.waiting ? `另有 ${s.skipped + s.waiting} 檔沒有進場（沒到進場價或還在等）。` : ''}</p>
   </div>`;
@@ -1144,12 +1197,12 @@ function renderForward() {
   if (d.pending.length) html += `<div class="card"><p class="muted" style="margin:0">⏳ ${d.pending.map(p => `${mmdd(p.dataDate)} 收盤後選出的 ${p.n} 檔`).join('、')}：等下一個交易日收盤後計算。</p></div>`;
 
   for (const day of d.days) {
-    const rows = day.rows.filter(r => r.kind === fwKind && (r.status === 'filled' || r.status === 'open'));
-    const all = day.rows.filter(r => r.kind === fwKind).length;
+    const rows = rowsOf(day, fwKind).filter(r => r.status === 'filled' || r.status === 'open');
+    const all = rowsOf(day, fwKind).length;
     if (!all) continue;
     const sumM = rows.filter(r => r.status === 'filled').reduce((a, r) => a + (fwMoney(r) || 0), 0);
     html += `<div class="card"><details open>
-      <summary>${mmdd(day.tradeDate)} ${fwKind === 'daytrade' ? '當沖' : '短線'} ・ ${rows.length ? `已實現 ${money(sumM)}` : '沒有進場'}</summary>
+      <summary>${mmdd(day.tradeDate)} ${KIND_NAME[fwKind]} ・ ${rows.length ? `已實現 ${money(sumM)}` : '沒有進場'}</summary>
       ${rows.map(fwTradeRow).join('')}
       ${all - rows.length ? `<p class="muted small" style="margin:6px 0 0">另有 ${all - rows.length} 檔沒有進場。</p>` : ''}
     </details></div>`;
@@ -1158,7 +1211,7 @@ function renderForward() {
   $('fwMini').innerHTML = `<div class="card" onclick="showTab('backtest')" style="cursor:pointer">
     <div style="display:flex; justify-content:space-between; align-items:center">
       <div style="line-height:1.6"><b>🧪 實盤測試 ${done ? '完成' : `第 ${d.progress}/${d.window} 天`}</b>
-        <div class="small">⚡ 當沖 <b>${money(dt.total)}</b> <span class="muted">${dt.n} 筆${dt.winRate != null ? `・勝率 ${fmt(dt.winRate, 0)}%` : ''}</span></div>
+        <div class="small">⚡ 當沖（開盤突破） <b>${money(ob.total)}</b> <span class="muted">${ob.n} 筆${ob.winRate != null ? `・勝率 ${fmt(ob.winRate, 0)}%` : ''}</span></div>
         <div class="small">📅 短線 <b>${money(sw.total)}</b> <span class="muted">已出場 ${sw.n}・持有中 ${sw.openN}（${ntd(sw.openM)}）</span></div>
       </div>
       <span class="muted">›</span>

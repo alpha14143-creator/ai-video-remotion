@@ -15,6 +15,9 @@ const path = require('path');
 const Core = require('../plan-core.js');
 
 const UNIVERSE = 300;
+// 禁空令：金管會 2026/11/23 起全面禁止平盤以下融券、借券賣出。期間內不推薦進場價低於昨收的做空。
+// 解除後改成 false（或執行時加 SHORT_BAN=0）
+const SHORT_BAN = process.env.SHORT_BAN ? process.env.SHORT_BAN !== '0' : true;
 const N_DAYTRADE = 5;
 const N_SWING = 5;
 const OUT_DIR = process.env.PICKS_OUT_DIR || path.join(__dirname, '..', 'data'); // 測試時可指定別的資料夾
@@ -97,6 +100,15 @@ async function loadBars(symbol, range = '6mo') {
     const r = (x) => +x.toFixed(2);
     bars.push({ date, open: r(o), high: r(h), low: r(l), close: r(c), vol: Math.round((v || 0) / 1000) });
   });
+  // Yahoo 偶爾最新一根 K 棒是空的（例如 2026-11-23 台積電 ADR），美股、匯率改用同一份回應的「最新成交」補上；台股不補
+  const n = res.timestamp.length - 1, m = res.meta || {};
+  if (!/\.(TW|TWO)$|^\^TWII$/.test(symbol) && n >= 0 && q.close[n] == null && m.regularMarketPrice > 0 && m.regularMarketTime >= res.timestamp[n]) {
+    const date = new Date((res.timestamp[n] + 8 * 3600) * 1000).toISOString().slice(0, 10);
+    if (!bars.length || bars[bars.length - 1].date < date) {
+      const px = +m.regularMarketPrice.toFixed(2);
+      bars.push({ date, open: +(q.open[n] || px).toFixed(2), high: +(m.regularMarketDayHigh || px).toFixed(2), low: +(m.regularMarketDayLow || px).toFixed(2), close: px, vol: Math.round((m.regularMarketVolume || 0) / 1000), patched: true });
+    }
+  }
   // 台股盤中（台北 13:35 收盤前）還沒收完的今天這根 K 棒不能用，否則會用半天的資料選股
   const nowTpe = new Date(Date.now() + 8 * 3600 * 1000).toISOString();
   const partialToday = /\.(TW|TWO)$|^\^TWII$/.test(symbol) && nowTpe.slice(11, 16) < '13:35' ? nowTpe.slice(0, 10) : null;
@@ -383,7 +395,12 @@ if (require.main === module) (async () => {
   const cands = [];
   for (const s of fresh) for (const c of screen(s, s.x, usBias)) cands.push({ ...c, code: s.code });
   const planOf = (c, s) => (c.kind === 'daytrade' ? Core.dayTradePlans(s.x, s.code).plans : Core.swingPlans(s.x, s.code).plans).find((q) => q.id === c.planId);
-  const chosen = choose(cands.filter((c) => { const p = planOf(c, fresh.find((t) => t.code === c.code)); return p && p.valid; }));
+  const chosen = choose(cands.filter((c) => {
+    const s = fresh.find((t) => t.code === c.code), p = planOf(c, s);
+    if (!p || !p.valid) return false;
+    if (SHORT_BAN && p.side === 'short' && p.entry < s.x.last.close) return false; // 禁空令：平盤以下不能放空
+    return true;
+  }));
   const picks = chosen.map((c) => {
     const s = fresh.find((t) => t.code === c.code);
     const plan = planOf(c, s);
@@ -398,7 +415,7 @@ if (require.main === module) (async () => {
   const generatedAt = new Date().toISOString();
   if (us) us.indices = us.indices.map(({ sym, name, date: d, close, chg }) => ({ sym, name, date: d, close, chg }));
   if (WRITE) fs.writeFileSync(path.join(OUT_DIR, 'picks.json'), JSON.stringify({
-    date, generatedAt, market, us,
+    date, generatedAt, market, us, shortBan: SHORT_BAN,
     candidates: { daytrade: cands.filter((c) => c.kind === 'daytrade').length, swing: cands.filter((c) => c.kind === 'swing').length },
     picks,
   }, null, 1));
