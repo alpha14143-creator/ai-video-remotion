@@ -1,6 +1,6 @@
 {
  "date": "2026-11-23",
- "generatedAt": "2026-11-24T01:48:42.259Z",
+ "generatedAt": "2026-11-24T01:52:40.876Z",
  "market": {
   "close": 36811.89,
   "chg": 2.16,
@@ -49,7 +49,7 @@
     "chg": -9.48
    }
   ],
-  "fx": 32.83,
+  "fx": 32.9,
   "twDate": "2026-11-23",
   "window": 60,
   "models": [
@@ -98,7 +98,7 @@
   "hitRate": 79,
   "hitN": 34,
   "avgR": 0.61,
-  "adrPremium": 3.1
+  "adrPremium": 3.3
  },
  "candidates": {
   "daytrade": 35,
