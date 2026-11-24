@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-24T01:20:44.555Z",
+ "generatedAt": "2026-11-24T01:31:52.356Z",
  "window": 20,
  "start": "2026-11-23",
  "progress": 1,
@@ -60,7 +60,10 @@
      "R": null,
      "ret": null,
      "reason": null,
-     "hold": null
+     "hold": null,
+     "fill": null,
+     "exits": null,
+     "lastClose": null
     },
     {
      "code": "2317",
@@ -76,7 +79,10 @@
      "R": null,
      "ret": null,
      "reason": null,
-     "hold": null
+     "hold": null,
+     "fill": null,
+     "exits": null,
+     "lastClose": null
     },
     {
      "code": "2887",
@@ -92,7 +98,19 @@
      "R": 2.18,
      "ret": 3.93,
      "reason": "t2",
-     "hold": null
+     "hold": null,
+     "fill": 33.25,
+     "exits": [
+      {
+       "px": 32.3,
+       "w": 0.5
+      },
+      {
+       "px": 31.3,
+       "w": 0.5
+      }
+     ],
+     "lastClose": null
     },
     {
      "code": "2357",
@@ -108,7 +126,10 @@
      "R": null,
      "ret": null,
      "reason": null,
-     "hold": null
+     "hold": null,
+     "fill": null,
+     "exits": null,
+     "lastClose": null
     },
     {
      "code": "2883",
@@ -124,7 +145,15 @@
      "R": -1.23,
      "ret": -2.33,
      "reason": "stop",
-     "hold": null
+     "hold": null,
+     "fill": 29.05,
+     "exits": [
+      {
+       "px": 29.6,
+       "w": 1
+      }
+     ],
+     "lastClose": null
     },
     {
      "code": "8033",
@@ -140,7 +169,10 @@
      "R": null,
      "ret": null,
      "reason": null,
-     "hold": null
+     "hold": null,
+     "fill": null,
+     "exits": null,
+     "lastClose": null
     },
     {
      "code": "2328",
@@ -156,7 +188,10 @@
      "R": null,
      "ret": null,
      "reason": null,
-     "hold": null
+     "hold": null,
+     "fill": null,
+     "exits": null,
+     "lastClose": null
     },
     {
      "code": "2404",
@@ -172,7 +207,10 @@
      "R": -0.86,
      "ret": -6.97,
      "reason": "open",
-     "hold": 0
+     "hold": 0,
+     "fill": 800,
+     "exits": null,
+     "lastClose": 851
     },
     {
      "code": "8299",
@@ -188,7 +226,15 @@
      "R": -1.69,
      "ret": -13.89,
      "reason": "stop",
-     "hold": 0
+     "hold": 0,
+     "fill": 1280,
+     "exits": [
+      {
+       "px": 1450,
+       "w": 1
+      }
+     ],
+     "lastClose": null
     },
     {
      "code": "2027",
@@ -204,7 +250,10 @@
      "R": -0.85,
      "ret": -6.89,
      "reason": "open",
-     "hold": 0
+     "hold": 0,
+     "fill": 42.1,
+     "exits": null,
+     "lastClose": 44.75
     }
    ]
   }
