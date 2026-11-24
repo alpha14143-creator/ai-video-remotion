@@ -29,7 +29,9 @@ const UNIVERSE = 300;
 const RANGE = '2y';
 const ORDER_DAYS = 3;
 const MAX_HOLD = 20;
-const FEE = 0.001425, TAX_DT = 0.0015, TAX_SW = 0.003;
+// 手續費：國泰證券電子下單 2.8 折（可用 FEE_DISCOUNT=1 改回不打折）
+const FEE_DISCOUNT = process.env.FEE_DISCOUNT ? +process.env.FEE_DISCOUNT : 0.28;
+const FEE = 0.001425 * FEE_DISCOUNT, TAX_DT = 0.0015, TAX_SW = 0.003;
 const RISK = 0.01;
 const MC_RUNS = 10000;
 const MC_TRADES = 100; // 每次模擬 100 筆交易（短線同時持有很多檔，用「一年」依序複利會高估）
@@ -218,8 +220,52 @@ function monteCarlo(Rs, seed = 42) {
   };
 }
 
+// 「贏過隨便買」的把握：每筆報酬扣掉同期間隨便買的平均報酬後，用實際筆數重抽 10,000 次，平均仍大於 0 的比例
+function probBeat(rets, base, seed = 7) {
+  if (rets.length < 20) return null;
+  const rnd = mulberry32(seed), ex = rets.map((r) => r - base);
+  let win = 0;
+  for (let r = 0; r < MC_RUNS; r++) {
+    let sum = 0;
+    for (let k = 0; k < ex.length; k++) sum += ex[Math.floor(rnd() * ex.length)];
+    if (sum > 0) win++;
+  }
+  return r2((win / MC_RUNS) * 100, 1);
+}
+
 // ---------- 主程式 ----------
-module.exports = { evalDayDaily, evalDayIntraday, evalSwing, stats, monteCarlo };
+// 當沖「開盤 30 分鐘突破法」：用 09:00～09:30（前 6 根 5 分 K）的最高、最低價當區間，
+// 之後往上突破最高價就做多、往下跌破最低價就做空；停損在區間另一邊，
+// 停利 1 = 1 倍區間（出一半，停損移到成本）、停利 2 = 2 倍區間，都沒碰到就收盤出場。
+// 區間太寬（> 1.2 個 ATR）或太窄（< 0.15 個 ATR）不做；12:30 以後不再進場。
+function evalOrb(bars, atr, n = 6, { longOnly = false } = {}) {
+  if (!bars || bars.length < n + 6) return { status: 'waiting' };
+  const H = Math.max(...bars.slice(0, n).map((b) => b.high)), L = Math.min(...bars.slice(0, n).map((b) => b.low));
+  const range = H - L;
+  if (!(atr > 0) || range > 1.2 * atr || range < 0.15 * atr) return { status: 'skip', H, L };
+  for (let k = n; k < Math.min(bars.length, 42); k++) {
+    const b = bars[k], up = b.high >= H, dn = !longOnly && b.low <= L; // longOnly：禁空令期間只做多
+    if (!up && !dn) continue;
+    const long = up && (!dn || b.open >= (H + L) / 2);
+    const entry = long ? Math.max(b.open, H) : Math.min(b.open, L), stop0 = long ? L : H;
+    const p = { side: long ? 'long' : 'short', entry, stop: stop0 };
+    const R0 = Math.abs(entry - stop0), t1 = long ? entry + R0 : entry - R0, t2 = long ? entry + 2 * R0 : entry - 2 * R0;
+    const exits = []; let half = false, stop = stop0;
+    const extra = { side: p.side, H, L, stop: stop0, t1, t2 };
+    if (long ? b.close <= stop : b.close >= stop) return { ...settle(p, entry, [[stop, 1]], TAX_DT, 'stop'), ...extra };
+    for (let j = k + 1; j < bars.length; j++) {
+      const c = bars[j];
+      if (long ? c.low <= stop : c.high >= stop) { exits.push([stop, half ? 0.5 : 1]); return { ...settle(p, entry, exits, TAX_DT, half ? 'breakeven' : 'stop'), ...extra }; }
+      if (!half && (long ? c.high >= t1 : c.low <= t1)) { exits.push([t1, 0.5]); half = true; stop = entry; }
+      if (half && (long ? c.high >= t2 : c.low <= t2)) { exits.push([t2, 0.5]); return { ...settle(p, entry, exits, TAX_DT, 't2'), ...extra }; }
+    }
+    exits.push([bars[bars.length - 1].close, half ? 0.5 : 1]);
+    return { ...settle(p, entry, exits, TAX_DT, half ? 't1' : 'close'), ...extra };
+  }
+  return { status: 'nofill', H, L };
+}
+
+module.exports = { evalDayDaily, evalDayIntraday, evalSwing, evalOrb, stats, monteCarlo, FEE_DISCOUNT };
 
 if (require.main === module) (async () => {
   const t0 = Date.now();
@@ -313,11 +359,12 @@ if (require.main === module) (async () => {
     });
     intraday[code] = byDate;
   });
-  const intra = [];
+  const intra = [], intraOrb = [];
   for (const t of recent) {
     const b5 = intraday[t.code] && intraday[t.code][t.date];
     if (!b5 || b5.length < 20) continue;
     intra.push({ ...t, ...evalDayIntraday(t.plan, b5) });
+    intraOrb.push({ ...t, ...evalOrb(b5, Math.abs(t.plan.entry - t.plan.stop) / 0.3) });
   }
   // 研究用：DUMP_TRADES=檔名 時，把最近 60 天當沖選股和當天 5 分 K 存下來，給其他當沖方法比較
   if (process.env.DUMP_TRADES) {
@@ -349,6 +396,8 @@ if (require.main === module) (async () => {
       id, label, kind, stats: st, opt: kind === 'daytrade' ? stats(asOpt(list)) : null,
       first: stats(list.filter((t) => t.date < mid)), second: stats(list.filter((t) => t.date >= mid)),
       probEdge: mc ? mc.probEdge : null,
+      // 短線：和同期間隨便買（做多用做多基準、做空用做空基準）相比
+      probBeat: kind === 'swing' ? probBeat(list.filter((t) => t.status === 'filled').map((t) => t.ret), (list[0] && list[0].side === 'short' ? avg(base.short) : avg(base.long))) : null,
     };
   });
   const mcFor = (list) => { const Rs = list.filter((t) => t.status === 'filled').map((t) => t.R); return monteCarlo(Rs); };
@@ -364,12 +413,16 @@ if (require.main === module) (async () => {
   const out = {
     generatedAt: new Date().toISOString(),
     period: { from, to, days: twii.length - 1 - START, years: r2(years), mid, usDays },
-    settings: { pool: POOL, universe: UNIVERSE, fee: +(FEE * 100).toFixed(4), taxDayTrade: +(TAX_DT * 100).toFixed(2), taxSwing: +(TAX_SW * 100).toFixed(2), risk: RISK * 100, mcRuns: MC_RUNS, orderDays: ORDER_DAYS, maxHold: MAX_HOLD },
+    settings: { feeDiscount: FEE_DISCOUNT, pool: POOL, universe: UNIVERSE, fee: +(FEE * 100).toFixed(4), taxDayTrade: +(TAX_DT * 100).toFixed(2), taxSwing: +(TAX_SW * 100).toFixed(2), risk: RISK * 100, mcRuns: MC_RUNS, orderDays: ORDER_DAYS, maxHold: MAX_HOLD },
     summary, setups, montecarlo, swingSide: out_swingSide,
+    swingBeat: probBeat(sel({ variant: 'us', kind: 'swing', side: 'long' }).filter((t) => t.status === 'filled').map((t) => t.ret), avg(base.long)),
     baseline: { hold: 10, longRet: r2(avg(base.long) * 100, 3), shortRet: r2(avg(base.short) * 100, 3), longWin: r2(base.long.filter((x) => x > 0).length / base.long.length * 100, 1), n: base.long.length },
     intraday: intra.length ? {
       from: cutoff, n: intra.length,
       exact: stats(intra), dailyPess: stats(sameDaily), dailyOpt: stats(asOpt(sameDaily)),
+      exactEdge: (monteCarlo(intra.filter((t) => t.status === 'filled').map((t) => t.R)) || {}).probEdge ?? null,
+      orb: stats(intraOrb),
+      orbEdge: (monteCarlo(intraOrb.filter((t) => t.status === 'filled').map((t) => t.R)) || {}).probEdge ?? null,
     } : null,
     reasons: Object.fromEntries(kinds.map((k) => [k, sel({ variant: 'us', kind: k }).filter((t) => t.status === 'filled')
       .reduce((m, t) => ((m[t.reason] = (m[t.reason] || 0) + 1), m), {})])),
@@ -387,10 +440,12 @@ if (require.main === module) (async () => {
   console.log('【各情境】');
   for (const s of setups) if (s.stats.n) line(`${s.id} ${s.label}`, s.stats);
   console.log('【前半 vs 後半 期望值 R】');
-  for (const s of setups) if (s.stats.n) console.log(`  ${s.id} ${s.label}：${s.first.expR} → ${s.second.expR}（n ${s.first.n} / ${s.second.n}），P(優勢) ${s.probEdge}%`);
+  for (const s of setups) if (s.stats.n) console.log(`  ${s.id} ${s.label}：${s.first.expR} → ${s.second.expR}（n ${s.first.n} / ${s.second.n}），P(優勢) ${s.probEdge}%，贏過隨便買的把握 ${s.probBeat ?? '-'}%`);
+  console.log(`短線做多整體贏過隨便買的把握：${out.swingBeat}%`);
   if (out.intraday) {
     console.log(`【當沖最近 60 天 5 分 K 精算】n=${out.intraday.n}`);
-    line('5分K', out.intraday.exact); line('日K悲觀', out.intraday.dailyPess); line('日K樂觀', out.intraday.dailyOpt);
+    line('5分K', out.intraday.exact); line('開盤30分突破', out.intraday.orb);
+    console.log(`  不是運氣的機率：原本方法 ${out.intraday.exactEdge}%、開盤30分突破 ${out.intraday.orbEdge}%`); line('日K悲觀', out.intraday.dailyPess); line('日K樂觀', out.intraday.dailyOpt);
   }
   console.log(`【基準：隨便買進持有 10 天】做多平均 ${out.baseline.longRet}%（勝率 ${out.baseline.longWin}%），做空平均 ${out.baseline.shortRet}%`);
   console.log('【蒙地卡羅 10,000 次（每筆風險 1%）】');

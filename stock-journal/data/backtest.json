@@ -1,17 +1,18 @@
 {
- "generatedAt": "2026-11-21T09:06:03.141Z",
+ "generatedAt": "2026-11-24T01:58:19.220Z",
  "period": {
-  "from": "2025-06-10",
-  "to": "2026-11-20",
-  "days": 355,
-  "years": 1.45,
-  "mid": "2026-03-05",
-  "usDays": 347
+  "from": "2025-05-21",
+  "to": "2026-11-23",
+  "days": 369,
+  "years": 1.51,
+  "mid": "2026-02-24",
+  "usDays": 360
  },
  "settings": {
+  "feeDiscount": 0.28,
   "pool": 600,
   "universe": 300,
-  "fee": 0.1425,
+  "fee": 0.0399,
   "taxDayTrade": 0.15,
   "taxSwing": 0.3,
   "risk": 1,
@@ -23,77 +24,77 @@
   "us": {
    "daytrade": {
     "pess": {
-     "signals": 1765,
-     "n": 623,
+     "signals": 1835,
+     "n": 644,
      "fillRate": 35,
-     "winRate": 23.9,
-     "avgWinR": 1.22,
-     "avgLossR": -1.26,
-     "expR": -0.669,
-     "expRet": -1.051,
-     "pf": 0.3
+     "winRate": 23.8,
+     "avgWinR": 1.33,
+     "avgLossR": -1.14,
+     "expR": -0.551,
+     "expRet": -0.861,
+     "pf": 0.36
     },
     "opt": {
-     "signals": 1765,
-     "n": 623,
+     "signals": 1835,
+     "n": 644,
      "fillRate": 35,
-     "winRate": 61.6,
-     "avgWinR": 1.15,
-     "avgLossR": -1.25,
-     "expR": 0.228,
-     "expRet": 0.412,
-     "pf": 1.47
+     "winRate": 61.8,
+     "avgWinR": 1.27,
+     "avgLossR": -1.13,
+     "expR": 0.355,
+     "expRet": 0.611,
+     "pf": 1.82
     }
    },
    "swing": {
-    "signals": 1765,
-    "n": 1321,
+    "signals": 1835,
+    "n": 1374,
     "fillRate": 75,
-    "winRate": 47.7,
-    "avgWinR": 1.76,
-    "avgLossR": -1.29,
-    "expR": 0.165,
-    "expRet": 1.299,
-    "pf": 1.24,
-    "hold": 9.2
+    "winRate": 49.2,
+    "avgWinR": 1.79,
+    "avgLossR": -1.28,
+    "expR": 0.23,
+    "expRet": 1.739,
+    "pf": 1.35,
+    "hold": 9.1
    }
   },
   "nous": {
    "daytrade": {
     "pess": {
-     "signals": 1765,
-     "n": 625,
+     "signals": 1835,
+     "n": 646,
      "fillRate": 35,
-     "winRate": 23.4,
-     "avgWinR": 1.27,
-     "avgLossR": -1.27,
-     "expR": -0.674,
-     "expRet": -1.047,
-     "pf": 0.31
+     "winRate": 23.2,
+     "avgWinR": 1.38,
+     "avgLossR": -1.14,
+     "expR": -0.555,
+     "expRet": -0.852,
+     "pf": 0.37
     },
     "opt": {
-     "signals": 1765,
-     "n": 625,
+     "signals": 1835,
+     "n": 646,
      "fillRate": 35,
-     "winRate": 62.2,
-     "avgWinR": 1.16,
-     "avgLossR": -1.26,
-     "expR": 0.244,
-     "expRet": 0.45,
-     "pf": 1.51
+     "winRate": 62.7,
+     "avgWinR": 1.28,
+     "avgLossR": -1.13,
+     "expR": 0.378,
+     "expRet": 0.663,
+     "pf": 1.9
     }
    },
    "swing": {
-    "signals": 1765,
-    "n": 1327,
+    "signals": 1835,
+    "n": 1382,
     "fillRate": 75,
-    "winRate": 47.7,
-    "avgWinR": 1.78,
-    "avgLossR": -1.29,
-    "expR": 0.172,
-    "expRet": 1.347,
-    "pf": 1.26,
-    "hold": 9.2
+    "winRate": 48.8,
+    "avgWinR": 1.8,
+    "avgLossR": -1.28,
+    "expR": 0.228,
+    "expRet": 1.715,
+    "pf": 1.35,
+    "hold": 9
    }
   }
  },
@@ -103,286 +104,292 @@
    "label": "做多・突破",
    "kind": "daytrade",
    "stats": {
-    "signals": 954,
-    "n": 331,
+    "signals": 984,
+    "n": 341,
     "fillRate": 35,
-    "winRate": 6.6,
-    "avgWinR": 1.27,
-    "avgLossR": -1.27,
-    "expR": -1.104,
-    "expRet": -1.766,
-    "pf": 0.07
+    "winRate": 6.5,
+    "avgWinR": 1.4,
+    "avgLossR": -1.14,
+    "expR": -0.979,
+    "expRet": -1.565,
+    "pf": 0.08
    },
    "opt": {
-    "signals": 954,
-    "n": 331,
+    "signals": 984,
+    "n": 341,
     "fillRate": 35,
-    "winRate": 46.8,
-    "avgWinR": 1.18,
-    "avgLossR": -1.27,
-    "expR": -0.12,
-    "expRet": -0.211,
-    "pf": 0.82
+    "winRate": 46.6,
+    "avgWinR": 1.32,
+    "avgLossR": -1.14,
+    "expR": 0.007,
+    "expRet": -0.015,
+    "pf": 1.01
    },
    "first": {
-    "signals": 491,
-    "n": 193,
+    "signals": 499,
+    "n": 197,
     "fillRate": 39,
-    "winRate": 7.8,
-    "avgWinR": 1.4,
-    "avgLossR": -1.29,
-    "expR": -1.085,
-    "expRet": -1.632,
-    "pf": 0.09
+    "winRate": 7.6,
+    "avgWinR": 1.52,
+    "avgLossR": -1.16,
+    "expR": -0.953,
+    "expRet": -1.426,
+    "pf": 0.11
    },
    "second": {
-    "signals": 463,
-    "n": 138,
+    "signals": 485,
+    "n": 144,
     "fillRate": 30,
-    "winRate": 5.1,
-    "avgWinR": 1,
-    "avgLossR": -1.25,
-    "expR": -1.132,
-    "expRet": -1.953,
-    "pf": 0.04
+    "winRate": 4.9,
+    "avgWinR": 1.14,
+    "avgLossR": -1.12,
+    "expR": -1.014,
+    "expRet": -1.756,
+    "pf": 0.05
    },
-   "probEdge": 0
+   "probEdge": 0,
+   "probBeat": null
   },
   {
    "id": "dt2",
    "label": "做多・回測支撐",
    "kind": "daytrade",
    "stats": {
-    "signals": 655,
-    "n": 237,
+    "signals": 685,
+    "n": 246,
     "fillRate": 36,
-    "winRate": 46.8,
-    "avgWinR": 1.22,
-    "avgLossR": -1.25,
-    "expR": -0.093,
-    "expRet": -0.09,
-    "pf": 0.86
+    "winRate": 47.2,
+    "avgWinR": 1.32,
+    "avgLossR": -1.14,
+    "expR": 0.024,
+    "expRet": 0.105,
+    "pf": 1.04
    },
    "opt": {
-    "signals": 655,
-    "n": 237,
+    "signals": 685,
+    "n": 246,
     "fillRate": 36,
-    "winRate": 84.4,
-    "avgWinR": 1.15,
-    "avgLossR": -1.21,
-    "expR": 0.777,
-    "expRet": 1.386,
-    "pf": 5.1
+    "winRate": 85,
+    "avgWinR": 1.26,
+    "avgLossR": -1.12,
+    "expR": 0.898,
+    "expRet": 1.581,
+    "pf": 6.33
    },
    "first": {
-    "signals": 362,
-    "n": 125,
-    "fillRate": 35,
-    "winRate": 50.4,
-    "avgWinR": 1.16,
-    "avgLossR": -1.29,
-    "expR": -0.052,
-    "expRet": 0.001,
-    "pf": 0.92
+    "signals": 383,
+    "n": 132,
+    "fillRate": 34,
+    "winRate": 50,
+    "avgWinR": 1.26,
+    "avgLossR": -1.15,
+    "expR": 0.053,
+    "expRet": 0.166,
+    "pf": 1.09
    },
    "second": {
-    "signals": 293,
-    "n": 112,
+    "signals": 302,
+    "n": 114,
     "fillRate": 38,
-    "winRate": 42.9,
-    "avgWinR": 1.3,
-    "avgLossR": -1.22,
-    "expR": -0.139,
-    "expRet": -0.192,
-    "pf": 0.8
+    "winRate": 43.9,
+    "avgWinR": 1.41,
+    "avgLossR": -1.12,
+    "expR": -0.009,
+    "expRet": 0.035,
+    "pf": 0.99
    },
-   "probEdge": 14.1
+   "probEdge": 61.4,
+   "probBeat": null
   },
   {
    "id": "dt3",
    "label": "做空・跌破",
    "kind": "daytrade",
    "stats": {
-    "signals": 115,
-    "n": 40,
+    "signals": 123,
+    "n": 43,
     "fillRate": 35,
-    "winRate": 20,
-    "avgWinR": 1.33,
-    "avgLossR": -1.22,
-    "expR": -0.706,
-    "expRet": -1.183,
-    "pf": 0.27
+    "winRate": 18.6,
+    "avgWinR": 1.45,
+    "avgLossR": -1.09,
+    "expR": -0.619,
+    "expRet": -1.052,
+    "pf": 0.3
    },
    "opt": {
-    "signals": 115,
-    "n": 40,
+    "signals": 123,
+    "n": 43,
     "fillRate": 35,
-    "winRate": 42.5,
-    "avgWinR": 1.01,
-    "avgLossR": -1.2,
-    "expR": -0.263,
-    "expRet": -0.351,
-    "pf": 0.62
+    "winRate": 44.2,
+    "avgWinR": 1.16,
+    "avgLossR": -1.07,
+    "expR": -0.087,
+    "expRet": -0.059,
+    "pf": 0.85
    },
    "first": {
-    "signals": 24,
-    "n": 6,
-    "fillRate": 25,
-    "winRate": 16.7,
-    "avgWinR": 0.35,
-    "avgLossR": -1.16,
-    "expR": -0.906,
-    "expRet": -1.266,
-    "pf": 0.06
+    "signals": 27,
+    "n": 7,
+    "fillRate": 26,
+    "winRate": 14.3,
+    "avgWinR": 0.5,
+    "avgLossR": -1.01,
+    "expR": -0.796,
+    "expRet": -1.194,
+    "pf": 0.08
    },
    "second": {
-    "signals": 91,
-    "n": 34,
-    "fillRate": 37,
-    "winRate": 20.6,
-    "avgWinR": 1.47,
-    "avgLossR": -1.23,
-    "expR": -0.671,
-    "expRet": -1.169,
-    "pf": 0.31
+    "signals": 96,
+    "n": 36,
+    "fillRate": 38,
+    "winRate": 19.4,
+    "avgWinR": 1.58,
+    "avgLossR": -1.11,
+    "expR": -0.584,
+    "expRet": -1.025,
+    "pf": 0.34
    },
-   "probEdge": 0
+   "probEdge": 0,
+   "probBeat": null
   },
   {
    "id": "dt4",
    "label": "做空・反彈遇壓",
    "kind": "daytrade",
    "stats": {
-    "signals": 41,
-    "n": 15,
-    "fillRate": 37,
-    "winRate": 53.3,
-    "avgWinR": 1.01,
-    "avgLossR": -1.28,
-    "expR": -0.06,
-    "expRet": -0.114,
-    "pf": 0.9
+    "signals": 43,
+    "n": 14,
+    "fillRate": 33,
+    "winRate": 50,
+    "avgWinR": 1.1,
+    "avgLossR": -1.15,
+    "expR": -0.024,
+    "expRet": -0.081,
+    "pf": 0.96
    },
    "opt": {
-    "signals": 41,
-    "n": 15,
-    "fillRate": 37,
-    "winRate": 80,
-    "avgWinR": 1.01,
-    "avgLossR": -1.23,
-    "expR": 0.558,
-    "expRet": 0.802,
-    "pf": 3.26
+    "signals": 43,
+    "n": 14,
+    "fillRate": 33,
+    "winRate": 78.6,
+    "avgWinR": 1.12,
+    "avgLossR": -1.12,
+    "expR": 0.638,
+    "expRet": 0.9,
+    "pf": 3.65
    },
    "first": {
-    "signals": 3,
+    "signals": 6,
     "n": 1,
-    "fillRate": 33,
+    "fillRate": 17,
     "winRate": 0,
     "avgWinR": null,
-    "avgLossR": -1.38,
-    "expR": -1.38,
-    "expRet": -1.586,
+    "avgLossR": -1.2,
+    "expR": -1.2,
+    "expRet": -1.38,
     "pf": 0
    },
    "second": {
-    "signals": 38,
-    "n": 14,
-    "fillRate": 37,
-    "winRate": 57.1,
-    "avgWinR": 1.01,
-    "avgLossR": -1.26,
-    "expR": 0.035,
-    "expRet": -0.009,
-    "pf": 1.06
+    "signals": 37,
+    "n": 13,
+    "fillRate": 35,
+    "winRate": 53.8,
+    "avgWinR": 1.1,
+    "avgLossR": -1.14,
+    "expR": 0.067,
+    "expRet": 0.019,
+    "pf": 1.13
    },
-   "probEdge": null
+   "probEdge": null,
+   "probBeat": null
   },
   {
    "id": "sw1",
    "label": "做多・拉回買",
    "kind": "swing",
    "stats": {
-    "signals": 591,
-    "n": 424,
-    "fillRate": 72,
-    "winRate": 46.9,
-    "avgWinR": 1.83,
-    "avgLossR": -1.29,
-    "expR": 0.177,
-    "expRet": 1.373,
-    "pf": 1.26,
-    "hold": 9.6
+    "signals": 577,
+    "n": 411,
+    "fillRate": 71,
+    "winRate": 47.4,
+    "avgWinR": 1.87,
+    "avgLossR": -1.3,
+    "expR": 0.205,
+    "expRet": 1.364,
+    "pf": 1.3,
+    "hold": 9.4
    },
    "opt": null,
    "first": {
-    "signals": 235,
-    "n": 153,
-    "fillRate": 65,
-    "winRate": 51.6,
+    "signals": 246,
+    "n": 158,
+    "fillRate": 64,
+    "winRate": 53.8,
     "avgWinR": 1.82,
-    "avgLossR": -1.25,
-    "expR": 0.336,
-    "expRet": 2.586,
-    "pf": 1.55,
-    "hold": 11
+    "avgLossR": -1.28,
+    "expR": 0.387,
+    "expRet": 2.667,
+    "pf": 1.65,
+    "hold": 11.3
    },
    "second": {
-    "signals": 356,
-    "n": 271,
+    "signals": 331,
+    "n": 253,
     "fillRate": 76,
-    "winRate": 44.3,
-    "avgWinR": 1.84,
-    "avgLossR": -1.31,
-    "expR": 0.087,
-    "expRet": 0.688,
+    "winRate": 43.5,
+    "avgWinR": 1.91,
+    "avgLossR": -1.3,
+    "expR": 0.092,
+    "expRet": 0.55,
     "pf": 1.12,
-    "hold": 8.8
+    "hold": 8.2
    },
-   "probEdge": 98.5
+   "probEdge": 99.2,
+   "probBeat": 68.7
   },
   {
    "id": "sw2",
    "label": "做多・突破買",
    "kind": "swing",
    "stats": {
-    "signals": 1137,
-    "n": 877,
+    "signals": 1219,
+    "n": 942,
     "fillRate": 77,
-    "winRate": 47.8,
-    "avgWinR": 1.74,
-    "avgLossR": -1.29,
-    "expR": 0.159,
-    "expRet": 1.263,
-    "pf": 1.24,
-    "hold": 9
+    "winRate": 49.8,
+    "avgWinR": 1.77,
+    "avgLossR": -1.27,
+    "expR": 0.245,
+    "expRet": 1.932,
+    "pf": 1.38,
+    "hold": 8.9
    },
    "opt": null,
    "first": {
-    "signals": 638,
-    "n": 498,
+    "signals": 663,
+    "n": 520,
     "fillRate": 78,
-    "winRate": 50.4,
-    "avgWinR": 1.72,
-    "avgLossR": -1.21,
-    "expR": 0.267,
-    "expRet": 2.105,
-    "pf": 1.45,
-    "hold": 10
+    "winRate": 53.3,
+    "avgWinR": 1.74,
+    "avgLossR": -1.17,
+    "expR": 0.381,
+    "expRet": 2.97,
+    "pf": 1.7,
+    "hold": 10.2
    },
    "second": {
-    "signals": 499,
-    "n": 379,
+    "signals": 556,
+    "n": 422,
     "fillRate": 76,
-    "winRate": 44.3,
-    "avgWinR": 1.77,
-    "avgLossR": -1.38,
-    "expR": 0.016,
-    "expRet": 0.157,
-    "pf": 1.02,
-    "hold": 7.7
+    "winRate": 45.5,
+    "avgWinR": 1.82,
+    "avgLossR": -1.37,
+    "expR": 0.077,
+    "expRet": 0.653,
+    "pf": 1.1,
+    "hold": 7.2
    },
-   "probEdge": 99.8
+   "probEdge": 100,
+   "probBeat": 98
   },
   {
    "id": "sw3",
@@ -401,50 +408,52 @@
     "signals": 0,
     "n": 0
    },
-   "probEdge": null
+   "probEdge": null,
+   "probBeat": null
   },
   {
    "id": "sw4",
    "label": "做空・跌破空",
    "kind": "swing",
    "stats": {
-    "signals": 37,
-    "n": 20,
+    "signals": 39,
+    "n": 21,
     "fillRate": 54,
-    "winRate": 60,
-    "avgWinR": 1.27,
+    "winRate": 57.1,
+    "avgWinR": 1.22,
     "avgLossR": -1.46,
-    "expR": 0.175,
-    "expRet": 1.291,
-    "pf": 1.3,
-    "hold": 12
+    "expR": 0.072,
+    "expRet": 0.421,
+    "pf": 1.11,
+    "hold": 10
    },
    "opt": null,
    "first": {
-    "signals": 7,
-    "n": 7,
+    "signals": 6,
+    "n": 6,
     "fillRate": 100,
-    "winRate": 57.1,
-    "avgWinR": 0.79,
-    "avgLossR": -0.66,
-    "expR": 0.168,
-    "expRet": 1.197,
-    "pf": 1.6,
-    "hold": 18.3
+    "winRate": 50,
+    "avgWinR": 0.65,
+    "avgLossR": -0.62,
+    "expR": 0.014,
+    "expRet": -0.159,
+    "pf": 1.05,
+    "hold": 18
    },
    "second": {
-    "signals": 30,
-    "n": 13,
-    "fillRate": 43,
-    "winRate": 61.5,
-    "avgWinR": 1.51,
-    "avgLossR": -1.95,
-    "expR": 0.178,
-    "expRet": 1.342,
-    "pf": 1.24,
-    "hold": 8.6
+    "signals": 33,
+    "n": 15,
+    "fillRate": 45,
+    "winRate": 60,
+    "avgWinR": 1.41,
+    "avgLossR": -1.88,
+    "expR": 0.095,
+    "expRet": 0.654,
+    "pf": 1.13,
+    "hold": 6.7
    },
-   "probEdge": 69.6
+   "probEdge": 58.1,
+   "probBeat": 79.4
   }
  ],
  "montecarlo": {
@@ -452,143 +461,157 @@
    "runs": 10000,
    "trades": 100,
    "ret": {
-    "p5": -37.2,
-    "p25": -30,
-    "p50": -24.3,
-    "p75": -18.1,
-    "p95": -7.9
+    "p5": -27.4,
+    "p25": -19,
+    "p50": -12.3,
+    "p75": -4.9,
+    "p95": 7.1
    },
    "mdd": {
-    "p50": 26.9,
-    "p95": 38.4
+    "p50": 17.9,
+    "p95": 30
    },
-   "probLoss": 99,
-   "probDD20": 81.8,
-   "probEdge": 3,
-   "sampleN": 66
+   "probLoss": 86,
+   "probDD20": 38.3,
+   "probEdge": 20.6,
+   "sampleN": 68
   },
   "swing": {
    "runs": 10000,
    "trades": 100,
    "ret": {
-    "p5": -11.1,
-    "p25": 4.7,
-    "p50": 16.7,
-    "p75": 30.4,
-    "p95": 53
+    "p5": -5.6,
+    "p25": 10.9,
+    "p50": 23.9,
+    "p75": 38.7,
+    "p95": 63.1
    },
    "mdd": {
-    "p50": 11.7,
-    "p95": 22.2
+    "p50": 10.7,
+    "p95": 19.8
    },
-   "probLoss": 16.9,
-   "probDD20": 8.9,
+   "probLoss": 9.5,
+   "probDD20": 4.7,
    "probEdge": 100,
-   "sampleN": 1321
+   "sampleN": 1374
   },
   "all": {
    "runs": 10000,
    "trades": 100,
    "ret": {
-    "p5": -13,
-    "p25": 2,
-    "p50": 14.1,
-    "p75": 27.3,
-    "p95": 48.9
+    "p5": -6.1,
+    "p25": 9,
+    "p50": 21.9,
+    "p75": 36.1,
+    "p95": 59.5
    },
    "mdd": {
-    "p50": 12,
-    "p95": 22.6
+    "p50": 10.8,
+    "p95": 20
    },
-   "probLoss": 21.2,
-   "probDD20": 9.7,
-   "probEdge": 99.9,
-   "sampleN": 1387
+   "probLoss": 11.4,
+   "probDD20": 5,
+   "probEdge": 100,
+   "sampleN": 1442
   }
  },
  "swingSide": {
   "long": {
-   "signals": 1728,
-   "n": 1301,
+   "signals": 1796,
+   "n": 1353,
    "fillRate": 75,
-   "winRate": 47.5,
-   "avgWinR": 1.77,
-   "avgLossR": -1.29,
-   "expR": 0.164,
-   "expRet": 1.299,
-   "pf": 1.24,
-   "hold": 9.2
+   "winRate": 49.1,
+   "avgWinR": 1.8,
+   "avgLossR": -1.28,
+   "expR": 0.233,
+   "expRet": 1.76,
+   "pf": 1.36,
+   "hold": 9
   },
   "short": {
-   "signals": 37,
-   "n": 20,
+   "signals": 39,
+   "n": 21,
    "fillRate": 54,
-   "winRate": 60,
-   "avgWinR": 1.27,
+   "winRate": 57.1,
+   "avgWinR": 1.22,
    "avgLossR": -1.46,
-   "expR": 0.175,
-   "expRet": 1.291,
-   "pf": 1.3,
-   "hold": 12
+   "expR": 0.072,
+   "expRet": 0.421,
+   "pf": 1.11,
+   "hold": 10
   }
  },
+ "swingBeat": 97.6,
  "baseline": {
   "hold": 10,
-  "longRet": 0.888,
-  "shortRet": -2.067,
-  "longWin": 47,
-  "n": 103286
+  "longRet": 1.087,
+  "shortRet": -1.852,
+  "longWin": 48.5,
+  "n": 107507
  },
  "intraday": {
-  "from": "2026-09-25",
-  "n": 180,
+  "from": "2026-09-28",
+  "n": 185,
   "exact": {
-   "signals": 180,
-   "n": 66,
+   "signals": 185,
+   "n": 68,
    "fillRate": 37,
-   "winRate": 37.9,
-   "avgWinR": 1.05,
-   "avgLossR": -1.07,
-   "expR": -0.27,
-   "expRet": -0.494,
-   "pf": 0.6
+   "winRate": 39.7,
+   "avgWinR": 1.18,
+   "avgLossR": -0.98,
+   "expR": -0.122,
+   "expRet": -0.247,
+   "pf": 0.79
   },
   "dailyPess": {
-   "signals": 180,
-   "n": 65,
+   "signals": 185,
+   "n": 67,
    "fillRate": 36,
-   "winRate": 23.1,
-   "avgWinR": 1.15,
-   "avgLossR": -1.24,
-   "expR": -0.691,
-   "expRet": -1.169,
-   "pf": 0.28
+   "winRate": 23.9,
+   "avgWinR": 1.19,
+   "avgLossR": -1.14,
+   "expR": -0.582,
+   "expRet": -0.998,
+   "pf": 0.33
   },
   "dailyOpt": {
-   "signals": 180,
-   "n": 65,
+   "signals": 185,
+   "n": 67,
    "fillRate": 36,
-   "winRate": 61.5,
-   "avgWinR": 1.29,
-   "avgLossR": -1.21,
-   "expR": 0.327,
-   "expRet": 0.531,
-   "pf": 1.7
-  }
+   "winRate": 64.2,
+   "avgWinR": 1.39,
+   "avgLossR": -1.13,
+   "expR": 0.483,
+   "expRet": 0.794,
+   "pf": 2.19
+  },
+  "exactEdge": 20.6,
+  "orb": {
+   "signals": 185,
+   "n": 145,
+   "fillRate": 78,
+   "winRate": 52.4,
+   "avgWinR": 0.54,
+   "avgLossR": -0.55,
+   "expR": 0.024,
+   "expRet": 0.059,
+   "pf": 1.09
+  },
+  "orbEdge": 66.8
  },
  "reasons": {
   "daytrade": {
-   "stop": 467,
-   "t2": 51,
-   "close": 13,
-   "t1": 92
+   "t1": 94,
+   "stop": 485,
+   "close": 14,
+   "t2": 51
   },
   "swing": {
-   "stop": 596,
    "time": 205,
-   "ma10": 129,
-   "t2": 362,
-   "breakeven": 29
+   "t2": 391,
+   "stop": 606,
+   "ma10": 134,
+   "breakeven": 38
   }
  }
 }

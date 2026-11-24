@@ -28,7 +28,7 @@ function save() {
   fs.mkdirSync(PICKS_DIR, { recursive: true });
   fs.mkdirSync(LATEST, { recursive: true });
   // 以「資料日期」命名：同一份收盤資料（例如週五收盤）在週末、週一早上重跑時會覆蓋成最新一次
-  const slim = { date: picks.date, generatedAt: picks.generatedAt, us: picks.us && { available: picks.us.available, predGap: picks.us.predGap },
+  const slim = { date: picks.date, generatedAt: picks.generatedAt, shortBan: !!picks.shortBan, us: picks.us && { available: picks.us.available, predGap: picks.us.predGap },
     picks: picks.picks.map(({ code, name, market, kind, plan, estOpen, reasons }) => ({ code, name, market, kind, plan, estOpen, reasons })) };
   fs.writeFileSync(path.join(PICKS_DIR, `${picks.date}.json`), JSON.stringify(slim, null, 1));
   for (const f of LATEST_FILES) if (fs.existsSync(path.join(DATA, f))) fs.copyFileSync(path.join(DATA, f), path.join(LATEST, f));
@@ -59,7 +59,7 @@ async function evaluate() {
   const tradeDates = twii.map((b) => b.date);
   const days = files.map((f) => {
     const p = readJson(path.join(PICKS_DIR, f));
-    return { dataDate: p.date, tradeDate: tradeDates.find((d) => d > p.date) || null, us: p.us, picks: p.picks };
+    return { dataDate: p.date, tradeDate: tradeDates.find((d) => d > p.date) || null, us: p.us, picks: p.picks, shortBan: !!p.shortBan || p.date >= '2026-11-20' };
   });
   // 追蹤期間：第一個交易日開始的 20 個交易日
   const started = days.filter((d) => d.tradeDate);
@@ -83,10 +83,15 @@ async function evaluate() {
     const rows = d.picks.map((pk) => {
       const base = { code: pk.code, name: pk.name, kind: pk.kind, label: pk.plan.label, side: pk.plan.side,
         entry: pk.plan.entry, stop: pk.plan.stop, t1: pk.plan.t1, t2: pk.plan.t2 };
-      let r;
+      let r, orb = null;
       if (pk.kind === 'daytrade') {
         const b5 = intra[pk.code] && intra[pk.code][d.tradeDate];
         r = notYet || !b5 || b5.length < 10 ? { status: 'waiting' } : B.evalDayIntraday(pk.plan, b5);
+        // 當沖「開盤 30 分鐘突破法」：同一檔用新方法另外算一次（禁空令期間只做多）
+        const atr = Math.abs(pk.plan.entry - pk.plan.stop) / 0.3;
+        const o = notYet || !b5 || b5.length < 10 ? { status: 'waiting' } : B.evalOrb(b5, atr, 6, { longOnly: d.shortBan });
+        orb = { status: o.status, side: o.side || null, fill: o.fill ?? null, stop: o.stop ?? null, exits: o.status === 'filled' ? o.exits : null,
+          R: r2(o.R), reason: o.reason || null, H: o.H != null ? +o.H.toFixed(2) : null, L: o.L != null ? +o.L.toFixed(2) : null };
       } else {
         const bars = daily[pk.code] || [];
         const jn = bars.findIndex((b) => b.date === d.tradeDate);
@@ -95,7 +100,7 @@ async function evaluate() {
         r = notYet || jn < 0 || jn >= usable.length ? { status: 'waiting' } : B.evalSwing(pk.plan, usable, jn);
       }
       return { ...base, status: r.status, R: r2(r.R), ret: r2(r.ret != null ? r.ret * 100 : null), reason: r.reason || null, hold: r.hold ?? null,
-        fill: r.fill ?? null, exits: r.status === 'filled' ? r.exits : null, lastClose: r.lastClose ?? null };
+        fill: r.fill ?? null, exits: r.status === 'filled' ? r.exits : null, lastClose: r.lastClose ?? null, orb };
     });
     results.push({ dataDate: d.dataDate, tradeDate: d.tradeDate, usPredGap: d.us && d.us.available ? d.us.predGap : null, rows });
   }
