@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-24T01:54:43.971Z",
+ "generatedAt": "2026-11-24T02:17:44.024Z",
  "window": 20,
  "start": "2026-11-23",
  "progress": 1,
@@ -10,11 +10,11 @@
    "n": 2,
    "fillRate": 40,
    "winRate": 50,
-   "avgWinR": 2.18,
-   "avgLossR": -1.23,
-   "expR": 0.475,
-   "expRet": 0.8,
-   "pf": 1.77
+   "avgWinR": 2.29,
+   "avgLossR": -1.12,
+   "expR": 0.585,
+   "expRet": 1.005,
+   "pf": 2.04
   },
   "swing": {
    "signals": 1,
@@ -22,23 +22,23 @@
    "fillRate": 100,
    "winRate": 0,
    "avgWinR": null,
-   "avgLossR": -1.69,
-   "expR": -1.69,
-   "expRet": -13.89,
+   "avgLossR": -1.67,
+   "expR": -1.67,
+   "expRet": -13.67,
    "pf": 0,
    "hold": 0
   },
   "swingOpen": {
    "n": 2,
-   "R": -1.71
+   "R": -1.66
   },
-  "totalR": -0.74
+  "totalR": -0.5
  },
  "backtest": {
-  "daytradeExpR": -0.257,
-  "daytradeWin": 37.9,
-  "swingExpR": 0.2,
-  "swingWin": 48.8
+  "daytradeExpR": -0.133,
+  "daytradeWin": 39.4,
+  "swingExpR": 0.23,
+  "swingWin": 49.2
  },
  "days": [
   {
@@ -63,7 +63,23 @@
      "hold": null,
      "fill": null,
      "exits": null,
-     "lastClose": null
+     "lastClose": null,
+     "orb": {
+      "status": "filled",
+      "side": "long",
+      "fill": 2045,
+      "stop": 1970,
+      "exits": [
+       {
+        "px": 2035,
+        "w": 1
+       }
+      ],
+      "R": -0.2,
+      "reason": "close",
+      "H": 2045,
+      "L": 1970
+     }
     },
     {
      "code": "2317",
@@ -82,7 +98,18 @@
      "hold": null,
      "fill": null,
      "exits": null,
-     "lastClose": null
+     "lastClose": null,
+     "orb": {
+      "status": "nofill",
+      "side": null,
+      "fill": null,
+      "stop": null,
+      "exits": null,
+      "R": null,
+      "reason": null,
+      "H": 214.5,
+      "L": 205
+     }
     },
     {
      "code": "2887",
@@ -95,8 +122,8 @@
      "t1": 32.3,
      "t2": 31.3,
      "status": "filled",
-     "R": 2.18,
-     "ret": 3.93,
+     "R": 2.29,
+     "ret": 4.13,
      "reason": "t2",
      "hold": null,
      "fill": 33.25,
@@ -110,7 +137,18 @@
        "w": 0.5
       }
      ],
-     "lastClose": null
+     "lastClose": null,
+     "orb": {
+      "status": "nofill",
+      "side": null,
+      "fill": null,
+      "stop": null,
+      "exits": null,
+      "R": null,
+      "reason": null,
+      "H": 33.95,
+      "L": 32.25
+     }
     },
     {
      "code": "2357",
@@ -129,7 +167,23 @@
      "hold": null,
      "fill": null,
      "exits": null,
-     "lastClose": null
+     "lastClose": null,
+     "orb": {
+      "status": "filled",
+      "side": "long",
+      "fill": 784,
+      "stop": 748,
+      "exits": [
+       {
+        "px": 760,
+        "w": 1
+       }
+      ],
+      "R": -0.72,
+      "reason": "close",
+      "H": 784,
+      "L": 748
+     }
     },
     {
      "code": "2883",
@@ -142,8 +196,8 @@
      "t1": 28.25,
      "t2": 27.35,
      "status": "filled",
-     "R": -1.23,
-     "ret": -2.33,
+     "R": -1.12,
+     "ret": -2.12,
      "reason": "stop",
      "hold": null,
      "fill": 29.05,
@@ -153,7 +207,18 @@
        "w": 1
       }
      ],
-     "lastClose": null
+     "lastClose": null,
+     "orb": {
+      "status": "nofill",
+      "side": null,
+      "fill": null,
+      "stop": null,
+      "exits": null,
+      "R": null,
+      "reason": null,
+      "H": 29.9,
+      "L": 28.75
+     }
     },
     {
      "code": "8033",
@@ -172,7 +237,8 @@
      "hold": null,
      "fill": null,
      "exits": null,
-     "lastClose": null
+     "lastClose": null,
+     "orb": null
     },
     {
      "code": "2328",
@@ -191,7 +257,8 @@
      "hold": null,
      "fill": null,
      "exits": null,
-     "lastClose": null
+     "lastClose": null,
+     "orb": null
     },
     {
      "code": "2404",
@@ -204,13 +271,14 @@
      "t1": 682,
      "t2": 617,
      "status": "open",
-     "R": -0.86,
-     "ret": -6.97,
+     "R": -0.83,
+     "ret": -6.76,
      "reason": "open",
      "hold": 0,
      "fill": 800,
      "exits": null,
-     "lastClose": 851
+     "lastClose": 851,
+     "orb": null
     },
     {
      "code": "8299",
@@ -223,8 +291,8 @@
      "t1": 1100,
      "t2": 992,
      "status": "filled",
-     "R": -1.69,
-     "ret": -13.89,
+     "R": -1.67,
+     "ret": -13.67,
      "reason": "stop",
      "hold": 0,
      "fill": 1280,
@@ -234,7 +302,8 @@
        "w": 1
       }
      ],
-     "lastClose": null
+     "lastClose": null,
+     "orb": null
     },
     {
      "code": "2027",
@@ -247,13 +316,14 @@
      "t1": 35.65,
      "t2": 32.25,
      "status": "open",
-     "R": -0.85,
-     "ret": -6.89,
+     "R": -0.83,
+     "ret": -6.68,
      "reason": "open",
      "hold": 0,
      "fill": 42.1,
      "exits": null,
-     "lastClose": 44.75
+     "lastClose": 44.75,
+     "orb": null
     }
    ]
   }

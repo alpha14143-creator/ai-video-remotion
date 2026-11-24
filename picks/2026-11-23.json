@@ -1,9 +1,10 @@
 {
  "date": "2026-11-23",
- "generatedAt": "2026-11-24T01:52:40.876Z",
+ "generatedAt": "2026-11-24T02:15:45.403Z",
+ "shortBan": true,
  "us": {
   "available": true,
-  "predGap": 2.66
+  "predGap": 2.71
  },
  "picks": [
   {
@@ -106,7 +107,7 @@
     "valid": true,
     "rr": 1.45
    },
-   "estOpen": 52.7,
+   "estOpen": 52.8,
    "reasons": [
     "多頭趨勢，月線向上",
     "每日波動 6.4%",
@@ -168,110 +169,110 @@
    ]
   },
   {
-   "code": "3443",
-   "name": "創意",
+   "code": "3665",
+   "name": "貿聯-KY",
    "market": "上市",
    "kind": "swing",
    "plan": {
-    "id": "sw4",
-    "label": "做空・跌破空",
+    "id": "sw3",
+    "label": "做空・反彈空",
     "side": "short",
     "type": "swing",
     "rec": "good",
-    "when": "收盤跌破 20 日低點 4,860.00 時融券賣出",
-    "entry": 4855,
-    "stop": 5245,
-    "t1": 4080,
-    "t2": 3690,
-    "valid": true,
-    "rr": 1.99
-   },
-   "estOpen": 5380,
-   "reasons": [
-    "帶量跌破 20 日低點",
-    "成交量為均量 2.8 倍",
-    "RSI 38",
-    "需融券"
-   ]
-  },
-  {
-   "code": "3265",
-   "name": "台星科",
-   "market": "上櫃",
-   "kind": "swing",
-   "plan": {
-    "id": "sw4",
-    "label": "做空・跌破空",
-    "side": "short",
-    "type": "swing",
-    "rec": "good",
-    "when": "收盤跌破 20 日低點 99.10 時融券賣出",
-    "entry": 99,
-    "stop": 107,
-    "t1": 83.2,
-    "t2": 75.3,
-    "valid": true,
-    "rr": 1.97
-   },
-   "estOpen": 111,
-   "reasons": [
-    "帶量跌破 20 日低點",
-    "成交量為均量 2.3 倍",
-    "RSI 23",
-    "需融券"
-   ]
-  },
-  {
-   "code": "3163",
-   "name": "波若威",
-   "market": "上櫃",
-   "kind": "swing",
-   "plan": {
-    "id": "sw4",
-    "label": "做空・跌破空",
-    "side": "short",
-    "type": "swing",
-    "rec": "good",
-    "when": "收盤跌破 20 日低點 308.00 時融券賣出",
-    "entry": 307.5,
-    "stop": 332.5,
-    "t1": 258.5,
-    "t2": 234,
+    "when": "反彈到 10 日線附近 1,475.00 過不去時融券賣出",
+    "entry": 1475,
+    "stop": 1595,
+    "t1": 1240,
+    "t2": 1125,
     "valid": true,
     "rr": 1.96
    },
-   "estOpen": 336.5,
+   "estOpen": 1490,
    "reasons": [
-    "帶量跌破 20 日低點",
-    "成交量為均量 2.2 倍",
-    "RSI 32",
+    "空頭趨勢中反彈",
+    "距 10 日線 0.3 個 ATR",
+    "RSI 44",
     "需融券"
    ]
   },
   {
-   "code": "8028",
-   "name": "昇陽半導體",
+   "code": "3030",
+   "name": "德律",
    "market": "上市",
    "kind": "swing",
    "plan": {
-    "id": "sw4",
-    "label": "做空・跌破空",
+    "id": "sw3",
+    "label": "做空・反彈空",
     "side": "short",
     "type": "swing",
     "rec": "good",
-    "when": "收盤跌破 20 日低點 125.50 時融券賣出",
-    "entry": 125,
-    "stop": 135,
-    "t1": 105,
-    "t2": 95,
+    "when": "反彈到 10 日線附近 215.50 過不去時融券賣出",
+    "entry": 215.5,
+    "stop": 233,
+    "t1": 181,
+    "t2": 164,
     "valid": true,
-    "rr": 2
+    "rr": 1.97
    },
-   "estOpen": 142,
+   "estOpen": 219,
    "reasons": [
-    "帶量跌破 20 日低點",
-    "成交量為均量 2.0 倍",
-    "RSI 24",
+    "空頭趨勢中反彈",
+    "距 10 日線 0.3 個 ATR",
+    "RSI 42",
+    "需融券"
+   ]
+  },
+  {
+   "code": "5314",
+   "name": "世紀*",
+   "market": "上櫃",
+   "kind": "swing",
+   "plan": {
+    "id": "sw3",
+    "label": "做空・反彈空",
+    "side": "short",
+    "type": "swing",
+    "rec": "good",
+    "when": "反彈到 10 日線附近 21.80 過不去時融券賣出",
+    "entry": 21.8,
+    "stop": 23.6,
+    "t1": 18.35,
+    "t2": 16.6,
+    "valid": true,
+    "rr": 1.92
+   },
+   "estOpen": 21.7,
+   "reasons": [
+    "空頭趨勢中反彈",
+    "距 10 日線 0.4 個 ATR",
+    "RSI 49",
+    "需融券"
+   ]
+  },
+  {
+   "code": "2454",
+   "name": "聯發科",
+   "market": "上市",
+   "kind": "swing",
+   "plan": {
+    "id": "sw3",
+    "label": "做空・反彈空",
+    "side": "short",
+    "type": "swing",
+    "rec": "good",
+    "when": "反彈到 10 日線附近 3,810.00 過不去時融券賣出",
+    "entry": 3810,
+    "stop": 4120,
+    "t1": 3205,
+    "t2": 2900,
+    "valid": true,
+    "rr": 1.95
+   },
+   "estOpen": 3855,
+   "reasons": [
+    "空頭趨勢中反彈",
+    "距 10 日線 0.4 個 ATR",
+    "RSI 50",
     "需融券"
    ]
   }

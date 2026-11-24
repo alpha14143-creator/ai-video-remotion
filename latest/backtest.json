@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-24T01:54:32.049Z",
+ "generatedAt": "2026-11-24T02:17:24.360Z",
  "period": {
   "from": "2025-05-21",
   "to": "2026-11-23",
@@ -9,9 +9,10 @@
   "usDays": 360
  },
  "settings": {
+  "feeDiscount": 0.28,
   "pool": 600,
   "universe": 300,
-  "fee": 0.1425,
+  "fee": 0.0399,
   "taxDayTrade": 0.15,
   "taxSwing": 0.3,
   "risk": 1,
@@ -26,35 +27,35 @@
      "signals": 1835,
      "n": 644,
      "fillRate": 35,
-     "winRate": 23.6,
-     "avgWinR": 1.21,
-     "avgLossR": -1.27,
-     "expR": -0.682,
-     "expRet": -1.065,
-     "pf": 0.3
+     "winRate": 23.8,
+     "avgWinR": 1.33,
+     "avgLossR": -1.14,
+     "expR": -0.551,
+     "expRet": -0.861,
+     "pf": 0.36
     },
     "opt": {
      "signals": 1835,
      "n": 644,
      "fillRate": 35,
-     "winRate": 61.6,
-     "avgWinR": 1.14,
-     "avgLossR": -1.26,
-     "expR": 0.223,
-     "expRet": 0.405,
-     "pf": 1.46
+     "winRate": 61.8,
+     "avgWinR": 1.27,
+     "avgLossR": -1.13,
+     "expR": 0.355,
+     "expRet": 0.611,
+     "pf": 1.82
     }
    },
    "swing": {
     "signals": 1835,
     "n": 1374,
     "fillRate": 75,
-    "winRate": 48.8,
-    "avgWinR": 1.77,
-    "avgLossR": -1.3,
-    "expR": 0.2,
-    "expRet": 1.532,
-    "pf": 1.3,
+    "winRate": 49.2,
+    "avgWinR": 1.79,
+    "avgLossR": -1.28,
+    "expR": 0.23,
+    "expRet": 1.739,
+    "pf": 1.35,
     "hold": 9.1
    }
   },
@@ -64,35 +65,35 @@
      "signals": 1835,
      "n": 646,
      "fillRate": 35,
-     "winRate": 23.1,
-     "avgWinR": 1.26,
-     "avgLossR": -1.27,
-     "expR": -0.686,
-     "expRet": -1.056,
-     "pf": 0.3
+     "winRate": 23.2,
+     "avgWinR": 1.38,
+     "avgLossR": -1.14,
+     "expR": -0.555,
+     "expRet": -0.852,
+     "pf": 0.37
     },
     "opt": {
      "signals": 1835,
      "n": 646,
      "fillRate": 35,
-     "winRate": 62.5,
-     "avgWinR": 1.15,
-     "avgLossR": -1.26,
-     "expR": 0.246,
-     "expRet": 0.457,
-     "pf": 1.52
+     "winRate": 62.7,
+     "avgWinR": 1.28,
+     "avgLossR": -1.13,
+     "expR": 0.378,
+     "expRet": 0.663,
+     "pf": 1.9
     }
    },
    "swing": {
     "signals": 1835,
     "n": 1382,
     "fillRate": 75,
-    "winRate": 48.4,
-    "avgWinR": 1.79,
-    "avgLossR": -1.3,
-    "expR": 0.197,
-    "expRet": 1.508,
-    "pf": 1.3,
+    "winRate": 48.8,
+    "avgWinR": 1.8,
+    "avgLossR": -1.28,
+    "expR": 0.228,
+    "expRet": 1.715,
+    "pf": 1.35,
     "hold": 9
    }
   }
@@ -107,46 +108,47 @@
     "n": 341,
     "fillRate": 35,
     "winRate": 6.5,
-    "avgWinR": 1.25,
-    "avgLossR": -1.28,
-    "expR": -1.113,
-    "expRet": -1.769,
-    "pf": 0.07
+    "avgWinR": 1.4,
+    "avgLossR": -1.14,
+    "expR": -0.979,
+    "expRet": -1.565,
+    "pf": 0.08
    },
    "opt": {
     "signals": 984,
     "n": 341,
     "fillRate": 35,
     "winRate": 46.6,
-    "avgWinR": 1.18,
-    "avgLossR": -1.27,
-    "expR": -0.129,
-    "expRet": -0.221,
-    "pf": 0.81
+    "avgWinR": 1.32,
+    "avgLossR": -1.14,
+    "expR": 0.007,
+    "expRet": -0.015,
+    "pf": 1.01
    },
    "first": {
     "signals": 499,
     "n": 197,
     "fillRate": 39,
     "winRate": 7.6,
-    "avgWinR": 1.37,
-    "avgLossR": -1.3,
-    "expR": -1.095,
-    "expRet": -1.63,
-    "pf": 0.09
+    "avgWinR": 1.52,
+    "avgLossR": -1.16,
+    "expR": -0.953,
+    "expRet": -1.426,
+    "pf": 0.11
    },
    "second": {
     "signals": 485,
     "n": 144,
     "fillRate": 30,
     "winRate": 4.9,
-    "avgWinR": 1,
-    "avgLossR": -1.25,
-    "expR": -1.137,
-    "expRet": -1.96,
-    "pf": 0.04
+    "avgWinR": 1.14,
+    "avgLossR": -1.12,
+    "expR": -1.014,
+    "expRet": -1.756,
+    "pf": 0.05
    },
-   "probEdge": 0
+   "probEdge": 0,
+   "probBeat": null
   },
   {
    "id": "dt2",
@@ -156,47 +158,48 @@
     "signals": 685,
     "n": 246,
     "fillRate": 36,
-    "winRate": 46.7,
-    "avgWinR": 1.21,
-    "avgLossR": -1.25,
-    "expR": -0.103,
-    "expRet": -0.1,
-    "pf": 0.85
+    "winRate": 47.2,
+    "avgWinR": 1.32,
+    "avgLossR": -1.14,
+    "expR": 0.024,
+    "expRet": 0.105,
+    "pf": 1.04
    },
    "opt": {
     "signals": 685,
     "n": 246,
     "fillRate": 36,
-    "winRate": 84.6,
-    "avgWinR": 1.13,
-    "avgLossR": -1.22,
-    "expR": 0.77,
-    "expRet": 1.374,
-    "pf": 5.09
+    "winRate": 85,
+    "avgWinR": 1.26,
+    "avgLossR": -1.12,
+    "expR": 0.898,
+    "expRet": 1.581,
+    "pf": 6.33
    },
    "first": {
     "signals": 383,
     "n": 132,
     "fillRate": 34,
     "winRate": 50,
-    "avgWinR": 1.13,
-    "avgLossR": -1.29,
-    "expR": -0.082,
-    "expRet": -0.04,
-    "pf": 0.87
+    "avgWinR": 1.26,
+    "avgLossR": -1.15,
+    "expR": 0.053,
+    "expRet": 0.166,
+    "pf": 1.09
    },
    "second": {
     "signals": 302,
     "n": 114,
     "fillRate": 38,
-    "winRate": 43,
-    "avgWinR": 1.32,
-    "avgLossR": -1.22,
-    "expR": -0.127,
-    "expRet": -0.17,
-    "pf": 0.82
+    "winRate": 43.9,
+    "avgWinR": 1.41,
+    "avgLossR": -1.12,
+    "expR": -0.009,
+    "expRet": 0.035,
+    "pf": 0.99
    },
-   "probEdge": 11.2
+   "probEdge": 61.4,
+   "probBeat": null
   },
   {
    "id": "dt3",
@@ -207,46 +210,47 @@
     "n": 43,
     "fillRate": 35,
     "winRate": 18.6,
-    "avgWinR": 1.33,
-    "avgLossR": -1.22,
-    "expR": -0.744,
-    "expRet": -1.258,
-    "pf": 0.25
+    "avgWinR": 1.45,
+    "avgLossR": -1.09,
+    "expR": -0.619,
+    "expRet": -1.052,
+    "pf": 0.3
    },
    "opt": {
     "signals": 123,
     "n": 43,
     "fillRate": 35,
     "winRate": 44.2,
-    "avgWinR": 1.04,
-    "avgLossR": -1.2,
-    "expR": -0.212,
-    "expRet": -0.264,
-    "pf": 0.69
+    "avgWinR": 1.16,
+    "avgLossR": -1.07,
+    "expR": -0.087,
+    "expRet": -0.059,
+    "pf": 0.85
    },
    "first": {
     "signals": 27,
     "n": 7,
     "fillRate": 26,
     "winRate": 14.3,
-    "avgWinR": 0.35,
-    "avgLossR": -1.17,
-    "expR": -0.955,
-    "expRet": -1.4,
-    "pf": 0.05
+    "avgWinR": 0.5,
+    "avgLossR": -1.01,
+    "expR": -0.796,
+    "expRet": -1.194,
+    "pf": 0.08
    },
    "second": {
     "signals": 96,
     "n": 36,
     "fillRate": 38,
     "winRate": 19.4,
-    "avgWinR": 1.47,
-    "avgLossR": -1.23,
-    "expR": -0.703,
-    "expRet": -1.231,
-    "pf": 0.29
+    "avgWinR": 1.58,
+    "avgLossR": -1.11,
+    "expR": -0.584,
+    "expRet": -1.025,
+    "pf": 0.34
    },
-   "probEdge": 0
+   "probEdge": 0,
+   "probBeat": null
   },
   {
    "id": "dt4",
@@ -257,22 +261,22 @@
     "n": 14,
     "fillRate": 33,
     "winRate": 50,
-    "avgWinR": 0.96,
-    "avgLossR": -1.28,
-    "expR": -0.159,
-    "expRet": -0.286,
-    "pf": 0.75
+    "avgWinR": 1.1,
+    "avgLossR": -1.15,
+    "expR": -0.024,
+    "expRet": -0.081,
+    "pf": 0.96
    },
    "opt": {
     "signals": 43,
     "n": 14,
     "fillRate": 33,
     "winRate": 78.6,
-    "avgWinR": 0.98,
-    "avgLossR": -1.23,
-    "expR": 0.503,
-    "expRet": 0.695,
-    "pf": 2.9
+    "avgWinR": 1.12,
+    "avgLossR": -1.12,
+    "expR": 0.638,
+    "expRet": 0.9,
+    "pf": 3.65
    },
    "first": {
     "signals": 6,
@@ -280,9 +284,9 @@
     "fillRate": 17,
     "winRate": 0,
     "avgWinR": null,
-    "avgLossR": -1.38,
-    "expR": -1.38,
-    "expRet": -1.586,
+    "avgLossR": -1.2,
+    "expR": -1.2,
+    "expRet": -1.38,
     "pf": 0
    },
    "second": {
@@ -290,13 +294,14 @@
     "n": 13,
     "fillRate": 35,
     "winRate": 53.8,
-    "avgWinR": 0.96,
-    "avgLossR": -1.26,
-    "expR": -0.065,
-    "expRet": -0.186,
-    "pf": 0.89
+    "avgWinR": 1.1,
+    "avgLossR": -1.14,
+    "expR": 0.067,
+    "expRet": 0.019,
+    "pf": 1.13
    },
-   "probEdge": null
+   "probEdge": null,
+   "probBeat": null
   },
   {
    "id": "sw1",
@@ -306,12 +311,12 @@
     "signals": 577,
     "n": 411,
     "fillRate": 71,
-    "winRate": 47,
-    "avgWinR": 1.85,
-    "avgLossR": -1.32,
-    "expR": 0.167,
-    "expRet": 1.157,
-    "pf": 1.24,
+    "winRate": 47.4,
+    "avgWinR": 1.87,
+    "avgLossR": -1.3,
+    "expR": 0.205,
+    "expRet": 1.364,
+    "pf": 1.3,
     "hold": 9.4
    },
    "opt": null,
@@ -319,27 +324,28 @@
     "signals": 246,
     "n": 158,
     "fillRate": 64,
-    "winRate": 53.2,
-    "avgWinR": 1.8,
-    "avgLossR": -1.3,
-    "expR": 0.345,
-    "expRet": 2.459,
-    "pf": 1.57,
+    "winRate": 53.8,
+    "avgWinR": 1.82,
+    "avgLossR": -1.28,
+    "expR": 0.387,
+    "expRet": 2.667,
+    "pf": 1.65,
     "hold": 11.3
    },
    "second": {
     "signals": 331,
     "n": 253,
     "fillRate": 76,
-    "winRate": 43.1,
-    "avgWinR": 1.89,
-    "avgLossR": -1.33,
-    "expR": 0.056,
-    "expRet": 0.344,
-    "pf": 1.07,
+    "winRate": 43.5,
+    "avgWinR": 1.91,
+    "avgLossR": -1.3,
+    "expR": 0.092,
+    "expRet": 0.55,
+    "pf": 1.12,
     "hold": 8.2
    },
-   "probEdge": 97.6
+   "probEdge": 99.2,
+   "probBeat": 68.7
   },
   {
    "id": "sw2",
@@ -349,12 +355,12 @@
     "signals": 1219,
     "n": 942,
     "fillRate": 77,
-    "winRate": 49.4,
-    "avgWinR": 1.76,
-    "avgLossR": -1.28,
-    "expR": 0.218,
-    "expRet": 1.725,
-    "pf": 1.34,
+    "winRate": 49.8,
+    "avgWinR": 1.77,
+    "avgLossR": -1.27,
+    "expR": 0.245,
+    "expRet": 1.932,
+    "pf": 1.38,
     "hold": 8.9
    },
    "opt": null,
@@ -362,27 +368,28 @@
     "signals": 663,
     "n": 520,
     "fillRate": 78,
-    "winRate": 52.9,
-    "avgWinR": 1.73,
-    "avgLossR": -1.19,
-    "expR": 0.354,
-    "expRet": 2.762,
-    "pf": 1.63,
+    "winRate": 53.3,
+    "avgWinR": 1.74,
+    "avgLossR": -1.17,
+    "expR": 0.381,
+    "expRet": 2.97,
+    "pf": 1.7,
     "hold": 10.2
    },
    "second": {
     "signals": 556,
     "n": 422,
     "fillRate": 76,
-    "winRate": 45,
-    "avgWinR": 1.81,
-    "avgLossR": -1.39,
-    "expR": 0.051,
-    "expRet": 0.447,
-    "pf": 1.07,
+    "winRate": 45.5,
+    "avgWinR": 1.82,
+    "avgLossR": -1.37,
+    "expR": 0.077,
+    "expRet": 0.653,
+    "pf": 1.1,
     "hold": 7.2
    },
-   "probEdge": 100
+   "probEdge": 100,
+   "probBeat": 98
   },
   {
    "id": "sw3",
@@ -401,7 +408,8 @@
     "signals": 0,
     "n": 0
    },
-   "probEdge": null
+   "probEdge": null,
+   "probBeat": null
   },
   {
    "id": "sw4",
@@ -412,11 +420,11 @@
     "n": 21,
     "fillRate": 54,
     "winRate": 57.1,
-    "avgWinR": 1.19,
-    "avgLossR": -1.49,
-    "expR": 0.044,
-    "expRet": 0.217,
-    "pf": 1.07,
+    "avgWinR": 1.22,
+    "avgLossR": -1.46,
+    "expR": 0.072,
+    "expRet": 0.421,
+    "pf": 1.11,
     "hold": 10
    },
    "opt": null,
@@ -425,11 +433,11 @@
     "n": 6,
     "fillRate": 100,
     "winRate": 50,
-    "avgWinR": 0.62,
-    "avgLossR": -0.66,
-    "expR": -0.02,
-    "expRet": -0.364,
-    "pf": 0.94,
+    "avgWinR": 0.65,
+    "avgLossR": -0.62,
+    "expR": 0.014,
+    "expRet": -0.159,
+    "pf": 1.05,
     "hold": 18
    },
    "second": {
@@ -437,14 +445,15 @@
     "n": 15,
     "fillRate": 45,
     "winRate": 60,
-    "avgWinR": 1.39,
-    "avgLossR": -1.9,
-    "expR": 0.07,
-    "expRet": 0.449,
-    "pf": 1.09,
+    "avgWinR": 1.41,
+    "avgLossR": -1.88,
+    "expR": 0.095,
+    "expRet": 0.654,
+    "pf": 1.13,
     "hold": 6.7
    },
-   "probEdge": 54.6
+   "probEdge": 58.1,
+   "probBeat": 79.4
   }
  ],
  "montecarlo": {
@@ -452,37 +461,37 @@
    "runs": 10000,
    "trades": 100,
    "ret": {
-    "p5": -36.6,
-    "p25": -29.2,
-    "p50": -23.4,
-    "p75": -17.2,
-    "p95": -7
+    "p5": -28.1,
+    "p25": -19.8,
+    "p50": -13.2,
+    "p75": -6.1,
+    "p95": 5.4
    },
    "mdd": {
-    "p50": 26.2,
-    "p95": 37.9
+    "p50": 18.5,
+    "p95": 30.5
    },
-   "probLoss": 98.7,
-   "probDD20": 79.3,
-   "probEdge": 4.2,
+   "probLoss": 88.2,
+   "probDD20": 41.9,
+   "probEdge": 18.2,
    "sampleN": 66
   },
   "swing": {
    "runs": 10000,
    "trades": 100,
    "ret": {
-    "p5": -8.4,
-    "p25": 7.7,
-    "p50": 20.2,
-    "p75": 34.6,
-    "p95": 58.1
+    "p5": -5.6,
+    "p25": 10.9,
+    "p50": 23.9,
+    "p75": 38.7,
+    "p95": 63.1
    },
    "mdd": {
-    "p50": 11.2,
-    "p95": 20.9
+    "p50": 10.7,
+    "p95": 19.8
    },
-   "probLoss": 13,
-   "probDD20": 6.5,
+   "probLoss": 9.5,
+   "probDD20": 4.7,
    "probEdge": 100,
    "sampleN": 1374
   },
@@ -490,18 +499,18 @@
    "runs": 10000,
    "trades": 100,
    "ret": {
-    "p5": -9.5,
-    "p25": 5.8,
-    "p50": 18,
-    "p75": 31.9,
-    "p95": 54.8
+    "p5": -6.3,
+    "p25": 9.5,
+    "p50": 22.1,
+    "p75": 36.6,
+    "p95": 60.2
    },
    "mdd": {
-    "p50": 11.4,
-    "p95": 21.4
+    "p50": 10.7,
+    "p95": 20.1
    },
-   "probLoss": 15.4,
-   "probDD20": 7.5,
+   "probLoss": 11,
+   "probDD20": 5.1,
    "probEdge": 100,
    "sampleN": 1440
   }
@@ -511,12 +520,12 @@
    "signals": 1796,
    "n": 1353,
    "fillRate": 75,
-   "winRate": 48.6,
-   "avgWinR": 1.79,
-   "avgLossR": -1.3,
-   "expR": 0.203,
-   "expRet": 1.552,
-   "pf": 1.3,
+   "winRate": 49.1,
+   "avgWinR": 1.8,
+   "avgLossR": -1.28,
+   "expR": 0.233,
+   "expRet": 1.76,
+   "pf": 1.36,
    "hold": 9
   },
   "short": {
@@ -524,19 +533,20 @@
    "n": 21,
    "fillRate": 54,
    "winRate": 57.1,
-   "avgWinR": 1.19,
-   "avgLossR": -1.49,
-   "expR": 0.044,
-   "expRet": 0.217,
-   "pf": 1.07,
+   "avgWinR": 1.22,
+   "avgLossR": -1.46,
+   "expR": 0.072,
+   "expRet": 0.421,
+   "pf": 1.11,
    "hold": 10
   }
  },
+ "swingBeat": 97.6,
  "baseline": {
   "hold": 10,
-  "longRet": 0.881,
-  "shortRet": -2.059,
-  "longWin": 47.3,
+  "longRet": 1.087,
+  "shortRet": -1.852,
+  "longWin": 48.5,
   "n": 107507
  },
  "intraday": {
@@ -546,35 +556,48 @@
    "signals": 185,
    "n": 66,
    "fillRate": 36,
-   "winRate": 37.9,
-   "avgWinR": 1.08,
-   "avgLossR": -1.07,
-   "expR": -0.257,
-   "expRet": -0.51,
-   "pf": 0.61
+   "winRate": 39.4,
+   "avgWinR": 1.16,
+   "avgLossR": -0.98,
+   "expR": -0.133,
+   "expRet": -0.305,
+   "pf": 0.77
   },
   "dailyPess": {
    "signals": 185,
    "n": 67,
    "fillRate": 36,
-   "winRate": 22.4,
-   "avgWinR": 1.15,
-   "avgLossR": -1.24,
-   "expR": -0.707,
-   "expRet": -1.203,
-   "pf": 0.27
+   "winRate": 23.9,
+   "avgWinR": 1.19,
+   "avgLossR": -1.14,
+   "expR": -0.582,
+   "expRet": -0.998,
+   "pf": 0.33
   },
   "dailyOpt": {
    "signals": 185,
    "n": 67,
    "fillRate": 36,
-   "winRate": 62.7,
-   "avgWinR": 1.29,
-   "avgLossR": -1.21,
-   "expR": 0.357,
-   "expRet": 0.588,
-   "pf": 1.79
-  }
+   "winRate": 64.2,
+   "avgWinR": 1.39,
+   "avgLossR": -1.13,
+   "expR": 0.483,
+   "expRet": 0.794,
+   "pf": 2.19
+  },
+  "exactEdge": 18.2,
+  "orb": {
+   "signals": 185,
+   "n": 145,
+   "fillRate": 78,
+   "winRate": 52.4,
+   "avgWinR": 0.54,
+   "avgLossR": -0.55,
+   "expR": 0.024,
+   "expRet": 0.059,
+   "pf": 1.09
+  },
+  "orbEdge": 66.8
  },
  "reasons": {
   "daytrade": {
