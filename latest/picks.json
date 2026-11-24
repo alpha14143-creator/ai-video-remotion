@@ -1,15 +1,15 @@
 {
  "date": "2026-11-24",
- "generatedAt": "2026-11-24T07:09:15.277Z",
+ "generatedAt": "2026-11-24T09:57:30.381Z",
  "market": {
   "close": 40122.35,
   "chg": 8.99,
   "trend": "空頭（收盤 < 月線 < 季線，月線向下）",
   "date": "2026-11-24",
-  "up": 294,
-  "down": 5,
-  "upTrendPct": 8,
-  "universe": 300
+  "up": 291,
+  "down": 6,
+  "upTrendPct": 6,
+  "universe": 299
  },
  "us": {
   "indices": [
@@ -49,7 +49,7 @@
     "chg": 14.08
    }
   ],
-  "fx": 32.88,
+  "fx": 32.93,
   "twDate": "2026-11-24",
   "window": 60,
   "models": [
@@ -92,12 +92,12 @@
   ],
   "available": false,
   "reason": "美股 2026-11-24 的交易還沒收盤，早上 8 點更新後才有預測",
-  "adrPremium": 7.2
+  "adrPremium": 7.4
  },
  "shortBan": true,
  "candidates": {
   "daytrade": 40,
-  "swing": 114
+  "swing": 111
  },
  "picks": [
   {
