@@ -47,6 +47,7 @@ async function getJson(url, tries = 3, timeout = 30000) {
 }
 
 // ---------- 1. 股票池 ----------
+let ALL_STOCKS = []; // 全部上市櫃股票的代號和名稱（給「查價格」用名稱搜尋）
 async function loadUniverse(n = UNIVERSE) {
   const [twse, tpex] = (await Promise.allSettled([
     getJson('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', 3, 90000),
@@ -62,8 +63,10 @@ async function loadUniverse(n = UNIVERSE) {
     ...tpex.map((r) => ({ code: r.SecuritiesCompanyCode, name: r.CompanyName, market: '上櫃', value: num(r.TransactionAmount), close: num(r.Close) })),
   ];
   // 一般股票（4 碼）和 ETF（00 開頭），排除權證等
-  return list
-    .filter((s) => /^(\d{4}|00\d{2,4}[A-Z]?)$/.test(s.code) && s.value > 0 && s.close > 0)
+  const valid = list.filter((s) => /^(\d{4}|00\d{2,4}[A-Z]?)$/.test(s.code));
+  ALL_STOCKS = valid.map((s) => ({ c: s.code, n: String(s.name).trim(), m: s.market === '上市' ? 1 : 2 }));
+  return valid
+    .filter((s) => s.value > 0 && s.close > 0)
     .sort((a, b) => b.value - a.value)
     .slice(0, n);
 }
@@ -402,6 +405,7 @@ if (require.main === module) (async () => {
   const snapshot = { date, generatedAt, stocks: {} };
   for (const s of fresh) snapshot.stocks[s.code] = { name: s.name, market: s.market, x: s.x };
   if (WRITE) fs.writeFileSync(path.join(OUT_DIR, 'snapshot.json'), JSON.stringify(snapshot));
+  if (WRITE && ALL_STOCKS.length > 500) fs.writeFileSync(path.join(OUT_DIR, 'names.json'), JSON.stringify({ updated: generatedAt, stocks: ALL_STOCKS }));
 
   console.log(`資料日期 ${date}，候選：當沖 ${cands.filter((c) => c.kind === 'daytrade').length}、短線 ${cands.filter((c) => c.kind === 'swing').length}`);
   if (us) {
