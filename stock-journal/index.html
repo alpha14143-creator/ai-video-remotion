@@ -276,7 +276,7 @@
     <div class="card">
       <div class="warn">
         <b>⚠️ 計算方式和風險</b><br>
-        • <b>今日 10 檔</b>：每天早上 8 點，從成交金額前 300 名的上市櫃股票（排除處置股）中，用均線趨勢、波動和量能篩選，選出當沖 5 檔、短線 5 檔。和美股方向一致的股票會加分。<br>
+        • <b>今日 10 檔</b>：每天早上 7:40，從成交金額前 300 名的上市櫃股票（排除處置股）中，用均線趨勢、波動和量能篩選，選出當沖 5 檔、短線 5 檔。和美股方向一致的股票會加分。<br>
         • <b>美股預測</b>：用最近 60 個交易日的資料，算出費半、那斯達克、標普、台積電 ADR 的漲跌和台股開盤跳空的關係，再依相關程度加權平均。美股和台股的關係只有一部分，大漲大跌時常常低估，只能當方向參考。<br>
         • <b>當沖</b>：用昨日高、低、收盤算出支撐和壓力價位，當作進場位置。停損 0.3 個 ATR，停利 1 是 0.5 個 ATR，停利 2 是 1 個 ATR，價格限制在漲跌停內。<br>
         • <b>短線</b>：用 10 / 20 / 60 日線判斷趨勢。停損抓近 10 日的高低點，限制在 1 到 3 個 ATR、最多 8%。停利是停損距離的 2 倍和 3 倍。<br>
@@ -408,7 +408,7 @@ async function loadPicks() {
     renderHealth();
   } catch (e) {
     $('picksBox').innerHTML = `<div class="card"><h2>還沒有今日選股資料</h2>
-      <p class="muted" style="line-height:1.7">今日 10 檔由每天早上 8 點的自動程式產生（GitHub Actions）。<br>
+      <p class="muted" style="line-height:1.7">今日 10 檔由每天早上 7:40 的自動程式產生。<br>
       如果是在電腦上直接打開 HTML 檔，請改用 <code>node server.js</code> 開啟，或先執行 <code>node scripts/daily-picks.js</code>。<br>
       「查價格」功能仍然可以使用。</p><div class="err small">${esc(e.message)}</div></div>`;
     renderHealth();
@@ -1014,7 +1014,8 @@ function orbPlan(pk, H, L, side = 'long') {
 }
 // 自動抓到的開盤區間（data/orb.json，只用今天的）
 let orbAuto = null;
-const orbAutoFor = code => orbAuto && orbAuto.date === today() && orbAuto.levels && orbAuto.levels[code] || null;
+// 只用在「同一份選股」上：收盤後選出明天的 10 檔時，今天抓的開盤區間不能帶到明天的卡片
+const orbAutoFor = code => orbAuto && orbAuto.date === today() && picksData && orbAuto.picksDate === picksData.date && orbAuto.levels && orbAuto.levels[code] || null;
 async function loadOrb() {
   try { const r = await fetch('data/orb.json?t=' + Date.now(), { cache:'no-store' }); if (r.ok) orbAuto = await r.json(); } catch {}
   if (orbAuto && picksData) renderPicks();

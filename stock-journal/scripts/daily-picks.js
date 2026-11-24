@@ -1,4 +1,4 @@
-// 每日選股：每天早上 8 點（美股收盤後、台股開盤前）執行，產生
+// 每日選股：每天早上 7:40（美股收盤後、台股開盤前）執行，產生
 //   data/picks.json    今日 10 檔 + 美股夜盤與台股開盤預測
 //   data/snapshot.json 熱門股指標快照（給「查價格」用）
 // 用法：node stock-journal/scripts/daily-picks.js        （Node.js 18 以上，不用安裝套件）
@@ -213,7 +213,7 @@ function usPredict(twii, series, fx = null) {
   };
   const usable = models.filter((m) => m.pred != null && m.r > 0);
   if (!usable.length) {
-    return { ...out, available: false, reason: `美股 ${twLast.date} 的交易還沒收盤，早上 8 點更新後才有預測` };
+    return { ...out, available: false, reason: `美股 ${twLast.date} 的交易還沒收盤，早上 7:40 更新後才有預測` };
   }
   // 以 r² 加權平均各模型的預測
   const w = usable.map((m) => m.r * m.r), W = w.reduce((a, b) => a + b, 0);
