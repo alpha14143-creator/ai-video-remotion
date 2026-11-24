@@ -117,6 +117,7 @@
 <main>
   <!-- ========== 今日 10 檔 ========== -->
   <section class="tab" id="tab-picks">
+    <div id="healthMini"></div>
     <div id="fwMini"></div>
     <div id="usBox"></div>
     <div class="seg" id="pickSeg" style="display:none">
@@ -224,6 +225,8 @@
 
   <!-- ========== 設定 ========== -->
   <section class="tab" id="tab-settings">
+    <div id="healthBox"></div>
+    <div id="testlogBox"></div>
     <div class="card">
       <h2>資金與風險</h2>
       <div class="form-grid">
@@ -309,7 +312,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const pxFmt = p => p == null || p === '' ? '-' : (Number.isInteger(+p) ? fmt(+p) : fmt(+p, 2));
 
 /* ================= 分頁 ================= */
-const TAB_TITLES = { picks:'今日 10 檔', plan:'查價格', journal:'交易紀錄', backtest:'回測成績', settings:'設定' };
+const TAB_TITLES = { picks:'今日 10 檔', plan:'查價格', journal:'交易紀錄', backtest:'回測成績', settings:'設定與系統狀態' };
 function showTab(name) {
   if (!TAB_TITLES[name]) name = 'picks';
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === 'tab-' + name));
@@ -390,11 +393,13 @@ async function loadPicks() {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     picksData = await r.json();
     renderPicks();
+    renderHealth();
   } catch (e) {
     $('picksBox').innerHTML = `<div class="card"><h2>還沒有今日選股資料</h2>
       <p class="muted" style="line-height:1.7">今日 10 檔由每天早上 8 點的自動程式產生（GitHub Actions）。<br>
       如果是在電腦上直接打開 HTML 檔，請改用 <code>node server.js</code> 開啟，或先執行 <code>node scripts/daily-picks.js</code>。<br>
       「查價格」功能仍然可以使用。</p><div class="err small">${esc(e.message)}</div></div>`;
+    renderHealth();
   }
 }
 let pickFilter = '';
@@ -451,7 +456,7 @@ function renderPicks() {
   const d = picksData;
   const gen = new Date(d.generatedAt);
   const stale = (Date.now() - new Date(d.date + 'T14:30:00+08:00')) / 86400000 > 4;
-  $('topSub').textContent = `更新於 ${gen.toLocaleString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' })}・台股資料 ${d.date}`;
+  $('topSub').textContent = `更新於 ${gen.toLocaleString('zh-TW', { timeZone:'Asia/Taipei', month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false })}・台股資料 ${d.date}`;
   renderUs(d);
   $('pickSeg').style.display = d.picks.length ? '' : 'none';
   let html = '';
@@ -868,6 +873,7 @@ async function loadBacktest() {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     btData = await r.json();
     renderBacktest();
+    renderHealth();
     if (picksData) renderPicks();
   } catch (e) {
     $('btBox').innerHTML = `<div class="card"><p class="muted">還沒有回測資料（${esc(e.message)}）。在電腦執行 <code>node scripts/backtest.js</code> 產生。</p></div>`;
@@ -984,7 +990,7 @@ function renderBacktest() {
     • 沒有歷史的處置股、當沖資格資料，也沒有算融資融券利息、滑價。<br>
     • 過去的成績不代表未來，請用小部位實測。
   </div></div>
-  <p class="muted small center">回測更新於 ${new Date(d.generatedAt).toLocaleString('zh-TW')}</p>`;
+  <p class="muted small center">回測更新於 ${new Date(d.generatedAt).toLocaleString('zh-TW', { timeZone:'Asia/Taipei', hour12:false })}</p>`;
   $('btBox').innerHTML = html;
 }
 
@@ -997,6 +1003,7 @@ async function loadForward() {
     fwData = await r.json();
   } catch { fwData = null; }
   renderForward();
+  renderHealth();
 }
 const REASON = { stop:'停損', t1:'停利1', t2:'停利2', breakeven:'保本出', close:'收盤出', ma10:'破10日線', time:'到期出', open:'持有中' };
 const riskAmt = () => (settings.capital || 0) * (settings.risk || 0) / 100;
@@ -1113,6 +1120,81 @@ function renderForward() {
     </div></div>`;
 }
 
+/* ================= 系統狀態與測試紀錄 ================= */
+let testlog = null;
+async function loadTestlog() {
+  try { const r = await fetch('data/testlog.json?t=' + Date.now(), { cache:'no-store' }); if (r.ok) testlog = await r.json(); } catch {}
+  renderTestlog();
+}
+// 轉成台北時間的日期、時分、星期
+function tpe(d) {
+  const x = new Date(d.getTime() + 8 * 3600 * 1000);
+  return { date: x.toISOString().slice(0, 10), hm: x.toISOString().slice(11, 16), dow: x.getUTCDay() };
+}
+const tpeTxt = iso => { const t = tpe(new Date(iso)); return `${mmdd(t.date)} ${t.hm}`; };
+const ST_ICON = { pass:'✅', warn:'⚠️', fail:'❌', wait:'⏳' };
+function healthChecks() {
+  const out = [], add = (st, name, detail) => out.push({ st, name, detail });
+  const now = tpe(new Date()), weekday = now.dow >= 1 && now.dow <= 5;
+  if (!picksData) { add('fail', '今日選股資料', '讀不到資料'); return out; }
+  const gen = tpe(new Date(picksData.generatedAt));
+  if (weekday && now.hm >= '08:30' && gen.date < now.date)
+    add('warn', '今天早上的更新', `還沒執行，目前是 ${tpeTxt(picksData.generatedAt)} 的資料。如果今天是假日可以忽略`);
+  else add('pass', '最後更新', tpeTxt(picksData.generatedAt));
+  const m = picksData.market;
+  if (m && m.date === picksData.date) add('pass', '台股資料', `${mmdd(picksData.date)} 收盤，加權指數 ${fmt(m.close, 2)}`);
+  else add('warn', '台股資料', `個股是 ${mmdd(picksData.date)}，加權指數卻是 ${m ? mmdd(m.date) : '-'}，資料不一致`);
+  const us = picksData.us, usDate = us && us.indices && us.indices[0] && us.indices[0].date;
+  if (!usDate) add('warn', '美股資料', '讀不到');
+  else if (usDate >= picksData.date) add('pass', '美股資料', `${mmdd(usDate)} 收盤（台股收盤之後的最新美股）`);
+  else add('wait', '美股資料', `目前是 ${mmdd(usDate)} 收盤；${mmdd(picksData.date)} 晚上的美股還沒收盤`);
+  if (us && us.available) add('pass', '開盤預估', `${signed(us.predGap, 2)}%（約 ${fmt(us.predIndex)} 點）`);
+  else add('wait', '開盤預估', (us && us.reason) || '暫時沒有');
+  const n = picksData.picks.length;
+  add(n === 10 ? 'pass' : 'warn', '今日選股', `${n} 檔${n < 10 ? '（符合條件的股票不夠 10 檔）' : ''}`);
+  if (fwData) {
+    const fg = tpe(new Date(fwData.generatedAt));
+    const last = fwData.days.length ? mmdd(fwData.days[0].tradeDate) : '尚未開始';
+    if (weekday && now.hm >= '17:00' && fg.date < now.date)
+      add('warn', '實盤追蹤', `今天收盤後的評估還沒執行（最後評估 ${tpeTxt(fwData.generatedAt)}）`);
+    else add('pass', '實盤追蹤', `第 ${fwData.progress}/${fwData.window} 天，最新評估到 ${last} 的交易（${tpeTxt(fwData.generatedAt)}）`);
+  } else add('warn', '實盤追蹤', '讀不到資料');
+  if (btData) {
+    const days = (Date.now() - new Date(btData.generatedAt)) / 86400000;
+    add(days < 4 ? 'pass' : 'warn', '回測成績', `${tpeTxt(btData.generatedAt)} 更新${days >= 4 ? '，已經超過 4 天沒更新' : ''}`);
+  }
+  return out;
+}
+function renderHealth() {
+  const list = healthChecks();
+  const bad = list.filter(c => c.st === 'warn' || c.st === 'fail').length;
+  const waiting = list.filter(c => c.st === 'wait').length;
+  $('healthBox').innerHTML = `<div class="card"><h2>🩺 系統狀態 <span class="muted">每次打開網頁自動檢查</span></h2>
+    ${list.map(c => `<div class="trade"><div class="r1">${ST_ICON[c.st]} <b>${esc(c.name)}</b></div><div class="r2">${esc(c.detail)}</div></div>`).join('')}
+  </div>`;
+  $('healthMini').innerHTML = `<div class="card" onclick="showTab('settings')" style="cursor:pointer; padding:10px 14px">
+    <div style="display:flex; justify-content:space-between; align-items:center; font-size:14px">
+      <span>${bad ? `⚠️ <b>系統狀態：${bad} 項要注意</b>` : waiting ? `⏳ 資料正常，${waiting} 項等待中` : '✅ 資料都是最新的'}
+        <span class="muted small">・更新 ${picksData ? tpeTxt(picksData.generatedAt) : '-'}</span></span>
+      <span class="muted">›</span>
+    </div></div>`;
+}
+function renderTestlog() {
+  if (!testlog || !testlog.entries) { $('testlogBox').innerHTML = ''; return; }
+  const cnt = (tests, st) => tests.filter(t => t.result === st).length;
+  $('testlogBox').innerHTML = `<div class="card"><h2>🧪 測試紀錄 <span class="muted">Claude 每次修改時做的測試</span></h2>
+    <p class="muted small" style="margin-top:0">✅ 通過 ・ ⚠️ 通過但要注意 ・ ❌ 發現問題</p>
+    ${testlog.entries.map((e, i) => `<details ${i === 0 ? 'open' : ''} style="border-top:1px solid var(--line); padding:8px 0">
+      <summary style="font-weight:600; line-height:1.5">${mmdd(e.date)} ${esc(e.title)}
+        <span class="muted small">${['pass','warn','fail'].map(s => cnt(e.tests, s) ? `${ST_ICON[s]}${cnt(e.tests, s)}` : '').join(' ')}</span></summary>
+      ${e.tests.map(t => `<div class="trade">
+        <div class="r1">${ST_ICON[t.result] || ''} <b>${esc(t.name)}</b></div>
+        <div class="r2">測試方式：${esc(t.method)}<br>結果：${esc(t.detail)}</div>
+      </div>`).join('')}
+    </details>`).join('')}
+  </div>`;
+}
+
 /* ================= 初始化 ================= */
 form.openDate.value = today();
 loadSettingsForm();
@@ -1122,6 +1204,7 @@ showTab(localStorage.getItem('stockJournal.tab') || 'picks');
 loadPicks();
 loadBacktest();
 loadForward();
+loadTestlog();
 </script>
 </body>
 </html>
