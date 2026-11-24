@@ -244,12 +244,13 @@
       <h2>手續費 / 稅率</h2>
       <div class="form-grid">
         <label>手續費率 (%)<input id="sFeeRate" type="number" inputmode="decimal" step="0.0001"></label>
-        <label>手續費折扣（6 折填 0.6）<input id="sDiscount" type="number" inputmode="decimal" step="0.01" min="0" max="1"></label>
+        <label>手續費折扣（2.8 折填 0.28）<input id="sDiscount" type="number" inputmode="decimal" step="0.01" min="0" max="1"></label>
         <label>最低手續費（元）<input id="sMinFee" type="number" inputmode="numeric" step="1" min="0"></label>
         <label>一般證交稅 (%)<input id="sTax" type="number" inputmode="decimal" step="0.01"></label>
         <label>當沖證交稅 (%)<input id="sDayTax" type="number" inputmode="decimal" step="0.01"></label>
         <label>ETF 證交稅 (%)<input id="sEtfTax" type="number" inputmode="decimal" step="0.01"></label>
       </div>
+      <p class="muted small" style="margin-bottom:0; line-height:1.6">國泰證券電子下單：2.8 折、最低 1 元（日退，優惠期限 2026/12/31）。當沖證交稅 0.15%。如果你的折扣不同，請改成自己的數字再按「儲存設定」。</p>
     </div>
     <button class="primary block" onclick="saveSettings()">儲存設定</button>
 
@@ -297,13 +298,19 @@
 <script>
 const KEY = 'stockJournal.trades.v1';
 const SKEY = 'stockJournal.settings.v1';
-const DEFAULT_SETTINGS = { feeRate:0.1425, discount:1, minFee:20, tax:0.3, dayTax:0.15, etfTax:0.1, capital:500000, risk:1 };
+// 預設手續費：國泰證券電子下單 2.8 折、最低 1 元（優惠期限 2026/12/31，之後請到「設定」確認）
+const DEFAULT_SETTINGS = { feeRate:0.1425, discount:0.28, minFee:1, tax:0.3, dayTax:0.15, etfTax:0.1, capital:500000, risk:1 };
 
 let trades = JSON.parse(localStorage.getItem(KEY) || '[]');
 let settings = Object.assign({}, DEFAULT_SETTINGS,
   JSON.parse(localStorage.getItem('stockJournal.plan') || '{}'), // 舊版的本金設定
   JSON.parse(localStorage.getItem(SKEY) || '{}'));
 ['capital','risk'].forEach(k => settings[k] = +settings[k] || DEFAULT_SETTINGS[k]);
+// 舊版預設是「不打折、最低 20 元」；手機裡存的如果剛好是舊預設，改成國泰的 2.8 折。自己改過的數字不動
+if (!localStorage.getItem('stockJournal.feeMigrated')) {
+  if (+settings.discount === 1 && +settings.minFee === 20) { settings.discount = 0.28; settings.minFee = 1; localStorage.setItem(SKEY, JSON.stringify(settings)); }
+  localStorage.setItem('stockJournal.feeMigrated', '1');
+}
 let editingId = null, journalFilter = '';
 
 const $ = id => document.getElementById(id);
