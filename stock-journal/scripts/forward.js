@@ -18,7 +18,7 @@ const TRACK = process.env.TRACK_DIR || path.join(__dirname, '..', '..', 'track')
 const PICKS_DIR = path.join(TRACK, 'picks');
 const LATEST = path.join(TRACK, 'latest');
 const WINDOW = 20; // 4 週 = 20 個交易日
-const LATEST_FILES = ['picks.json', 'snapshot.json', 'backtest.json'];
+const LATEST_FILES = ['picks.json', 'snapshot.json', 'backtest.json', 'forward.json', 'orb.json'];
 
 const readJson = (f) => JSON.parse(fs.readFileSync(f, 'utf8'));
 const r2 = (v, d = 2) => (v == null || !isFinite(v) ? null : +v.toFixed(d));

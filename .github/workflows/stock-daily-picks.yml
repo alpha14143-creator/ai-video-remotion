@@ -1,5 +1,6 @@
 # 台股交易助手：
 #   早上 07:17 / 07:47 / 08:17（台北）選出「今日10檔」、更新回測，並發佈到 GitHub Pages
+#   早上 09:57 / 10:17（台北）抓當沖選股 09:00～09:30 的最高、最低價，自動填進網頁
 #   下午 14:47 / 16:17（台北，收盤後）評估實盤追蹤：用當天真實走勢模擬每一檔的結果
 #   GitHub 的排程偶爾會延遲或漏跑，所以每個時段排了備援；重複執行只會覆蓋同一天的資料，不會重複記錄
 # 實盤追蹤的紀錄存在 stock-data 分支（不會動到 main）
@@ -16,7 +17,16 @@ on:
     # 收盤後評估（UTC 週一～週五 = 台北 週一～週五）
     - cron: "47 6 * * 1-5"    # 台北 14:47
     - cron: "17 8 * * 1-5"    # 台北 16:17（備援）
-  workflow_dispatch:           # 可在 Actions 頁面手動執行（會重新選股）
+    # 開盤 30 分鐘最高最低價（Yahoo 延遲約 20 分鐘，09:52 以後才完整）
+    - cron: "57 1 * * 1-5"    # 台北 09:57
+    - cron: "17 2 * * 1-5"    # 台北 10:17（備援）
+  workflow_dispatch:           # 可在 Actions 頁面手動執行
+    inputs:
+      mode:
+        description: "full＝重新選股；orb＝只抓開盤 30 分鐘最高最低價；eval＝只做收盤評估"
+        type: choice
+        options: [full, orb, eval]
+        default: full
   push:
     branches: [main]
     paths: ["stock-journal/**", ".github/workflows/stock-daily-picks.yml"]
@@ -31,7 +41,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  EVAL_ONLY: ${{ github.event.schedule == '47 6 * * 1-5' || github.event.schedule == '17 8 * * 1-5' }}
+  EVAL_ONLY: ${{ github.event.schedule == '47 6 * * 1-5' || github.event.schedule == '17 8 * * 1-5' || inputs.mode == 'eval' }}
+  ORB_ONLY: ${{ github.event.schedule == '57 1 * * 1-5' || github.event.schedule == '17 2 * * 1-5' || inputs.mode == 'orb' }}
   TRACK_DIR: ${{ github.workspace }}/track
 
 jobs:
@@ -54,20 +65,26 @@ jobs:
           fi
 
       - name: 執行每日選股
-        if: env.EVAL_ONLY != 'true'
+        if: env.EVAL_ONLY != 'true' && env.ORB_ONLY != 'true'
         run: node stock-journal/scripts/daily-picks.js
       - name: 更新回測成績（失敗不影響今日選股）
-        if: env.EVAL_ONLY != 'true'
+        if: env.EVAL_ONLY != 'true' && env.ORB_ONLY != 'true'
         run: node stock-journal/scripts/backtest.js
         continue-on-error: true
         timeout-minutes: 10
       - name: 記錄今日選股
-        if: env.EVAL_ONLY != 'true'
+        if: env.EVAL_ONLY != 'true' && env.ORB_ONLY != 'true'
         run: node stock-journal/scripts/forward.js save
-      - name: 收盤評估：沿用早上的選股資料
-        if: env.EVAL_ONLY == 'true'
+      - name: 收盤評估、抓開盤區間：沿用早上的資料
+        if: env.EVAL_ONLY == 'true' || env.ORB_ONLY == 'true'
         run: node stock-journal/scripts/forward.js restore
+      - name: 抓開盤 30 分鐘最高最低價
+        if: env.ORB_ONLY == 'true'
+        run: |
+          node stock-journal/scripts/orb-levels.js
+          mkdir -p track/latest && cp stock-journal/data/orb.json track/latest/orb.json
       - name: 評估實盤追蹤
+        if: env.ORB_ONLY != 'true'
         run: node stock-journal/scripts/forward.js evaluate
         continue-on-error: true
 
