@@ -228,7 +228,7 @@ if (require.main === module) (async () => {
     return bars.length >= 150 ? { ...s, bars, idx: new Map(bars.map((b, i) => [b.date, i])) } : null;
   });
   const stocks = loaded.filter(Boolean);
-  const twii = await L.loadBars('^TWII', RANGE);
+  const twii = await L.loadTaiex(RANGE);
   const us = {};
   for (const [sym] of L.US_SYMBOLS) us[sym] = await L.loadBars(sym, RANGE);
   console.log(`取得 ${stocks.length} 檔，加權指數 ${twii.length} 天（${((Date.now() - t0) / 1000).toFixed(0)} 秒）`);

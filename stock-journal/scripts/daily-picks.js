@@ -100,6 +100,36 @@ async function loadBars(symbol, range = '6mo') {
   return bars.filter((b, i) => (i === bars.length - 1 || bars[i + 1].date !== b.date) && (!ASOF || b.date <= ASOF) && b.date !== partialToday);
 }
 
+// 加權指數：以證交所官方資料為主（Yahoo 偶爾會缺資料，例如 2026-11-23 收盤價是空的），Yahoo 補缺的日子
+async function loadTaiex(range = '1y') {
+  const months = { '1mo': 2, '3mo': 4, '6mo': 7, '1y': 13, '2y': 25 }[range] || 13;
+  const byDate = new Map();
+  try { for (const b of await loadBars('^TWII', range)) byDate.set(b.date, b); } catch (e) { console.warn('Yahoo 加權指數讀取失敗', e.message); }
+  let twseOk = 0;
+  const d = new Date(); d.setDate(1);
+  for (let k = 0; k < months; k++) {
+    const ds = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}01`;
+    try {
+      const j = await getJson(`https://www.twse.com.tw/indicesReport/MI_5MINS_HIST?response=json&date=${ds}`);
+      if (j.stat === 'OK' && j.data) {
+        twseOk++;
+        for (const row of j.data) {
+          const [y, m, dd] = row[0].trim().split('/');
+          const date = `${+y + 1911}-${m.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+          const [o, h, l, c] = row.slice(1, 5).map(num);
+          if ([o, h, l, c].every((v) => v > 0)) byDate.set(date, { date, open: o, high: h, low: l, close: c, vol: (byDate.get(date) || {}).vol || 0 });
+        }
+      }
+    } catch (e) { console.warn(`證交所加權指數 ${ds} 讀取失敗`, e.message); }
+    await sleep(300);
+    d.setMonth(d.getMonth() - 1);
+  }
+  if (!twseOk) console.warn('證交所加權指數全部讀取失敗，只用 Yahoo 資料');
+  const nowTpe = new Date(Date.now() + 8 * 3600 * 1000).toISOString();
+  const partialToday = nowTpe.slice(11, 16) < '13:35' ? nowTpe.slice(0, 10) : null;
+  return [...byDate.values()].filter((b) => (!ASOF || b.date <= ASOF) && b.date !== partialToday).sort((a, b) => a.date.localeCompare(b.date));
+}
+
 async function mapLimit(items, limit, fn) {
   const out = new Array(items.length);
   let next = 0;
@@ -304,11 +334,11 @@ function usNote(plan, estOpen, usBias) {
 }
 
 // ---------- 主程式 ----------
-module.exports = { getJson, loadUniverse, loadDisposal, loadBars, mapLimit, linreg, usPredict, stockBeta, screen, choose, US_SYMBOLS };
+module.exports = { getJson, loadUniverse, loadDisposal, loadBars, loadTaiex, mapLimit, linreg, usPredict, stockBeta, screen, choose, US_SYMBOLS };
 
 if (require.main === module) (async () => {
   const t0 = Date.now();
-  const [universe, disposal, twii] = await Promise.all([loadUniverse(), loadDisposal(), loadBars('^TWII', '1y')]);
+  const [universe, disposal, twii] = await Promise.all([loadUniverse(), loadDisposal(), loadTaiex('1y')]);
   console.log(`股票池 ${universe.length} 檔，處置股 ${disposal.size} 檔，加權指數 ${twii.length} 天`);
 
   const results = await mapLimit(universe, 6, async (s) => {

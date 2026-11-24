@@ -55,7 +55,7 @@ async function loadIntraday(code, market) {
 
 async function evaluate() {
   const files = fs.existsSync(PICKS_DIR) ? fs.readdirSync(PICKS_DIR).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort() : [];
-  const twii = await L.loadBars('^TWII', '6mo');
+  const twii = await L.loadTaiex('6mo');
   const tradeDates = twii.map((b) => b.date);
   const days = files.map((f) => {
     const p = readJson(path.join(PICKS_DIR, f));
