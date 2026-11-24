@@ -319,6 +319,11 @@ if (require.main === module) (async () => {
     if (!b5 || b5.length < 20) continue;
     intra.push({ ...t, ...evalDayIntraday(t.plan, b5) });
   }
+  // 研究用：DUMP_TRADES=檔名 時，把最近 60 天當沖選股和當天 5 分 K 存下來，給其他當沖方法比較
+  if (process.env.DUMP_TRADES) {
+    fs.writeFileSync(process.env.DUMP_TRADES, JSON.stringify(recent.filter((t) => intraday[t.code] && intraday[t.code][t.date])
+      .map((t) => ({ date: t.date, code: t.code, name: t.name, side: t.side, setup: t.setup, plan: t.plan, bars: intraday[t.code][t.date] }))));
+  }
 
   // ---------- 彙整 ----------
   const sel = (o) => trades.filter((t) => Object.entries(o).every(([k, v]) => t[k] === v));
