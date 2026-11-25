@@ -1,9 +1,10 @@
 {
  "date": "2026-11-25",
- "generatedAt": "2026-11-25T08:42:19.770Z",
+ "generatedAt": "2026-11-25T23:40:50.866Z",
  "shortBan": true,
  "us": {
-  "available": false
+  "available": true,
+  "predGap": -0.2
  },
  "picks": [
   {
@@ -25,11 +26,11 @@
     "valid": true,
     "rr": 1.38
    },
-   "estOpen": null,
+   "estOpen": 2145,
    "reasons": [
     "空頭趨勢，月線向下",
     "每日波動 5.6%",
-    "20 日均成交 974 億",
+    "20 日均成交 970 億",
     "近 5 日量增 1.3 倍"
    ]
   },
@@ -52,7 +53,7 @@
     "valid": true,
     "rr": 1.25
    },
-   "estOpen": null,
+   "estOpen": 163.5,
    "reasons": [
     "多頭趨勢，月線向上",
     "每日波動 3.2%",
@@ -79,11 +80,11 @@
     "valid": true,
     "rr": 1.65
    },
-   "estOpen": null,
+   "estOpen": 427,
    "reasons": [
     "空頭趨勢，月線向下",
     "每日波動 6.6%",
-    "20 日均成交 20.3 億",
+    "20 日均成交 20.2 億",
     "近 5 日量增 1.2 倍"
    ]
   },
@@ -106,7 +107,7 @@
     "valid": true,
     "rr": 1.64
    },
-   "estOpen": null,
+   "estOpen": 311,
    "reasons": [
     "多頭趨勢，月線向上",
     "每日波動 7.5%",
@@ -133,7 +134,7 @@
     "valid": true,
     "rr": 1.75
    },
-   "estOpen": null,
+   "estOpen": 100.5,
    "reasons": [
     "空頭趨勢，月線向下",
     "每日波動 6.5%",
@@ -160,7 +161,7 @@
     "valid": true,
     "rr": 1.93
    },
-   "estOpen": null,
+   "estOpen": 292,
    "reasons": [
     "多頭趨勢中拉回",
     "距 10 日線 +0.6 個 ATR",
@@ -186,7 +187,7 @@
     "valid": true,
     "rr": 1.75
    },
-   "estOpen": null,
+   "estOpen": 172.5,
    "reasons": [
     "多頭趨勢中拉回",
     "距 10 日線 +0.6 個 ATR",
@@ -212,7 +213,7 @@
     "valid": true,
     "rr": 1.67
    },
-   "estOpen": null,
+   "estOpen": 109.5,
    "reasons": [
     "多頭趨勢中拉回",
     "距 10 日線 -0.2 個 ATR",
@@ -238,7 +239,7 @@
     "valid": true,
     "rr": 1.96
    },
-   "estOpen": null,
+   "estOpen": 66.6,
    "reasons": [
     "多頭趨勢中拉回",
     "距 10 日線 +0.2 個 ATR",
@@ -264,7 +265,7 @@
     "valid": true,
     "rr": 1.91
    },
-   "estOpen": null,
+   "estOpen": 200,
    "reasons": [
     "多頭趨勢中拉回",
     "距 10 日線 +0.1 個 ATR",
