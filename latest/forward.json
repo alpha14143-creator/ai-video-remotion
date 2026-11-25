@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-25T05:43:22.228Z",
+ "generatedAt": "2026-11-25T06:50:53.174Z",
  "window": 20,
  "start": "2026-11-23",
  "progress": 3,
@@ -30,7 +30,7 @@
   },
   "swingOpen": {
    "n": 6,
-   "R": 4.01
+   "R": 3.84
   },
   "totalR": -4.61
  },
@@ -71,11 +71,11 @@
       "stop": 2090,
       "exits": [
        {
-        "px": 2145,
+        "px": 2150,
         "w": 1
        }
       ],
-      "R": -0.23,
+      "R": -0.15,
       "reason": "close",
       "H": 2155,
       "L": 2090
@@ -212,13 +212,13 @@
      "t1": 61.7,
      "t2": 66,
      "status": "open",
-     "R": -0.05,
-     "ret": -0.38,
+     "R": -0.07,
+     "ret": -0.57,
      "reason": "open",
      "hold": 0,
      "fill": 52.6,
      "exits": null,
-     "lastClose": 52.6,
+     "lastClose": 52.5,
      "orb": null
     },
     {
@@ -232,13 +232,13 @@
      "t1": 179,
      "t2": 187,
      "status": "open",
-     "R": 0.05,
-     "ret": 0.23,
+     "R": -0.08,
+     "ret": -0.38,
      "reason": "open",
      "hold": 0,
      "fill": 163.5,
      "exits": null,
-     "lastClose": 164.5,
+     "lastClose": 163.5,
      "orb": null
     },
     {
@@ -543,13 +543,13 @@
      "t1": 18.35,
      "t2": 16.6,
      "status": "open",
-     "R": 1.37,
-     "ret": 10.86,
+     "R": 1.4,
+     "ret": 11.08,
      "reason": "open",
      "hold": 1,
      "fill": 22.7,
      "exits": null,
-     "lastClose": 20.15,
+     "lastClose": 20.1,
      "orb": null
     },
     {
@@ -764,13 +764,13 @@
      "t1": 90.3,
      "t2": 81.7,
      "status": "open",
-     "R": 0.12,
-     "ret": 1.02,
+     "R": 0.07,
+     "ret": 0.55,
      "reason": "open",
      "hold": 0,
      "fill": 107.5,
      "exits": null,
-     "lastClose": 106,
+     "lastClose": 106.5,
      "orb": null
     },
     {
