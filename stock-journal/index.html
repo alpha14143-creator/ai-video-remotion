@@ -464,6 +464,17 @@ function renderUs(d) {
   }
   $('usBox').innerHTML = html;
 }
+// 這檔股票在前面幾個交易日連續入選了幾天（同一類：當沖或短線），資料來自實盤測試紀錄
+function streakOf(pk) {
+  if (!fwData || !fwData.days) return 0;
+  let n = 0;
+  for (const day of fwData.days) { // 最新的交易日在前面
+    if (day.dataDate >= picksData.date) continue;
+    if (day.rows.some(r => r.code === pk.code && r.kind === pk.kind)) n++; else break;
+  }
+  return n;
+}
+const streakChip = pk => { const n = streakOf(pk); return n ? `<span class="chip">🔁 連續 ${n + 1} 天入選</span>` : ''; };
 function renderPicks() {
   const d = picksData;
   const gen = new Date(d.generatedAt);
@@ -489,7 +500,7 @@ function renderPicks() {
         <div class="px"><div class="muted small">昨收</div><b class="${cls(chg)}">${pxFmt(x.last.close)}</b><div class="small ${cls(chg)}">${signed(chg,2)}%</div>
           ${pk.estOpen ? `<div class="small" style="margin-top:4px">預估開 <b class="${cls(pk.estOpen - x.last.close)}">${pxFmt(pk.estOpen)}</b></div>` : ''}</div>
       </div>
-      <div class="chips">${pk.reasons.map(r => `<span class="chip">${esc(r)}</span>`).join('')}</div>
+      <div class="chips">${streakChip(pk)}${pk.reasons.map(r => `<span class="chip">${esc(r)}</span>`).join('')}</div>
       ${confLine(pk)}
       ${pk.kind !== 'daytrade' && notes.length ? `<div class="small" style="margin-top:8px; line-height:1.6">${notes.map(n => `<div>${esc(n)}</div>`).join('')}</div>` : ''}
       ${pk.kind === 'daytrade' ? orbCard(pk) : planCard(p, { dimBad:false })}
@@ -498,7 +509,9 @@ function renderPicks() {
   });
   html += `<p class="muted small center" style="line-height:1.6">✅ 建議：把握 80% 以上 ・ 👀 只觀察：還沒到 80%，先看不要下單<br>
     當沖：用開盤 30 分鐘突破法，09:30 後才進場，13:25 前平倉。<br>
-    短線：條件成立才進場，收盤跌破停損就出場。<br>這是技術面的機械篩選，不是投資建議。</p>`;
+    短線：條件成立才進場，收盤跌破停損就出場。<br>
+    🔁 同一檔連續入選是正常的：回測顯示，開盤突破法用在成交量大、趨勢明確的股票效果最好；強制每天換股，成績反而變差。<br>
+    這是技術面的機械篩選，不是投資建議。</p>`;
   $('picksBox').innerHTML = html;
   d.picks.filter(pk => pk.kind === 'daytrade').forEach(pk => orbCalc(pk.code));
 }
@@ -1164,6 +1177,7 @@ async function loadForward() {
   } catch { fwData = null; }
   renderForward();
   renderHealth();
+  if (picksData) renderPicks();
 }
 const REASON = { stop:'停損出場', t1:'到停利1', t2:'到停利2', breakeven:'保本出場', close:'收盤出場', ma10:'跌破10日線出場', time:'到期出場', open:'持有中' };
 const riskAmt = () => (settings.capital || 0) * (settings.risk || 0) / 100;
