@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-25T23:41:56.024Z",
+ "generatedAt": "2026-11-26T05:04:04.389Z",
  "window": 20,
  "start": "2026-11-23",
  "progress": 3,
@@ -35,8 +35,8 @@
   "totalR": -4.61
  },
  "backtest": {
-  "daytradeExpR": -0.128,
-  "daytradeWin": 40,
+  "daytradeExpR": -0.125,
+  "daytradeWin": 40.3,
   "swingExpR": 0.222,
   "swingWin": 48.8
  },
@@ -71,11 +71,11 @@
       "stop": 2090,
       "exits": [
        {
-        "px": 2150,
+        "px": 2145,
         "w": 1
        }
       ],
-      "R": -0.15,
+      "R": -0.23,
       "reason": "close",
       "H": 2155,
       "L": 2090
