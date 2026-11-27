@@ -1,6 +1,6 @@
 {
  "date": "2026-11-26",
- "generatedAt": "2026-11-26T23:40:51.971Z",
+ "generatedAt": "2026-11-27T05:02:47.075Z",
  "market": {
   "close": 39151.81,
   "chg": 2.5,
@@ -49,7 +49,7 @@
     "chg": -1.96
    }
   ],
-  "fx": 32.92,
+  "fx": 32.96,
   "twDate": "2026-11-26",
   "window": 60,
   "models": [
@@ -92,7 +92,7 @@
   ],
   "available": false,
   "reason": "美股 2026-11-26 的交易還沒收盤，早上 7:40 更新後才有預測",
-  "adrPremium": 5.1
+  "adrPremium": 5.2
  },
  "shortBan": true,
  "candidates": {
@@ -130,7 +130,7 @@
    "estOpen": null,
    "usNotes": [],
    "x": {
-    "n": 127,
+    "n": 126,
     "last": {
      "date": "2026-11-26",
      "open": 164.5,
@@ -195,7 +195,7 @@
    "estOpen": null,
    "usNotes": [],
    "x": {
-    "n": 127,
+    "n": 126,
     "last": {
      "date": "2026-11-26",
      "open": 87.4,
@@ -259,7 +259,7 @@
    "estOpen": null,
    "usNotes": [],
    "x": {
-    "n": 127,
+    "n": 126,
     "last": {
      "date": "2026-11-26",
      "open": 40,
@@ -324,7 +324,7 @@
    "estOpen": null,
    "usNotes": [],
    "x": {
-    "n": 127,
+    "n": 126,
     "last": {
      "date": "2026-11-26",
      "open": 776,
@@ -389,7 +389,7 @@
    "estOpen": null,
    "usNotes": [],
    "x": {
-    "n": 127,
+    "n": 126,
     "last": {
      "date": "2026-11-26",
      "open": 100.5,
@@ -453,7 +453,7 @@
    "estOpen": null,
    "usNotes": [],
    "x": {
-    "n": 127,
+    "n": 126,
     "last": {
      "date": "2026-11-26",
      "open": 110,
@@ -517,7 +517,7 @@
    "estOpen": null,
    "usNotes": [],
    "x": {
-    "n": 127,
+    "n": 126,
     "last": {
      "date": "2026-11-26",
      "open": 290.5,
@@ -581,7 +581,7 @@
    "estOpen": null,
    "usNotes": [],
    "x": {
-    "n": 127,
+    "n": 126,
     "last": {
      "date": "2026-11-26",
      "open": 53,
@@ -645,7 +645,7 @@
    "estOpen": null,
    "usNotes": [],
    "x": {
-    "n": 127,
+    "n": 126,
     "last": {
      "date": "2026-11-26",
      "open": 65.3,
@@ -709,7 +709,7 @@
    "estOpen": null,
    "usNotes": [],
    "x": {
-    "n": 127,
+    "n": 126,
     "last": {
      "date": "2026-11-26",
      "open": 57.3,

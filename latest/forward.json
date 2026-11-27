@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-26T23:42:00.605Z",
+ "generatedAt": "2026-11-27T05:04:24.254Z",
  "window": 20,
  "start": "2026-11-23",
  "progress": 4,
@@ -10,11 +10,11 @@
    "n": 5,
    "fillRate": 25,
    "winRate": 60,
-   "avgWinR": 1.15,
-   "avgLossR": -1.03,
-   "expR": 0.28,
-   "expRet": 0.402,
-   "pf": 1.68
+   "avgWinR": 1.28,
+   "avgLossR": -0.95,
+   "expR": 0.388,
+   "expRet": 0.612,
+   "pf": 2.03
   },
   "swing": {
    "signals": 6,
@@ -32,11 +32,11 @@
    "n": 9,
    "R": 3.97
   },
-  "totalR": -4.79
+  "totalR": -4.25
  },
  "backtest": {
-  "daytradeExpR": -0.125,
-  "daytradeWin": 40.3,
+  "daytradeExpR": -0.105,
+  "daytradeWin": 42.2,
   "swingExpR": 0.23,
   "swingWin": 49.3
  },
@@ -71,11 +71,11 @@
       "stop": 2130,
       "exits": [
        {
-        "px": 2145,
+        "px": 2155,
         "w": 1
        }
       ],
-      "R": -0.71,
+      "R": -0.43,
       "reason": "close",
       "H": 2165,
       "L": 2130
@@ -122,14 +122,14 @@
      "t1": 425,
      "t2": 411,
      "status": "filled",
-     "R": -0.94,
-     "ret": -1.82,
+     "R": -0.77,
+     "ret": -1.48,
      "reason": "close",
      "hold": null,
      "fill": 439,
      "exits": [
       {
-       "px": 446,
+       "px": 444.5,
        "w": 1
       }
      ],
@@ -141,11 +141,11 @@
       "stop": 426,
       "exits": [
        {
-        "px": 446,
+        "px": 444.5,
         "w": 1
        }
       ],
-      "R": -0.05,
+      "R": -0.13,
       "reason": "close",
       "H": 446,
       "L": 426
@@ -192,9 +192,9 @@
      "t1": 101,
      "t2": 97.8,
      "status": "filled",
-     "R": 0.76,
-     "ret": 1.45,
-     "reason": "breakeven",
+     "R": 1.13,
+     "ret": 2.16,
+     "reason": "t1",
      "hold": null,
      "fill": 104.5,
      "exits": [
@@ -203,7 +203,7 @@
        "w": 0.5
       },
       {
-       "px": 104.5,
+       "px": 103,
        "w": 0.5
       }
      ],

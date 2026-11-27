@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-26T23:41:52.871Z",
+ "generatedAt": "2026-11-27T05:04:11.116Z",
  "period": {
   "from": "2025-05-21",
   "to": "2026-11-26",
@@ -461,20 +461,20 @@
    "runs": 10000,
    "trades": 100,
    "ret": {
-    "p5": -27.5,
-    "p25": -19.1,
-    "p50": -12.6,
-    "p75": -5.3,
-    "p95": 6.4
+    "p5": -26.2,
+    "p25": -17.7,
+    "p50": -10.8,
+    "p75": -3.2,
+    "p95": 8.6
    },
    "mdd": {
-    "p50": 18,
-    "p95": 29.9
+    "p50": 17.1,
+    "p95": 28.9
    },
-   "probLoss": 87.4,
-   "probDD20": 39.2,
-   "probEdge": 19.4,
-   "sampleN": 67
+   "probLoss": 83.5,
+   "probDD20": 34,
+   "probEdge": 24.3,
+   "sampleN": 64
   },
   "swing": {
    "runs": 10000,
@@ -499,20 +499,20 @@
    "runs": 10000,
    "trades": 100,
    "ret": {
-    "p5": -6.3,
-    "p25": 9.1,
-    "p50": 22.3,
+    "p5": -6.9,
+    "p25": 9.6,
+    "p50": 22.2,
     "p75": 36.3,
-    "p95": 59.5
+    "p95": 60.9
    },
    "mdd": {
     "p50": 10.8,
-    "p95": 20.1
+    "p95": 20.4
    },
-   "probLoss": 10.9,
-   "probDD20": 5.2,
+   "probLoss": 11.2,
+   "probDD20": 5.4,
    "probEdge": 100,
-   "sampleN": 1446
+   "sampleN": 1443
   }
  },
  "swingSide": {
@@ -550,54 +550,54 @@
   "n": 108387
  },
  "intraday": {
-  "from": "2026-09-30",
-  "n": 195,
+  "from": "2026-10-01",
+  "n": 190,
   "exact": {
-   "signals": 195,
-   "n": 67,
+   "signals": 190,
+   "n": 64,
    "fillRate": 34,
-   "winRate": 40.3,
+   "winRate": 42.2,
    "avgWinR": 1.13,
-   "avgLossR": -0.97,
-   "expR": -0.125,
-   "expRet": -0.301,
-   "pf": 0.79
+   "avgLossR": -1.01,
+   "expR": -0.105,
+   "expRet": -0.273,
+   "pf": 0.82
   },
   "dailyPess": {
-   "signals": 195,
-   "n": 68,
-   "fillRate": 35,
-   "winRate": 23.5,
-   "avgWinR": 1.19,
+   "signals": 190,
+   "n": 65,
+   "fillRate": 34,
+   "winRate": 23.1,
+   "avgWinR": 1.22,
    "avgLossR": -1.14,
-   "expR": -0.592,
-   "expRet": -1.006,
+   "expR": -0.596,
+   "expRet": -1.016,
    "pf": 0.32
   },
   "dailyOpt": {
-   "signals": 195,
-   "n": 68,
-   "fillRate": 35,
-   "winRate": 64.7,
-   "avgWinR": 1.36,
+   "signals": 190,
+   "n": 65,
+   "fillRate": 34,
+   "winRate": 66.2,
+   "avgWinR": 1.38,
    "avgLossR": -1.13,
-   "expR": 0.482,
-   "expRet": 0.781,
-   "pf": 2.21
+   "expR": 0.527,
+   "expRet": 0.854,
+   "pf": 2.37
   },
-  "exactEdge": 19.4,
+  "exactEdge": 24.3,
   "orb": {
-   "signals": 195,
-   "n": 150,
-   "fillRate": 77,
-   "winRate": 51.3,
-   "avgWinR": 0.54,
+   "signals": 190,
+   "n": 145,
+   "fillRate": 76,
+   "winRate": 51,
+   "avgWinR": 0.53,
    "avgLossR": -0.54,
-   "expR": 0.015,
-   "expRet": 0.015,
-   "pf": 1.06
+   "expR": 0.005,
+   "expRet": 0.005,
+   "pf": 1.02
   },
-  "orbEdge": 60.5
+  "orbEdge": 53.3
  },
  "reasons": {
   "daytrade": {
