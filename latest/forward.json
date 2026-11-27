@@ -1,14 +1,14 @@
 {
- "generatedAt": "2026-11-27T05:26:27.045Z",
+ "generatedAt": "2026-11-27T06:50:49.952Z",
  "window": 20,
  "start": "2026-11-23",
- "progress": 4,
- "lastTradeDate": "2026-11-26",
+ "progress": 5,
+ "lastTradeDate": "2026-11-27",
  "summary": {
   "daytrade": {
-   "signals": 20,
+   "signals": 25,
    "n": 5,
-   "fillRate": 25,
+   "fillRate": 20,
    "winRate": 60,
    "avgWinR": 1.28,
    "avgLossR": -0.95,
@@ -17,9 +17,9 @@
    "pf": 2.03
   },
   "swing": {
-   "signals": 6,
+   "signals": 9,
    "n": 4,
-   "fillRate": 67,
+   "fillRate": 44,
    "winRate": 0,
    "avgWinR": null,
    "avgLossR": -1.55,
@@ -29,8 +29,8 @@
    "hold": 0.8
   },
   "swingOpen": {
-   "n": 9,
-   "R": 3.97
+   "n": 11,
+   "R": 3.26
   },
   "totalR": -4.25
  },
@@ -41,6 +41,283 @@
   "swingWin": 49.3
  },
  "days": [
+  {
+   "dataDate": "2026-11-26",
+   "tradeDate": "2026-11-27",
+   "usPredGap": null,
+   "rows": [
+    {
+     "code": "2412",
+     "name": "中華電",
+     "kind": "daytrade",
+     "label": "做多・回測支撐",
+     "side": "long",
+     "entry": 164,
+     "stop": 162,
+     "t1": 166.5,
+     "t2": 169,
+     "status": "nofill",
+     "R": null,
+     "ret": null,
+     "reason": null,
+     "hold": null,
+     "fill": null,
+     "exits": null,
+     "lastClose": null,
+     "orb": {
+      "status": "filled",
+      "side": "long",
+      "fill": 168.5,
+      "stop": 166,
+      "exits": [
+       {
+        "px": 166,
+        "w": 1
+       }
+      ],
+      "R": -1.15,
+      "reason": "stop",
+      "H": 168.5,
+      "L": 166
+     }
+    },
+    {
+     "code": "2303",
+     "name": "聯電",
+     "kind": "daytrade",
+     "label": "做空・反彈遇壓",
+     "side": "short",
+     "entry": 90.9,
+     "stop": 93.1,
+     "t1": 87.5,
+     "t2": 84.1,
+     "status": "nofill",
+     "R": null,
+     "ret": null,
+     "reason": null,
+     "hold": null,
+     "fill": null,
+     "exits": null,
+     "lastClose": null,
+     "orb": {
+      "status": "nofill",
+      "side": null,
+      "fill": null,
+      "stop": null,
+      "exits": null,
+      "R": null,
+      "reason": null,
+      "H": 90,
+      "L": 87.8
+     }
+    },
+    {
+     "code": "2884",
+     "name": "玉山金",
+     "kind": "daytrade",
+     "label": "做空・反彈遇壓",
+     "side": "short",
+     "entry": 40.6,
+     "stop": 41.2,
+     "t1": 39.6,
+     "t2": 38.6,
+     "status": "nofill",
+     "R": null,
+     "ret": null,
+     "reason": null,
+     "hold": null,
+     "fill": null,
+     "exits": null,
+     "lastClose": null,
+     "orb": {
+      "status": "filled",
+      "side": "long",
+      "fill": 40.349998474121094,
+      "stop": 39.599998474121094,
+      "exits": [
+       {
+        "px": 39.6,
+        "w": 1
+       }
+      ],
+      "R": -1.12,
+      "reason": "stop",
+      "H": 40.35,
+      "L": 39.6
+     }
+    },
+    {
+     "code": "2357",
+     "name": "華碩",
+     "kind": "daytrade",
+     "label": "做空・反彈遇壓",
+     "side": "short",
+     "entry": 810,
+     "stop": 824,
+     "t1": 787,
+     "t2": 763,
+     "status": "nofill",
+     "R": null,
+     "ret": null,
+     "reason": null,
+     "hold": null,
+     "fill": null,
+     "exits": null,
+     "lastClose": null,
+     "orb": {
+      "status": "filled",
+      "side": "long",
+      "fill": 798,
+      "stop": 787,
+      "exits": [
+       {
+        "px": 799,
+        "w": 1
+       }
+      ],
+      "R": -0.08,
+      "reason": "close",
+      "H": 798,
+      "L": 787
+     }
+    },
+    {
+     "code": "2882",
+     "name": "國泰金",
+     "kind": "daytrade",
+     "label": "做空・反彈遇壓",
+     "side": "short",
+     "entry": 106,
+     "stop": 108,
+     "t1": 103,
+     "t2": 100,
+     "status": "nofill",
+     "R": null,
+     "ret": null,
+     "reason": null,
+     "hold": null,
+     "fill": null,
+     "exits": null,
+     "lastClose": null,
+     "orb": {
+      "status": "filled",
+      "side": "long",
+      "fill": 104.5,
+      "stop": 102,
+      "exits": [
+       {
+        "px": 102,
+        "w": 1
+       }
+      ],
+      "R": -1.09,
+      "reason": "stop",
+      "H": 104.5,
+      "L": 102
+     }
+    },
+    {
+     "code": "2254",
+     "name": "巨鎧精密-創",
+     "kind": "swing",
+     "label": "做多・拉回買",
+     "side": "long",
+     "entry": 110,
+     "stop": 108.5,
+     "t1": 112.5,
+     "t2": 113.5,
+     "status": "waiting",
+     "R": null,
+     "ret": null,
+     "reason": null,
+     "hold": null,
+     "fill": null,
+     "exits": null,
+     "lastClose": null,
+     "orb": null
+    },
+    {
+     "code": "7765",
+     "name": "中華資安",
+     "kind": "swing",
+     "label": "做多・拉回買",
+     "side": "long",
+     "entry": 284,
+     "stop": 261,
+     "t1": 329,
+     "t2": 352,
+     "status": "open",
+     "R": 0.28,
+     "ret": 2.25,
+     "reason": "open",
+     "hold": 0,
+     "fill": 284,
+     "exits": null,
+     "lastClose": 291.5,
+     "orb": null
+    },
+    {
+     "code": "9933",
+     "name": "中鼎",
+     "kind": "swing",
+     "label": "做多・拉回買",
+     "side": "long",
+     "entry": 53.9,
+     "stop": 49.6,
+     "t1": 62.3,
+     "t2": 66.6,
+     "status": "waiting",
+     "R": null,
+     "ret": null,
+     "reason": null,
+     "hold": null,
+     "fill": null,
+     "exits": null,
+     "lastClose": null,
+     "orb": null
+    },
+    {
+     "code": "2471",
+     "name": "資通",
+     "kind": "swing",
+     "label": "做多・拉回買",
+     "side": "long",
+     "entry": 65.6,
+     "stop": 60.3,
+     "t1": 76,
+     "t2": 81.2,
+     "status": "open",
+     "R": -0.35,
+     "ret": -2.81,
+     "reason": "open",
+     "hold": 0,
+     "fill": 65.6,
+     "exits": null,
+     "lastClose": 64,
+     "orb": null
+    },
+    {
+     "code": "2355",
+     "name": "敬鵬",
+     "kind": "swing",
+     "label": "做多・拉回買",
+     "side": "long",
+     "entry": 57.1,
+     "stop": 52.5,
+     "t1": 66.2,
+     "t2": 70.7,
+     "status": "waiting",
+     "R": null,
+     "ret": null,
+     "reason": null,
+     "hold": null,
+     "fill": null,
+     "exits": null,
+     "lastClose": null,
+     "orb": null
+    }
+   ]
+  },
   {
    "dataDate": "2026-11-25",
    "tradeDate": "2026-11-26",
@@ -271,13 +548,13 @@
      "t1": 112,
      "t2": 113.5,
      "status": "open",
-     "R": 0.39,
-     "ret": 0.53,
+     "R": 0.72,
+     "ret": 0.99,
      "reason": "open",
-     "hold": 0,
+     "hold": 1,
      "fill": 109.5,
      "exits": null,
-     "lastClose": 110.5,
+     "lastClose": 111,
      "orb": null
     },
     {
@@ -291,13 +568,13 @@
      "t1": 75.8,
      "t2": 81.1,
      "status": "open",
-     "R": 0.1,
-     "ret": 0.84,
+     "R": -0.29,
+     "ret": -2.36,
      "reason": "open",
-     "hold": 0,
+     "hold": 1,
      "fill": 65.3,
      "exits": null,
-     "lastClose": 66.1,
+     "lastClose": 64,
      "orb": null
     },
     {
@@ -311,13 +588,13 @@
      "t1": 230.5,
      "t2": 246,
      "status": "open",
-     "R": 0.02,
-     "ret": 0.13,
+     "R": -0.23,
+     "ret": -1.91,
      "reason": "open",
-     "hold": 0,
+     "hold": 1,
      "fill": 195,
      "exits": null,
-     "lastClose": 196,
+     "lastClose": 192,
      "orb": null
     }
    ]
@@ -493,13 +770,13 @@
      "t1": 61.7,
      "t2": 66,
      "status": "open",
-     "R": 0.48,
-     "ret": 3.98,
+     "R": 0.3,
+     "ret": 2.46,
      "reason": "open",
-     "hold": 1,
+     "hold": 2,
      "fill": 52.6,
      "exits": null,
-     "lastClose": 54.9,
+     "lastClose": 54.1,
      "orb": null
     },
     {
@@ -513,13 +790,13 @@
      "t1": 179,
      "t2": 187,
      "status": "open",
-     "R": 0.3,
-     "ret": 1.45,
+     "R": 0.17,
+     "ret": 0.84,
      "reason": "open",
-     "hold": 1,
+     "hold": 2,
      "fill": 163.5,
      "exits": null,
-     "lastClose": 166.5,
+     "lastClose": 165.5,
      "orb": null
     },
     {
@@ -532,7 +809,7 @@
      "stop": 250,
      "t1": 315,
      "t2": 337,
-     "status": "waiting",
+     "status": "nofill",
      "R": null,
      "ret": null,
      "reason": null,
@@ -552,7 +829,7 @@
      "stop": 257.5,
      "t1": 325,
      "t2": 347.5,
-     "status": "waiting",
+     "status": "nofill",
      "R": null,
      "ret": null,
      "reason": null,
@@ -572,7 +849,7 @@
      "stop": 53.7,
      "t1": 41.75,
      "t2": 37.75,
-     "status": "waiting",
+     "status": "nofill",
      "R": null,
      "ret": null,
      "reason": null,
@@ -804,13 +1081,13 @@
      "t1": 181,
      "t2": 164,
      "status": "open",
-     "R": 0.86,
-     "ret": 6.53,
+     "R": 0.95,
+     "ret": 7.18,
      "reason": "open",
-     "hold": 2,
+     "hold": 3,
      "fill": 231.5,
      "exits": null,
-     "lastClose": 215.5,
+     "lastClose": 214,
      "orb": null
     },
     {
@@ -824,13 +1101,13 @@
      "t1": 18.35,
      "t2": 16.6,
      "status": "open",
-     "R": 1.42,
-     "ret": 11.3,
+     "R": 1.56,
+     "ret": 12.4,
      "reason": "open",
-     "hold": 2,
+     "hold": 3,
      "fill": 22.7,
      "exits": null,
-     "lastClose": 20.05,
+     "lastClose": 19.8,
      "orb": null
     },
     {
@@ -844,13 +1121,13 @@
      "t1": 3205,
      "t2": 2900,
      "status": "open",
-     "R": 1.06,
-     "ret": 8.14,
+     "R": 1.14,
+     "ret": 8.76,
      "reason": "open",
-     "hold": 2,
+     "hold": 3,
      "fill": 4050,
      "exits": null,
-     "lastClose": 3705,
+     "lastClose": 3680,
      "orb": null
     }
    ]
@@ -1045,13 +1322,13 @@
      "t1": 90.3,
      "t2": 81.7,
      "status": "open",
-     "R": -0.66,
-     "ret": -5.5,
+     "R": -0.99,
+     "ret": -8.29,
      "reason": "open",
-     "hold": 1,
+     "hold": 2,
      "fill": 107.5,
      "exits": null,
-     "lastClose": 113,
+     "lastClose": 116,
      "orb": null
     },
     {
@@ -1152,10 +1429,5 @@
    ]
   }
  ],
- "pending": [
-  {
-   "dataDate": "2026-11-26",
-   "n": 10
-  }
- ]
+ "pending": []
 }
